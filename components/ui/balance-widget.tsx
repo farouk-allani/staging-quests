@@ -36,9 +36,15 @@ export function BalanceWidget({
   const [showSettings, setShowSettings] = useState(false);
 
   // Enhanced balance calculations
-  const pointsBalance = user?.points || 0;
+  const pointsBalance = user?.total_points || user?.points || 0;
   const dollarBalance = (pointsBalance * conversionRate).toFixed(3);
   const isPositiveBalance = pointsBalance > 0;
+
+  // Debug logging
+  console.log('BalanceWidget - User object:', user);
+  console.log('BalanceWidget - Points balance:', pointsBalance);
+  console.log('BalanceWidget - total_points:', user?.total_points);
+  console.log('BalanceWidget - points:', user?.points);
 
   // Load saved configuration
   useEffect(() => {

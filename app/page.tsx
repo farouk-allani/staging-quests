@@ -21,10 +21,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import useStore from '@/lib/store';
 
 export default function Dashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { setUser } = useStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [featuredQuests, setFeaturedQuests] = useState<Quest[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -35,8 +37,9 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const user = session?.user?.userData as User | undefined;
+  const user = currentUser || (session?.user?.userData as User | undefined);
   const isAuthenticated = !!session && !!user;
 
   const handleQuestSelect = (questId: string) => {
@@ -56,6 +59,21 @@ export default function Dashboard() {
 
         // Load basic data for both authenticated and non-authenticated users
         const token = session?.user?.token;
+        
+        // Fetch fresh user profile if authenticated
+        if (session && token) {
+          try {
+            const userProfile = await QuestService.getCurrentUser(token);
+            if (userProfile) {
+              setCurrentUser(userProfile);
+              // Update the store with fresh user data
+              setUser(userProfile);
+            }
+          } catch (error) {
+            console.error('Failed to fetch user profile:', error);
+          }
+        }
+        
         const [statsData, questsData, completionsData] = await Promise.all([
           QuestService.getDashboardStats(token).catch(() => null),
           QuestService.getQuests(undefined, token).catch(() => []),
@@ -127,7 +145,9 @@ export default function Dashboard() {
 
   // Debug logging
   console.log('Dashboard render - Session status:', status);
-  console.log('Dashboard render - User state:', user);
+  console.log('Dashboard render - Current user from state:', currentUser);
+  console.log('Dashboard render - Session user data:', session?.user?.userData);
+  console.log('Dashboard render - Final user object:', user);
   console.log('Dashboard render - Is authenticated:', isAuthenticated);
 
   if (!isAuthenticated) {
@@ -214,7 +234,14 @@ export default function Dashboard() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent font-mono">
-                  Welcome back, {user?.name}!
+                  Welcome back, {(() => {
+                    console.log('Rendering name - user:', user);
+                    console.log('firstName:', user?.firstName, 'lastName:', user?.lastName);
+                    if (user?.firstName && user?.lastName) {
+                      return `${user.firstName} ${user.lastName}`;
+                    }
+                    return user?.username || user?.name || 'User';
+                  })()}!
                 </h1>
               </div>
               <p className="text-muted-foreground font-mono text-sm">
@@ -223,7 +250,7 @@ export default function Dashboard() {
             </div>
             <div className="text-right bg-gradient-to-br from-primary/5 to-cyan-500/5 p-4 rounded-lg border border-dashed border-primary/20">
               <div className="text-3xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                {user?.total_points?.toLocaleString() || 0}
+                {(user?.total_points || user?.points || 0).toLocaleString()}
               </div>
               <div className="text-muted-foreground text-sm font-mono">TOTAL_POINTS</div>
             </div>
