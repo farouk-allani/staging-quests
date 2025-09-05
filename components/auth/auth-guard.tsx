@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { tokenStorage } from '@/lib/api/client';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -14,34 +14,12 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
-  const [isLoading, setIsLoading] = useState(false); // Start with false to prevent flash
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Check authentication status immediately during component initialization
-  // This prevents the login page flash by checking auth before rendering anything
-  useEffect(() => {
-    // Check if we already have auth state to avoid unnecessary processing
-    const token = tokenStorage.getAccessToken();
-    
-    if (!token) {
-      setIsAuthenticated(false);
-      setIsLoading(false);
-      return;
-    }
-
-    // If we have a token, consider the user authenticated immediately
-    setIsAuthenticated(true);
-    
-    // For now, we'll assume admin access if they can access the admin routes
-    // In a real app, you'd verify the user's role from the token or API
-    if (requireAdmin) {
-      setIsAdmin(true);
-    }
-    
-    setIsLoading(false);
-  }, [requireAdmin]);
+  const isLoading = status === 'loading';
+  const isAuthenticated = !!session;
+  const isAdmin = session?.user?.isAdmin || false;
 
   // Wrap the content in an ErrorBoundary and Suspense to handle React errors including hydration errors
   return (

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { QuestService } from '@/lib/services';
 import { DashboardStats, Quest, User, Badge as BadgeType, Submission } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,17 +24,20 @@ import { formatDistanceToNow } from 'date-fns';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [featuredQuests, setFeaturedQuests] = useState<Quest[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [badges, setBadges] = useState<BadgeType[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('overview');
+
+  const user = session?.user?.userData as User | undefined;
+  const isAuthenticated = !!session && !!user;
 
   const handleQuestSelect = (questId: string) => {
     router.push(`/quests/${questId}`);
@@ -42,60 +46,21 @@ export default function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Check for any existing tokens first
-        let hasTokens = false;
-        if (typeof window !== 'undefined') {
-          const authToken = localStorage.getItem('auth_token');
-          const accessToken = localStorage.getItem('access_token');
-          const cookieToken = document.cookie.includes('hq_access_token') || document.cookie.includes('access_token');
-          hasTokens = !!(authToken || accessToken || cookieToken);
-          console.log('Has tokens:', hasTokens, 'Auth token:', !!authToken, 'Access token:', !!accessToken, 'Cookie token:', cookieToken);
-        }
-        
-        // First check if user is authenticated
-         let userData = null;
-         if (hasTokens) {
-           try {
-             const response = await QuestService.getCurrentUser();
-             // Only set userData if we get a valid response with required fields
-             if (response && response.id && response.email) {
-               userData = response;
-               console.log('Valid user data from API:', userData);
-             } else {
-               console.log('Invalid user data received:', response);
-               userData = null;
-             }
-           } catch (error) {
-             console.log('Authentication failed:', error);
-             userData = null;
-           }
-           
-           // If authentication failed but we have tokens, clear them
-           if (!userData && typeof window !== 'undefined') {
-             localStorage.removeItem('auth_token');
-             localStorage.removeItem('access_token');
-             localStorage.removeItem('refresh_token');
-             document.cookie = 'hq_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-             document.cookie = 'hq_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-             document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-             document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-             console.log('Cleared invalid cached tokens');
-           }
-         }
-        
+        console.log('Dashboard: Loading data, session status:', status, 'user:', user);
+
         // Redirect admin users to admin dashboard
-        if (userData?.role === 'admin') {
+        if (user?.role === 'admin') {
           router.push('/admin');
           return;
         }
-        
+
         // Load basic data for both authenticated and non-authenticated users
         const [statsData, questsData, completionsData] = await Promise.all([
           QuestService.getDashboardStats().catch(() => null),
           QuestService.getQuests().catch(() => []),
           QuestService.getQuestCompletions().catch(() => ({ quests: [] })) // Fallback if API fails
         ]);
-        
+
         // Create a map of quest completions for quick lookup
         const completionsMap = new Map();
         if (completionsData.quests) {
@@ -109,27 +74,26 @@ export default function Dashboard() {
           ...quest,
           completions: completionsMap.get(String(quest.id)) || quest.completions || 0
         }));
-        
+
         setStats(statsData);
         // Filter featured quests to only show active ones
-const now = new Date();
+        const now = new Date();
 
-const activeQuests = enhancedQuests.filter(quest =>
-  (quest.status === 'active' || quest.status === 'published') &&
-  quest.user_status === 'unstarted' &&
-  quest.endDate && new Date(quest.endDate) > now
-);
+        const activeQuests = enhancedQuests.filter(quest =>
+          (quest.status === 'active' || quest.status === 'published') &&
+          quest.user_status === 'unstarted' &&
+          quest.endDate && new Date(quest.endDate) > now
+        );
 
         setFeaturedQuests(activeQuests.slice(0, 6));
         setQuests(enhancedQuests);
-        setUser(userData);
-        
+
         // Only load user-specific data if user is authenticated
-        if (userData) {
+        if (user) {
           try {
             const [badgesData, submissionsData] = await Promise.all([
-              QuestService.getUserBadges(String(userData.id)).catch(() => []),
-              QuestService.getSubmissions(undefined, String(userData.id)).catch(() => [])
+              QuestService.getUserBadges(String(user.id)).catch(() => []),
+              QuestService.getSubmissions(undefined, String(user.id)).catch(() => [])
             ]);
             setBadges(badgesData || []);
             setSubmissions(submissionsData || []);
@@ -141,17 +105,18 @@ const activeQuests = enhancedQuests.filter(quest =>
         }
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
-        // Ensure user is set to null on error
-        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadData();
-  }, [router]);
+    // Only load data when session is loaded
+    if (status !== 'loading') {
+      loadData();
+    }
+  }, [router, status, user]);
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -160,15 +125,11 @@ const activeQuests = enhancedQuests.filter(quest =>
   }
 
   // Debug logging
+  console.log('Dashboard render - Session status:', status);
   console.log('Dashboard render - User state:', user);
-  console.log('Dashboard render - Is loading:', isLoading);
-  console.log('Dashboard render - Has tokens:', typeof window !== 'undefined' && (
-    localStorage.getItem('auth_token') || 
-    localStorage.getItem('access_token') || 
-    document.cookie.includes('access_token')
-  ));
+  console.log('Dashboard render - Is authenticated:', isAuthenticated);
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="space-y-12">
         {/* Hero Carousel for Non-Authenticated Users */}
@@ -202,22 +163,10 @@ const activeQuests = enhancedQuests.filter(quest =>
                   Sign In
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                onClick={() => {
-                  // Clear any cached tokens
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    document.cookie = 'hq_access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    document.cookie = 'hq_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-                    window.location.reload();
-                  }
-                }}
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => signOut({ callbackUrl: '/' })}
                 className="font-mono border-dashed hover:border-solid transition-all duration-200"
               >
                 Logout

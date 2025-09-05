@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { User, Quest, Submission, FilterOptions } from './types';
 import { QuestService } from './services';
 import { AuthService } from './api/auth';
-import { tokenStorage } from './api/client';
+import { signIn, signOut } from 'next-auth/react';
 
 // WebSocket connection management
 let wsConnection: WebSocket | null = null;
@@ -59,14 +59,11 @@ const connectWebSocket = (token: string) => {
       wsConnection = null;
       wsHandlers.onDisconnect?.();
 
-      // Auto-reconnect if we have a token and haven't exceeded max attempts
-      const token = tokenStorage.getAccessToken();
-      if (token && wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      // Auto-reconnect if we have a session and haven't exceeded max attempts
+      // WebSocket will be reconnected when session is restored
+      if (wsReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         wsReconnectAttempts++;
-        console.log(`Attempting WebSocket reconnect (${wsReconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
-        wsReconnectTimeout = setTimeout(() => {
-          connectWebSocket(token);
-        }, RECONNECT_INTERVAL);
+        console.log(`WebSocket disconnected, will reconnect when session is restored`);
       }
     };
   } catch (err) {
@@ -133,7 +130,10 @@ interface AppState {
   loadSubmissions: () => Promise<void>;
   toggleTheme: () => void;
   setSidebarOpen: (open: boolean) => void;
-  
+
+  // NextAuth session sync
+  syncWithNextAuthSession: (session: any) => void;
+
   // WebSocket management
   setWebSocketHandlers: (handlers: WebSocketHandlers) => void;
   getWebSocketStatus: () => { isConnected: boolean; isConnecting: boolean; reconnectAttempts: number };
@@ -162,14 +162,22 @@ const useStore = create<AppState>((set, get) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      const authResult = await AuthService.login({ email, password });
-      // AuthService.login already returns complete user data
-      set({ user: authResult.user, isAuthenticated: true, isLoading: false });
-      
-      // Connect WebSocket after successful login
-      const token = tokenStorage.getAccessToken();
-      if (token) {
-        connectWebSocket(token);
+      // Use NextAuth signIn instead of direct API call
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      if (result?.ok) {
+        // NextAuth will handle the session, we'll get user data from session
+        set({ isLoading: false });
+      } else {
+        throw new Error('Login failed');
       }
     } catch (error) {
       set({ isLoading: false });
@@ -196,90 +204,50 @@ const useStore = create<AppState>((set, get) => ({
   },
 
   logout: () => {
-    // Disconnect WebSocket before clearing tokens
+    // Disconnect WebSocket
     disconnectWebSocket();
-    // Clear token storage immediately
-    tokenStorage.clearAll();
     // Clear store state
     set({ user: null, isAuthenticated: false });
-    // Try to call API logout (fire and forget)
-    QuestService.logout().catch(() => {});
+    // Use NextAuth signOut
+    signOut({ callbackUrl: '/' });
+  },
+
+  // Method to sync store with NextAuth session
+  syncWithNextAuthSession: (session: any) => {
+    if (session?.user) {
+      const user = session.user.userData;
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false
+      });
+
+      // Connect WebSocket if we have a token
+      const token = session.user.token;
+      if (token) {
+        connectWebSocket(token);
+      }
+    } else {
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false
+      });
+      disconnectWebSocket();
+    }
   },
 
   loadCurrentUser: async () => {
-    // Only load if we don't already have a user
-    const { user, isLoading } = get();
-    if (user) {
-      console.log('User already loaded, skipping API call');
-      return;
-    }
-
-    // Prevent multiple concurrent calls
-    if (isLoading) {
-      console.log('Already loading user, skipping API call');
-      return;
-    }
-
-    // Check if we have a token before setting loading state
-    const hasToken = typeof window !== 'undefined' && 
-      (!!localStorage.getItem('auth_token') || 
-       !!document.cookie.includes('hq_access_token'));
-
-    if (!hasToken) {
-      // No token, no need to make API call or show loading state
-      set({ isAuthenticated: false, isLoading: false });
-      return;
-    }
-
-    // Don't set authenticated until we have user data
-    set({ isLoading: true });
-    
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.warn('User loading timeout, clearing loading state');
-      set({ isLoading: false });
-    }, 10000); // 10 second timeout
-    
-    try {
-      const currentUser = await QuestService.getCurrentUser();
-      clearTimeout(timeoutId);
-      
-      if (currentUser) {
-        set({ user: currentUser, isAuthenticated: true, isLoading: false });
-        
-        // Connect WebSocket after loading current user
-        const token = tokenStorage.getAccessToken();
-        if (token) {
-          connectWebSocket(token);
-        }
-      } else {
-        // Token was invalid, clear it
-        tokenStorage.clearAll();
-        set({ user: null, isAuthenticated: false, isLoading: false });
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      console.error('Error loading current user:', error);
-      
-      // If it's a 401 error, clear the token
-      if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
-        tokenStorage.clearAll();
-        set({ user: null, isAuthenticated: false, isLoading: false });
-      } else {
-        // Keep authenticated state if we have a token but API failed due to network issues
-        set({ isLoading: false });
-      }
-    }
+    // This method is now handled by NextAuth session
+    // The session sync will handle user loading
+    console.log('loadCurrentUser: Using NextAuth session instead');
   },
 
   setUser: (user: User) => {
     set({ user, isAuthenticated: true, isLoading: false });
-    
-    // Connect WebSocket when user is set
-    const token = tokenStorage.getAccessToken();
-    if (token) {
-      connectWebSocket(token);
-    }
+
+    // WebSocket connection is handled by session sync
+    console.log('setUser: User set, WebSocket will be connected by session sync');
   },
 
   // Quest actions

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { User } from "@/lib/types";
 import { QuestService } from "@/lib/services";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ interface UserStats {
 }
 
 export default function ProfilePage() {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -82,24 +84,17 @@ export default function ProfilePage() {
 
   const handleVerifyEmail = async () => {
     const email = profileData?.user?.email;
-    if (!email) return;
+    if (!email || !session?.user?.token) return;
 
     setIsVerifyingEmail(true);
     setEmailVerificationSuccess(false);
 
     try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
-        return;
-      }
-
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/verify-email`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.user.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
@@ -125,19 +120,19 @@ export default function ProfilePage() {
   };
 
   const loadUser = async () => {
+    if (!session?.user?.token) {
+      console.log("No session token found");
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        console.log("No access token found");
-        return;
-      }
-
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/me`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.user.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -183,28 +178,61 @@ export default function ProfilePage() {
   };
 
   const fetchUserStats = async () => {
-    try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        throw new Error("No access token found");
-      }
-
-      const response = await fetch("/api/user/stats", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+    if (!session?.user?.token) {
+      console.log("No session token found for stats");
+      setUserStats({
+        numberOfBadges: 0,
+        numberOfquestCompleted: 0,
+        numberOfquestRejected: 0,
+        numberOfquestPending: 0,
       });
+      return;
+    }
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch user stats");
-      }
+    try {
+      // Fetch user statistics directly from the backend using NextAuth session token
+      const baseUrl = "https://hedera-quests.com";
 
-      const data = await response.json();
-      if (data.success) {
-        setUserStats(data.stats);
-      }
+      // Fetch badges and submissions in parallel
+      const [badgesResponse, submissionsResponse] = await Promise.all([
+        fetch(`${baseUrl}/badges/user/${session.user.id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.user.token}`,
+            "Content-Type": "application/json",
+          },
+        }).catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
+        fetch(`${baseUrl}/submissions/user/${session.user.id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.user.token}`,
+            "Content-Type": "application/json",
+          },
+        }).catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
+      ]);
+
+      const badges = badgesResponse.ok ? await badgesResponse.json() : [];
+      const submissions = submissionsResponse.ok ? await submissionsResponse.json() : [];
+
+      // Calculate quest statistics
+      const completedQuests = submissions.filter(
+        (sub: any) => sub.status === "approved"
+      );
+      const rejectedQuests = submissions.filter(
+        (sub: any) => sub.status === "rejected"
+      );
+      const pendingQuests = submissions.filter(
+        (sub: any) => sub.status === "pending" || sub.status === "needs-revision"
+      );
+
+      const stats = {
+        numberOfBadges: Array.isArray(badges) ? badges.length : 0,
+        numberOfquestCompleted: completedQuests.length,
+        numberOfquestRejected: rejectedQuests.length,
+        numberOfquestPending: pendingQuests.length,
+      };
+
+      setUserStats(stats);
     } catch (error) {
       console.error("Failed to load user stats:", error);
       // Set default stats on error
@@ -218,9 +246,15 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    loadUser();
-    fetchUserStats();
-  }, []);
+    if (status === 'loading') return;
+
+    if (session?.user) {
+      loadUser();
+      fetchUserStats();
+    } else {
+      setIsLoading(false);
+    }
+  }, [session, status]);
 
   const getInitials = (name: string) => {
     return name
@@ -231,20 +265,15 @@ export default function ProfilePage() {
   };
 
   const handleConnectTwitter = async () => {
+    if (!session?.user?.token) return;
+
     setIsConnectingTwitter(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
-        return;
-      }
-
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/twitter/url`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.user.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -361,20 +390,15 @@ export default function ProfilePage() {
   };
 
   const handleConnectFacebook = async () => {
+    if (!session?.user?.token) return;
+
     setIsConnectingFacebook(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
-        return;
-      }
-
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/facebook/url`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.user.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -403,13 +427,14 @@ export default function ProfilePage() {
   };
 
   const handleDisconnectTwitter = async () => {
+    if (!session?.user?.token) return;
+
     try {
-      const token = localStorage.getItem("auth_token");
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/twitter/profile`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.user.token}`,
         },
       });
 
@@ -443,13 +468,14 @@ export default function ProfilePage() {
   };
 
   const handleDisconnectFacebook = async () => {
+    if (!session?.user?.token) return;
+
     try {
-      const token = localStorage.getItem("auth_token");
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/facebook/profile`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.user.token}`,
         },
       });
 
@@ -483,20 +509,15 @@ export default function ProfilePage() {
   };
 
   const handleConnectDiscord = async () => {
+    if (!session?.user?.token) return;
+
     setIsConnectingDiscord(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
-      if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
-        return;
-      }
-
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/discord/url`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.user.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -525,13 +546,14 @@ export default function ProfilePage() {
   };
 
   const handleDisconnectDiscord = async () => {
+    if (!session?.user?.token) return;
+
     try {
-      const token = localStorage.getItem("auth_token");
       const baseUrl = "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/discord/profile`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.user.token}`,
         },
       });
 
@@ -564,12 +586,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading) {
-    //        if (profileData.user.hederaProfile.hedera_did === "null") {
-    //   // Handle case where hedera_did is null
-    //   console.log("Hedera DID is null");
-    //   verifyHederaDidEmail();
-    // }
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -577,15 +594,16 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!session?.user) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
-          Failed to load profile. Please try refreshing the page.
+          Please log in to view your profile.
         </p>
       </div>
     );
   }
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">

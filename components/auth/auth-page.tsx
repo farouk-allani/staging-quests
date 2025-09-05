@@ -9,7 +9,7 @@ import ErrorBoundary from '@/components/error-boundary';
 
 import { User } from '@/lib/types';
 
-export function AuthPage({ onAuthSuccess }: { onAuthSuccess: (user: User, isAdmin: boolean) => void }) {
+export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
 
   return (
@@ -86,7 +86,6 @@ export function AuthPage({ onAuthSuccess }: { onAuthSuccess: (user: User, isAdmi
         <div className="flex justify-center">
           {isLogin ? (
             <LoginForm
-              onSuccess={onAuthSuccess}
               onSwitchToRegister={() => setIsLogin(false)}
             />
           ) : (

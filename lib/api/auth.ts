@@ -8,67 +8,82 @@ export type AuthResponse = { user: User; accessToken: string; refreshToken?: str
 
 export const AuthService = {
   async login(payload: LoginRequest): Promise<{ user: User; isAdmin: boolean }> {
-    // Use Next.js API proxy to avoid CORS issues
-    console.log('Logging in with proxy URL: /auth/login');
-    console.log('Request body:', payload);
+    console.log('Logging in with:', payload.email);
 
-    const { data } = await api.post('/auth/login', payload);
+    try {
+      // Direct API call to avoid NextAuth issues
+      const response = await fetch('https://hedera-quests.com/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-    console.log('Login response:', data);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Login failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
 
-    // Store token using the proper token storage mechanism
-    if (data.token) {
-      tokenStorage.setAccessToken(data.token);
+      const data = await response.json();
+      console.log('Login response:', data);
+
+      // Store token using the proper token storage mechanism
+      if (data.token) {
+        tokenStorage.setAccessToken(data.token);
+      }
+
+      // Handle both admin and regular user data structures
+      const userData = data.admin || data.user || data;
+      const isAdmin = data.is_admin || false;
+
+      // Clean username by removing any brackets like [Admin]
+      const cleanUsername = userData.username ? userData.username.replace(/\[.*?\]/g, '').trim() : '';
+
+      // Create comprehensive user object from response data
+      const user: User = {
+        id: String(userData.id || Date.now()),
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        username: userData.username,
+        name: (() => {
+          if (isAdmin) {
+            // For admins, show full name
+            const firstName = userData.firstName || '';
+            const lastName = userData.lastName || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            return fullName || cleanUsername || 'Admin';
+          } else {
+            // For regular users, show username or full name
+            const firstName = userData.firstName || '';
+            const lastName = userData.lastName || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            return fullName || cleanUsername || 'User';
+          }
+        })(),
+        email: userData.email || payload.email,
+        bio: userData.bio || '',
+        avatar: '/logo.png',
+        hederaAccountId: null,
+        // Admin users don't have points
+        points: isAdmin ? undefined : (userData.total_points || 0),
+        level: userData.userLevel?.level || 1,
+        streak: 0,
+        joinedAt: userData.created_at || new Date().toISOString(),
+        role: isAdmin ? 'admin' : 'user',
+        badges: [],
+        completedQuests: [],
+        userLevel: userData.userLevel,
+        facebookProfile: userData.facebookProfile,
+        twitterProfile: userData.twitterProfile,
+        discordProfile: userData.discordProfile
+      };
+
+      return { user, isAdmin };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    console.log("3asba", data)
-
-    // Handle both admin and regular user data structures (similar to QuestService.getCurrentUser)
-    const userData = data.admin || data.user || data;
-    const isAdmin = data.is_admin || false;
-    
-    // Clean username by removing any brackets like [Admin]
-    const cleanUsername = userData.username ? userData.username.replace(/\[.*?\]/g, '').trim() : '';
-    
-    // Create comprehensive user object from response data
-    const user: User = {
-      id: String(userData.id || Date.now()),
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      username: userData.username,
-      name: (() => {
-        if (isAdmin) {
-          // For admins, show full name
-          const firstName = userData.firstName || '';
-          const lastName = userData.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-          return fullName || cleanUsername || 'Admin';
-        } else {
-          // For regular users, show username or full name
-          const firstName = userData.firstName || '';
-          const lastName = userData.lastName || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-          return fullName || cleanUsername || 'User';
-        }
-      })(),
-      email: userData.email || payload.email,
-      bio: userData.bio || '',
-      avatar: '/logo.png',
-      hederaAccountId: null,
-      // Admin users don't have points
-      points: isAdmin ? undefined : (userData.total_points || 0),
-      level: userData.userLevel?.level || 1,
-      streak: 0,
-      joinedAt: userData.created_at || new Date().toISOString(),
-      role: isAdmin ? 'admin' : 'user',
-      badges: [],
-      completedQuests: [],
-      userLevel: userData.userLevel,
-      facebookProfile: userData.facebookProfile,
-      twitterProfile: userData.twitterProfile,
-      discordProfile: userData.discordProfile
-    };
-
-    return { user, isAdmin };
   },
 
   async register(payload: RegisterRequest): Promise<User> {

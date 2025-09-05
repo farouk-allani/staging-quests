@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import type { User } from '@/lib/types';
 import { Input } from '@/components/ui/input';
@@ -11,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import useStore from '@/lib/store';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
@@ -25,21 +26,19 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
-  onSuccess: (user: User, isAdmin: boolean) => void;
   onSwitchToRegister: () => void;
 }
 
-export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
   });
-
-  const { login } = useStore();
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -64,34 +63,55 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
     });
 
     try {
-      await login(data.email, data.password);
-      
+      console.log('LoginForm: Attempting NextAuth signIn with:', { email: data.email, hasPassword: !!data.password });
+
+      const result = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      console.log('LoginForm: NextAuth signIn result:', result);
+
       // Dismiss loading toast
       loadingToast.dismiss();
-      
-      // Get the user data from store after successful login
-      const { user } = useStore.getState();
-      if (user) {
+
+      if (result?.error) {
+        console.error('LoginForm: NextAuth signIn error:', result.error);
+        throw new Error(result.error);
+      }
+
+      if (result?.ok) {
+        console.log('LoginForm: NextAuth signIn successful');
+
         // Show success toast
         toast({
           title: "Welcome back!",
-          description: `Successfully signed in as ${user.name || user.email}`,
+          description: "Successfully signed in!",
           variant: "default"
         });
-        
-        onSuccess(user, user.role === 'admin');
+
+        // Small delay to ensure session is established before redirect
+        setTimeout(() => {
+          console.log('LoginForm: Redirecting to home page...');
+          router.push('/');
+        }, 500);
+      } else {
+        console.error('LoginForm: NextAuth signIn result not ok:', result);
+        throw new Error('Sign in failed - unexpected result');
       }
     } catch (err) {
       // Dismiss loading toast
       loadingToast.dismiss();
-      
+
       const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      console.error('LoginForm: Login error:', errorMessage);
       setError(errorMessage);
-      
+
       // Show appropriate error toast based on error type
       let toastTitle = "Sign In Failed";
       let toastDescription = errorMessage;
-      
+
       if (errorMessage.toLowerCase().includes('password')) {
         toastTitle = "Incorrect Password";
         toastDescription = "The password you entered is incorrect. Please try again.";
@@ -102,7 +122,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
         toastTitle = "Connection Error";
         toastDescription = "Unable to connect to our servers. Please check your internet connection and try again.";
       }
-      
+
       toast({
         title: toastTitle,
         description: toastDescription,

@@ -18,6 +18,12 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // Exclude NextAuth routes from being rewritten to external API
+      {
+        source: '/api/auth/:path*',
+        destination: '/api/auth/:path*',
+      },
+      // Rewrite other API routes to external API
       {
         source: '/api/:path*',
         destination: 'https://hedera-quests.com/:path*',
