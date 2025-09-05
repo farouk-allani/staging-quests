@@ -46,7 +46,7 @@ export const UsersApi = {
     const { data } = await apiClient.get('/user/notifications');
     return data;
   },
-  async getUnreadNotificationCount(token?: string): Promise<{ status: string; unreadCount: number }> {
+  async getUnreadNotificationCount(token?: string): Promise<{ status: string; notification_number: number }> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const { data } = await apiClient.get('/user/notification/number');
     return data;
@@ -57,7 +57,7 @@ export const UsersApi = {
     const { data } = await apiClient.get('/admin/notifications');
     return data;
   },
-  async getAdminUnreadNotificationCount(token?: string): Promise<{ status: string; unreadCount: number }> {
+  async getAdminUnreadNotificationCount(token?: string): Promise<{ status: string; notification_number: number }> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const { data } = await apiClient.get('/admin/notification/number');
     return data;

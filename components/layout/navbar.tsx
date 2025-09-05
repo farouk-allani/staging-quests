@@ -79,7 +79,7 @@ export function Navbar({ className }: NavbarProps) {
   const fetchUnreadCount = async () => {
     try {
       const response = await UsersApi.getUnreadNotificationCount(session?.user?.token);
-      setUnreadCount(response.unreadCount);
+      setUnreadCount(response.notification_number);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }
@@ -181,11 +181,11 @@ export function Navbar({ className }: NavbarProps) {
                   title="[NOTIFICATIONS]"
                 >
                   <Bell className="h-4 w-4" />
-                  {unreadCount > 0 && (
+                  {/* {unreadCount > 0 && ( */}
                     <Badge className="absolute -top-1 -right-1 px-1 py-0 text-xs min-w-[1rem] h-5 flex items-center justify-center bg-red-500 hover:bg-red-600 border border-dashed border-red-700 font-mono">
                       {unreadCount}
                     </Badge>
-                  )}
+                  {/* )} */}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 border-2 border-dashed border-purple-500/50 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 font-mono">

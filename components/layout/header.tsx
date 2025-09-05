@@ -124,7 +124,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         UsersApi.getUnreadNotificationCount(session?.user?.token)
       ]);
       setNotifications(notificationsResponse.notifications || []);
-      setUnreadCount(unreadCountResponse.unreadCount || 0);
+      setUnreadCount(unreadCountResponse.notification_number ?? 0);
+      console.log('unreadCountResponse',unreadCountResponse)
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
@@ -142,7 +143,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         UsersApi.getAdminUnreadNotificationCount(session?.user?.token)
       ]);
       setAdminNotifications(notificationsResponse.notifications || []);
-      setAdminUnreadCount(unreadCountResponse.unreadCount || 0);
+      setAdminUnreadCount(unreadCountResponse.notification_number ?? 0);
     } catch (error) {
       console.error('Failed to fetch admin notifications:', error);
     } finally {
@@ -334,7 +335,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="relative border-2 border-dashed border-purple-500/50 hover:border-cyan-500/50 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-cyan-500/20 font-mono" title="[NOTIFICATIONS]">
               <Bell className={cn("h-5 w-5", isConnected ? "text-green-500" : "text-gray-500")} />
-              {(isAdminPage ? adminUnreadCount : unreadCount) > 0 && (
+              {(isAdminPage ? adminUnreadCount : unreadCount) >= 0 && (
                 <Badge className="absolute -top-1 -right-1 px-1 py-0 text-xs min-w-[1rem] h-5 flex items-center justify-center bg-red-500 hover:bg-red-600 border border-dashed border-red-700 font-mono">
                   {isAdminPage ? adminUnreadCount : unreadCount}
                 </Badge>
