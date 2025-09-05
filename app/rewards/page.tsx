@@ -10,8 +10,8 @@ export default function RewardsPage() {
   const { user } = useStore();
   
   // Points conversion rate should be configurable
-  const pointsBalance = user?.points || 0;
-  const conversionRate = 0; // Will be provided by API/config
+  const pointsBalance = user?.total_points || user?.points || 0;
+  const conversionRate = 0.001; // $0.001 per point (same as balance widget)
   const dollarBalance = (pointsBalance * conversionRate).toFixed(2);
 
   return (
@@ -68,8 +68,8 @@ export default function RewardsPage() {
               ${dollarBalance}
             </div>
             <Badge className="bg-green-500/20 text-green-300 border-green-500/30 font-mono text-xs">
-                RATE TBD
-              </Badge>
+              $0.001/POINT
+            </Badge>
           </CardContent>
         </Card>
       </div>
