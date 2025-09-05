@@ -669,7 +669,7 @@ export default function ProfilePage() {
                       EMAIL_ADDRESS
                     </Label>
                     <div className="p-3 border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-md">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap">
                         <p className="font-mono text-sm">
                           {profileData?.user?.email || "Not provided"}
                         </p>
