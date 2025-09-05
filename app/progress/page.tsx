@@ -25,7 +25,7 @@ export default function ProgressPage() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const userData = await QuestService.getCurrentUser();
+        const userData = await QuestService.getCurrentUser(session?.user?.token);
         setUser(userData);
         
         if (userData) {

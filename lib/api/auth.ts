@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, createApiClientWithToken } from './client';
 import axios from 'axios';
 import type { User } from '@/lib/types';
 
@@ -126,10 +126,11 @@ export const AuthService = {
 
 
 
-  async me(): Promise<{ admin: any; is_admin: boolean }> {
+  async me(token: string): Promise<{ admin: any; is_admin: boolean }> {
     console.log('Fetching user profile with token');
 
-    const { data } = await api.get('/profile/me');
+    const apiWithToken = createApiClientWithToken(token);
+    const { data } = await apiWithToken.get('/profile/me');
 
     console.log('Profile response:', data);
     return data;

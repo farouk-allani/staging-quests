@@ -132,7 +132,7 @@ export default function ProfilePage() {
       const response = await fetch(`${baseUrl}/profile/me`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${session.user.token}`,
+          Authorization: `Bearer ${session?.user?.token}`,
           "Content-Type": "application/json",
         },
       });

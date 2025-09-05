@@ -194,9 +194,12 @@ const useStore = create<AppState>((set, get) => ({
         password: userData.password,
         confirmPassword: userData.confirmPassword || userData.password
       });
-      const user = await QuestService.getCurrentUser();
-      if (!user) throw new Error('Failed to fetch user data after registration');
-      set({ user, isAuthenticated: true, isLoading: false });
+      
+      // After registration, user needs to login to get a token and user data
+      // The login process will handle getting the user data with proper authentication
+      set({ isLoading: false });
+      
+      // Registration successful, but user needs to login to get session
     } catch (error) {
       set({ isLoading: false });
       throw error;

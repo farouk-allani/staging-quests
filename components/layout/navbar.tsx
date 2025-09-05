@@ -52,6 +52,7 @@ import {
   Award,
   Gift
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 const navigation = [
   { name: 'Home', href: '/', icon: BarChart3, description: 'Your unified dashboard with quests, progress, and stats' },
@@ -73,10 +74,11 @@ export function Navbar({ className }: NavbarProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const { data: session } = useSession();
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await UsersApi.getUnreadNotificationCount();
+      const response = await UsersApi.getUnreadNotificationCount(session?.user?.token);
       setUnreadCount(response.unreadCount);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
@@ -86,7 +88,7 @@ export function Navbar({ className }: NavbarProps) {
   const fetchNotifications = async () => {
     try {
       setIsLoadingNotifications(true);
-      const response = await UsersApi.getNotifications();
+      const response = await UsersApi.getNotifications(session?.user?.token);
       setNotifications(response.notifications);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);

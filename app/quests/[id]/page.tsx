@@ -7,7 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 import { Quest, User } from '@/lib/types';
 import { QuestService } from '@/lib/services';
-import { api } from '@/lib/api/client';
+import { api, createApiClientWithToken } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,6 +54,7 @@ import {
   Share,
   XCircle,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
@@ -80,6 +81,7 @@ export default function QuestDetailPage() {
   const [verifying, setVerifying] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState<string | null>(null);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+    const { data: session } = useSession();
 
   const now = new Date();
   const availableQuests = quest &&
@@ -101,8 +103,8 @@ export default function QuestDetailPage() {
 
       try {
         const [questData, userData] = await Promise.all([
-          QuestService.getQuest(questId),
-          QuestService.getCurrentUser(),
+          QuestService.getQuest(questId,session?.user.token),
+          QuestService.getCurrentUser(session?.user?.token),
         ]);
 
         console.log('Quest and user data loaded:', questData);
@@ -141,7 +143,7 @@ export default function QuestDetailPage() {
   }, [questId]);
 
   const handleVerifyQuest = async () => {
-    if (!quest) return;
+    if (!quest || !session?.user?.token) return;
 
     setVerifying(true);
     setVerifyMessage(null);
@@ -155,7 +157,8 @@ export default function QuestDetailPage() {
     });
 
     try {
-      await api.post(`/quest-completions/quests/${quest.id}/verify`);
+      const apiWithToken = createApiClientWithToken(session.user.token);
+      await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`);
       
       // Dismiss loading toast
       loadingToast.dismiss();

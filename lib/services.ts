@@ -29,9 +29,13 @@ export class QuestService {
     }
   }
 
-  static async getCurrentUser(): Promise<User | null> {
+  static async getCurrentUser(token?: string): Promise<User | null> {
     try {
-      const profileData = await ApiAuth.me();
+      if (!token) {
+        return null;
+      }
+      
+      const profileData = await ApiAuth.me(token);
       if (!profileData) {
         return null;
       }
@@ -118,9 +122,9 @@ export class QuestService {
     }
   }
 
-  static async getQuest(id: string): Promise<Quest | null> {
+  static async getQuest(id: string,token?: string): Promise<Quest | null> {
     try {
-      const response = await QuestsApi.get(id);
+      const response = await QuestsApi.get(id,token);
       return {
         ...response,
         id: String(response.id),
@@ -141,9 +145,6 @@ export class QuestService {
       | "easy"
       | "medium"
       | "hard"
-      | "beginner"
-      | "intermediate"
-      | "advanced"
       | "expert";
     status?: "active" | "completed" | "expired" | "draft";
     startDate?: string;
@@ -327,9 +328,9 @@ export class QuestService {
   }
 
   // Leaderboard methods
-  static async getLeaderboard(): Promise<LeaderboardResponse> {
+  static async getLeaderboard(token?: string): Promise<LeaderboardResponse> {
     try {
-      const response = await LeaderboardApi.getLeaderboard();
+      const response = await LeaderboardApi.getLeaderboard(token);
       return response;
     } catch (error) {
       console.error("Error fetching leaderboard:", error);

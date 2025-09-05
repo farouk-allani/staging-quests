@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Search, Filter, Grid, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
 
 export default function QuestsPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function QuestsPage() {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
+   const { data: session } = useSession();
 
   // useEffect(() => {
   //   const loadData = async () => {
@@ -60,7 +62,7 @@ useEffect(() => {
           search: '',
           showCompleted: false
         }), // charge TOUTES les quêtes une seule fois
-        QuestService.getCurrentUser()
+        QuestService.getCurrentUser(session?.user?.token)
       ]);
       setQuests(Array.isArray(questsData) ? questsData : []);
       setUser(userData);

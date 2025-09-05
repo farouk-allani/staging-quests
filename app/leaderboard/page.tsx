@@ -37,6 +37,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
 
 
 
@@ -44,13 +45,14 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardDisplayEntry[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = useSession();
 
 
   useEffect(() => {
     const loadLeaderboard = async () => {
       setIsLoading(true);
       try {
-        const response = await QuestService.getLeaderboard();
+        const response = await QuestService.getLeaderboard(session?.user?.token);
         // Transform API response to match component expectations
         // Sort users by total_points in descending order to ensure correct ranking
         const sortedUsers = response.data.users.sort((a, b) => b.total_points - a.total_points);
@@ -74,7 +76,7 @@ export default function LeaderboardPage() {
         
         // Calculate user rank based on the sorted data to ensure consistency
         // Find the current user's rank in the sorted leaderboard
-        const currentUser = await QuestService.getCurrentUser();
+        const currentUser = await QuestService.getCurrentUser(session?.user?.token);
         if (currentUser) {
           const userId = typeof currentUser.id === 'string' ? parseInt(currentUser.id) : currentUser.id;
           const userRankInSortedList = sortedUsers.findIndex(user => user.id === userId) + 1;
@@ -157,33 +159,8 @@ export default function LeaderboardPage() {
             {/* Top 3 Podium */}
             {leaderboard.length >= 3 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                {/* 2nd Place */}
-                <div className="md:order-1 md:mt-8">
-                  <Card className="text-center border-2 border-dashed border-gray-400 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:border-solid transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25">
-                    <CardContent className="p-6">
-                      <div className="relative mb-4">
-                        <Avatar className="w-16 h-16 mx-auto border-2 border-dashed border-gray-400">
-                          <AvatarImage src={leaderboard[1].user.avatar} />
-                          <AvatarFallback className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-mono">{getInitials(leaderboard[1].user.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 border-2 border-dashed border-gray-400 rounded flex items-center justify-center text-sm font-bold text-white">
-                          2
-                        </div>
-                      </div>
-                      <h3 className="font-semibold text-lg font-mono tracking-wide text-gray-700 dark:text-gray-300">{leaderboard[1].user.name}</h3>
-                      <p className="text-2xl font-bold font-mono bg-gradient-to-r from-gray-600 to-gray-700 bg-clip-text text-transparent">{leaderboard[1].totalPoints.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground font-mono uppercase tracking-wider">SILVER_MEDAL</p>
-                      {leaderboard[1].recentPoints > 0 && (
-                        <Badge variant="outline" className="mt-2 border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 font-mono">
-                          +{leaderboard[1].recentPoints} recent
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-
                 {/* 1st Place */}
-                <div className="md:order-2">
+                <div className="order-1 md:order-2">
                   <Card className="text-center border-4 border-dashed border-yellow-400 bg-gradient-to-br from-yellow-100 via-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:via-yellow-800/20 dark:to-orange-900/30 hover:border-solid transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/50 hover:scale-105">
                     <CardContent className="p-6">
                       <div className="relative mb-4">
@@ -207,8 +184,33 @@ export default function LeaderboardPage() {
                   </Card>
                 </div>
 
+                {/* 2nd Place */}
+                <div className="order-2 md:order-1 md:mt-8">
+                  <Card className="text-center border-2 border-dashed border-gray-400 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:border-solid transition-all duration-300 hover:shadow-lg hover:shadow-gray-500/25">
+                    <CardContent className="p-6">
+                      <div className="relative mb-4">
+                        <Avatar className="w-16 h-16 mx-auto border-2 border-dashed border-gray-400">
+                          <AvatarImage src={leaderboard[1].user.avatar} />
+                          <AvatarFallback className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-mono">{getInitials(leaderboard[1].user.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-gray-500 to-gray-600 border-2 border-dashed border-gray-400 rounded flex items-center justify-center text-sm font-bold text-white">
+                          2
+                        </div>
+                      </div>
+                      <h3 className="font-semibold text-lg font-mono tracking-wide text-gray-700 dark:text-gray-300">{leaderboard[1].user.name}</h3>
+                      <p className="text-2xl font-bold font-mono bg-gradient-to-r from-gray-600 to-gray-700 bg-clip-text text-transparent">{leaderboard[1].totalPoints.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground font-mono uppercase tracking-wider">SILVER_MEDAL</p>
+                      {leaderboard[1].recentPoints > 0 && (
+                        <Badge variant="outline" className="mt-2 border-2 border-dashed border-gray-400 bg-gray-100 text-gray-700 font-mono">
+                          +{leaderboard[1].recentPoints} recent
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
                 {/* 3rd Place */}
-                <div className="md:order-3 md:mt-8">
+                <div className="order-3 md:order-3 md:mt-8">
                   <Card className="text-center border-2 border-dashed border-amber-600 bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/20 hover:border-solid transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25">
                     <CardContent className="p-6">
                       <div className="relative mb-4">
