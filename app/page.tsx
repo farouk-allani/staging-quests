@@ -133,7 +133,7 @@ export default function Dashboard() {
     if (status !== 'loading') {
       loadData();
     }
-  }, [router, status, user]);
+  }, [router, status, session]);
 
   if (status === 'loading') {
     return (
