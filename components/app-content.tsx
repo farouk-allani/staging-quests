@@ -42,6 +42,17 @@ export function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const hideFooter = pathname === '/validate-user';
 
+  // Redirect admin users to admin dashboard immediately
+  useEffect(() => {
+    if (user && user.role === 'admin' && isAuthenticated && !isLoading) {
+      // Only redirect if not already on an admin page
+      if (!pathname.startsWith('/admin')) {
+        router.push('/admin');
+        return;
+      }
+    }
+  }, [user, isAuthenticated, isLoading, pathname, router]);
+
   // Check for missing social media connections for admin users
   useEffect(() => {
     if (user && user.role === 'admin' && isAuthenticated && !isLoading && !hasCheckedSocialMedia) {

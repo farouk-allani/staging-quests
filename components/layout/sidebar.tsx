@@ -86,8 +86,8 @@ export function Sidebar({ isCollapsed, onToggle, userRole = 'user' }: SidebarPro
 
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-        {isAdminPage ? (
-          // Admin pages: Show only admin navigation
+        {shouldShowAdminNav ? (
+          // Admin users: Show only admin navigation
           <div className="space-y-1">
             {!isCollapsed && (
               <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 transition-opacity duration-200 font-mono">
@@ -162,52 +162,6 @@ export function Sidebar({ isCollapsed, onToggle, userRole = 'user' }: SidebarPro
                 );
               })}
             </div>
-
-            {/* Admin Navigation */}
-            {shouldShowAdminNav && (
-              <>
-                <div className="pt-4 border-t-2 border-dashed border-purple-500/30">
-                  {!isCollapsed && (
-                    <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 transition-opacity duration-200 font-mono">
-                      [ADMINISTRATION]
-                    </p>
-                  )}
-                  <div className="space-y-1">
-                    {adminNavigation.map((item) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={cn(
-                            'group flex items-center px-3 py-2.5 border border-dashed text-sm font-medium font-mono transition-all duration-200 ease-in-out relative overflow-hidden',
-                            isActive
-                              ? 'bg-gradient-to-r from-orange-500/20 to-red-500/20 text-foreground border-orange-500 border-solid shadow-lg shadow-orange-500/25 scale-[1.02]'
-                              : 'text-muted-foreground hover:text-foreground hover:bg-gradient-to-r hover:from-orange-500/10 hover:to-red-500/10 hover:border-solid hover:border-orange-500/50 hover:scale-[1.01] hover:shadow-sm border-transparent',
-                            isCollapsed && 'justify-center px-2.5'
-                          )}
-                        >
-                          <item.icon className={cn(
-                            'h-5 w-5 transition-all duration-200',
-                            !isCollapsed && 'mr-3',
-                            isActive && 'drop-shadow-sm',
-                            !isActive && 'group-hover:scale-110 group-hover:text-orange-600 dark:group-hover:text-orange-400'
-                          )} />
-                          {!isCollapsed && (
-                            <span className="transition-all duration-200 group-hover:translate-x-0.5">
-                              {item.name}
-                            </span>
-                          )}
-                          {isActive && !isCollapsed && (
-                            <div className="absolute right-2 w-1.5 h-1.5 bg-white rounded-full opacity-75" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
           </>
         )}
       </nav>
