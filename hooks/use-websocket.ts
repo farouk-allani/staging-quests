@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { tokenStorage } from '../lib/api/client';
+import { useSession } from 'next-auth/react';
 
 interface WebSocketMessage {
   type: string;
@@ -46,6 +46,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     maxReconnectAttempts = 5
   } = options;
 
+  const { data: session } = useSession();
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +72,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     setError(null);
 
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         throw new Error('No authentication token available');
       }

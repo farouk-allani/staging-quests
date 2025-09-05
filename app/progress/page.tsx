@@ -12,12 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trophy, Target, Calendar, TrendingUp, Star, Flame as Fire, Award, Clock, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { useSession } from 'next-auth/react';
 
 export default function ProgressPage() {
   const [user, setUser] = useState<User | null>(null);
   const [badges, setBadges] = useState<BadgeType[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
@@ -29,7 +31,7 @@ export default function ProgressPage() {
         if (userData) {
           const [badgesData, submissionsData] = await Promise.all([
             QuestService.getUserBadges(String(userData.id)),
-            QuestService.getSubmissions(undefined, String(userData.id))
+            QuestService.getSubmissions(undefined, String(userData.id),session?.user?.token)
           ]);
           setBadges(badgesData);
           setSubmissions(submissionsData);

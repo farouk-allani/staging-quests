@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,7 @@ import {
   Loader2,
   AlertCircle
 } from 'lucide-react';
-import { api } from '@/lib/api/client';
+import { createApiClientWithToken } from '@/lib/api/client';
 
 interface User {
   id?: string;
@@ -98,6 +99,7 @@ const transformUser = (apiUser: User): User & { id: string; name: string; points
 });
 
 export function UserManagement({ className }: UserManagementProps) {
+  const { data: session } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -113,10 +115,12 @@ export function UserManagement({ className }: UserManagementProps) {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/user/admin/all');
-      
+      const token = session?.user?.token;
+      const apiClient = token ? createApiClientWithToken(token) : require('@/lib/api/client').api;
+      const response = await apiClient.get('/user/admin/all');
+
       const data: ApiResponse = response.data;
-      
+
       if (data.succes) {
         const transformedUsers = data.users.map(transformUser);
         setUsers(transformedUsers);

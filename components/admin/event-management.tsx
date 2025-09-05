@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { EventsApi } from '@/lib/api/events';
 import type { Event } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Calendar, Gift, Image as ImageIcon, Loader2 } from 'lucide-react';
+
 
 interface EventFormData {
   title: string;
@@ -37,6 +39,7 @@ const getImageUrl = (path: string | null) => {
 };
 
 export default function EventManagement() {
+  const { data: session } = useSession();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,6 +49,7 @@ export default function EventManagement() {
   const [formData, setFormData] = useState<EventFormData>(initialFormData);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+
   useEffect(() => {
     loadEvents();
   }, []);
@@ -53,7 +57,7 @@ export default function EventManagement() {
   const loadEvents = async () => {
     try {
       setIsLoading(true);
-      const eventsData = await EventsApi.list();
+      const eventsData = await EventsApi.list(session?.user?.token);
       setEvents(eventsData);
     } catch (error) {
       console.error('Failed to load events:', error);
@@ -110,7 +114,7 @@ export default function EventManagement() {
       data.append('reward', formData.reward);
       data.append('reward_image', formData.reward_image);
 
-      const token = localStorage.getItem('auth_token'); 
+      const token = session?.user?.token; 
 
       const response = await fetch('https://hedera-quests.com/events/create', {
         method: 'POST',

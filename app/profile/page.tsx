@@ -281,7 +281,7 @@ export default function ProfilePage() {
   const handleConnectHedera = async () => {
     // setIsConnectingHedera(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
+      const accessToken = session?.user?.token;
       if (!accessToken) {
         setSaveError("No access token found. Please login again.");
         setTimeout(() => setSaveError(null), 5000);
@@ -324,7 +324,7 @@ export default function ProfilePage() {
   const verifyHederaDidEmail = async () => {
     // setIsConnectingHedera(true);
     try {
-      const accessToken = localStorage.getItem("auth_token");
+      const accessToken = session?.user?.token;
       if (!accessToken) {
         setSaveError("No access token found. Please login again.");
         setTimeout(() => setSaveError(null), 5000);

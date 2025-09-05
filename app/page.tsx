@@ -55,10 +55,11 @@ export default function Dashboard() {
         }
 
         // Load basic data for both authenticated and non-authenticated users
+        const token = session?.user?.token;
         const [statsData, questsData, completionsData] = await Promise.all([
-          QuestService.getDashboardStats().catch(() => null),
-          QuestService.getQuests().catch(() => []),
-          QuestService.getQuestCompletions().catch(() => ({ quests: [] })) // Fallback if API fails
+          QuestService.getDashboardStats(token).catch(() => null),
+          QuestService.getQuests(undefined, token).catch(() => []),
+          QuestService.getQuestCompletions(token).catch(() => ({ quests: [] })) // Fallback if API fails
         ]);
 
         // Create a map of quest completions for quick lookup
@@ -92,8 +93,8 @@ export default function Dashboard() {
         if (user) {
           try {
             const [badgesData, submissionsData] = await Promise.all([
-              QuestService.getUserBadges(String(user.id)).catch(() => []),
-              QuestService.getSubmissions(undefined, String(user.id)).catch(() => [])
+              QuestService.getUserBadges(String(user.id), token).catch(() => []),
+              QuestService.getSubmissions(undefined, String(user.id), token).catch(() => [])
             ]);
             setBadges(badgesData || []);
             setSubmissions(submissionsData || []);
@@ -239,7 +240,7 @@ export default function Dashboard() {
             value="overview" 
             className="text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary"
           >
-            OVERVIEW
+            TOP QUESTS
           </TabsTrigger>
           <TabsTrigger 
             value="quests" 

@@ -2,13 +2,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 
 
 export default function ValidateUserPage() {
+  const { data: session } = useSession();
   const handleValidateUser = async () => {
     try {
-      const accessToken = localStorage.getItem('auth_token');
+      const accessToken = session?.user?.token;
       const baseUrl = 'https://hedera-quests.com';
       const response = await fetch(`${baseUrl}/profile/hederadid/validate-user`, {
         method: 'POST',

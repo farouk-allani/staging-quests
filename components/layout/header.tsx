@@ -27,6 +27,7 @@ interface HeaderProps {
 
 // Using the Notification interface from users.ts
 import type { Notification, AdminNotification } from '@/lib/api/users';
+import { useSession } from 'next-auth/react';
 
 // Notifications will be loaded from API
 const initialNotifications: Notification[] = [];
@@ -42,6 +43,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user: currentUser, loadCurrentUser, logout, setWebSocketHandlers, getWebSocketStatus } = useStore();
   const router = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const isAdminPage = pathname?.startsWith('/admin');
 
@@ -118,8 +120,8 @@ export function Header({ onMenuClick }: HeaderProps) {
     setIsLoadingNotifications(true);
     try {
       const [notificationsResponse, unreadCountResponse] = await Promise.all([
-        UsersApi.getNotifications(),
-        UsersApi.getUnreadNotificationCount()
+        UsersApi.getNotifications(session?.user?.token),
+        UsersApi.getUnreadNotificationCount(session?.user?.token)
       ]);
       setNotifications(notificationsResponse.notifications || []);
       setUnreadCount(unreadCountResponse.unreadCount || 0);
@@ -136,8 +138,8 @@ export function Header({ onMenuClick }: HeaderProps) {
     setIsLoadingNotifications(true);
     try {
       const [notificationsResponse, unreadCountResponse] = await Promise.all([
-        UsersApi.getAdminNotifications(),
-        UsersApi.getAdminUnreadNotificationCount()
+        UsersApi.getAdminNotifications(session?.user?.token),
+        UsersApi.getAdminUnreadNotificationCount(session?.user?.token)
       ]);
       setAdminNotifications(notificationsResponse.notifications || []);
       setAdminUnreadCount(unreadCountResponse.unreadCount || 0);

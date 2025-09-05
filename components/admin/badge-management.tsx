@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { BadgesApi } from '@/lib/api/badges';
 import { Badge, BadgeFilters } from '@/lib/types';
 import { CreateBadgeForm } from '@/components/admin/create-badge-form';
-import { tokenStorage } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ const rarityColors = {
 };
 
 export default function BadgeManagement() {
+  const { data: session } = useSession();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,14 +41,14 @@ export default function BadgeManagement() {
   const loadBadges = async () => {
     try {
       setIsLoading(true);
-      
+
       // Check if user is authenticated
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         throw new Error('Authentication required. Please log in to access badge management.');
       }
-      
-      const response = await BadgesApi.list(filters);
+
+      const response = await BadgesApi.list(filters, token);
       setBadges(response.data);
       setTotalCount(response.count);
     } catch (error: any) {
@@ -97,12 +98,12 @@ export default function BadgeManagement() {
 
     try {
       // Check if user is authenticated
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         throw new Error('Authentication required. Please log in to manage badges.');
       }
-      
-      await BadgesApi.delete(deletingBadge.id);
+
+      await BadgesApi.delete(deletingBadge.id, token);
       toast({
         title: 'Success',
         description: 'Badge deleted successfully',

@@ -1,4 +1,4 @@
-import { api } from './client';
+import { createApiClientWithToken } from './client';
 import type { User } from '@/lib/types';
 
 export interface Notification {
@@ -26,42 +26,51 @@ export interface AdminNotification {
 }
 
 export const UsersApi = {
-  async list(): Promise<User[]> {
-    const { data } = await api.get('/api/users');
+  async list(token?: string): Promise<User[]> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/user/admin/all');
     return data;
   },
-  async get(userId: string): Promise<User> {
-    const { data } = await api.get(`/api/users/${userId}`);
+  async get(userId: string, token?: string): Promise<User> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get(`/api/users/${userId}`);
     return data;
   },
-  async update(userId: string, updates: Partial<User>): Promise<User> {
-    const { data } = await api.patch(`/api/users/${userId}`, updates);
+  async update(userId: string, updates: Partial<User>, token?: string): Promise<User> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.patch(`/api/users/${userId}`, updates);
     return data;
   },
-  async getNotifications(): Promise<{ notifications: Notification[] }> {
-    const { data } = await api.get('/user/notifications');
+  async getNotifications(token?: string): Promise<{ notifications: Notification[] }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/user/notifications');
     return data;
   },
-  async getUnreadNotificationCount(): Promise<{ status: string; unreadCount: number }> {
-    const { data } = await api.get('/user/notification/number');
+  async getUnreadNotificationCount(token?: string): Promise<{ status: string; unreadCount: number }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/user/notification/number');
     return data;
   },
   // Admin notification functions
-  async getAdminNotifications(): Promise<{ notifications: AdminNotification[] }> {
-    const { data } = await api.get('/admin/notifications');
+  async getAdminNotifications(token?: string): Promise<{ notifications: AdminNotification[] }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/admin/notifications');
     return data;
   },
-  async getAdminUnreadNotificationCount(): Promise<{ status: string; unreadCount: number }> {
-    const { data } = await api.get('/admin/notification/number');
+  async getAdminUnreadNotificationCount(token?: string): Promise<{ status: string; unreadCount: number }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/admin/notification/number');
     return data;
   },
   // Mark notifications as seen
-  async markNotificationAsSeen(notificationId: number): Promise<{ status: string; message: string }> {
-    const { data } = await api.put(`/user/notifications/${notificationId}/mark-as-seen`);
+  async markNotificationAsSeen(notificationId: number, token?: string): Promise<{ status: string; message: string }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.put(`/user/notifications/${notificationId}/mark-as-seen`);
     return data;
   },
-  async markAdminNotificationAsSeen(notificationId: number): Promise<{ status: string; message: string }> {
-    const { data } = await api.put(`/admin/notifications/${notificationId}/mark-as-seen`);
+  async markAdminNotificationAsSeen(notificationId: number, token?: string): Promise<{ status: string; message: string }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.put(`/admin/notifications/${notificationId}/mark-as-seen`);
     return data;
   }
 };

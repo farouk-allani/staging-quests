@@ -1,25 +1,29 @@
-import { api } from './client';
-import type { 
-  Badge, 
-  CreateBadgeRequest, 
-  CreateBadgeResponse, 
-  ListBadgesResponse, 
+import { createApiClientWithToken } from './client';
+import type {
+  Badge,
+  CreateBadgeRequest,
+  CreateBadgeResponse,
+  ListBadgesResponse,
   GetBadgeResponse,
-  BadgeFilters 
+  BadgeFilters
 } from '@/lib/types';
 
 export const BadgesApi = {
-  async listByUser(userId: string): Promise<Badge[]> {
-    const { data } = await api.get(`/users/${userId}/badges`);
-    return data;
-  },
-  
-  async award(userId: string, badgeId: string): Promise<Badge> {
-    const { data } = await api.post(`/users/${userId}/badges`, { badgeId });
+  async listByUser(userId: string, token?: string): Promise<Badge[]> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get(`/users/${userId}/badges`);
     return data;
   },
 
-  async create(badgeData: CreateBadgeRequest): Promise<CreateBadgeResponse> {
+  async award(userId: string, badgeId: string, token?: string): Promise<Badge> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.post(`/users/${userId}/badges`, { badgeId });
+    return data;
+  },
+
+  async create(badgeData: CreateBadgeRequest, token?: string): Promise<CreateBadgeResponse> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+
     // Check if image is a File object (for file uploads) or string (for URL)
     if (badgeData.image && typeof badgeData.image !== 'string') {
       // Handle file upload with FormData
@@ -33,8 +37,8 @@ export const BadgesApi = {
       if (badgeData.isActive !== undefined) {
         formData.append('isActive', badgeData.isActive.toString());
       }
-      
-      const { data } = await api.post('/badges', formData, {
+
+      const { data } = await apiClient.post('/badges', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -42,14 +46,15 @@ export const BadgesApi = {
       return data;
     } else {
       // Handle regular JSON payload
-      const { data } = await api.post('/badges', badgeData);
+      const { data } = await apiClient.post('/badges', badgeData);
       return data;
     }
   },
 
-  async list(filters?: BadgeFilters): Promise<ListBadgesResponse> {
+  async list(filters?: BadgeFilters, token?: string): Promise<ListBadgesResponse> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const params = new URLSearchParams();
-    
+
     if (filters?.rarity) {
       params.append('rarity', filters.rarity);
     }
@@ -59,20 +64,23 @@ export const BadgesApi = {
     if (filters?.createdBy) {
       params.append('createdBy', filters.createdBy.toString());
     }
-    
+
     const queryString = params.toString();
     const url = queryString ? `/badges?${queryString}` : '/badges';
-    
-    const { data } = await api.get(url);
+
+    const { data } = await apiClient.get(url);
     return data;
   },
 
-  async getById(id: string | number): Promise<GetBadgeResponse> {
-    const { data } = await api.get(`/badges/${id}`);
+  async getById(id: string | number, token?: string): Promise<GetBadgeResponse> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get(`/badges/${id}`);
     return data;
   },
 
-  async update(id: string | number, badgeData: Partial<CreateBadgeRequest>): Promise<Badge> {
+  async update(id: string | number, badgeData: Partial<CreateBadgeRequest>, token?: string): Promise<Badge> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+
     // Check if image is a File object (for file uploads) or string (for URL)
     if (badgeData.image && typeof badgeData.image !== 'string') {
       // Handle file upload with FormData
@@ -86,8 +94,8 @@ export const BadgesApi = {
       if (badgeData.isActive !== undefined) {
         formData.append('isActive', badgeData.isActive.toString());
       }
-      
-      const { data } = await api.put(`/badges/${id}`, formData, {
+
+      const { data } = await apiClient.put(`/badges/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -95,13 +103,14 @@ export const BadgesApi = {
       return data;
     } else {
       // Handle regular JSON payload
-      const { data } = await api.put(`/badges/${id}`, badgeData);
+      const { data } = await apiClient.put(`/badges/${id}`, badgeData);
       return data;
     }
   },
 
-  async delete(id: string | number): Promise<void> {
-    await api.delete(`/badges/${id}`);
+  async delete(id: string | number, token?: string): Promise<void> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    await apiClient.delete(`/badges/${id}`);
   }
 };
 

@@ -101,9 +101,9 @@ export class QuestService {
   }
 
   // Quest methods
-  static async getQuests(filters?: FilterOptions): Promise<Quest[]> {
+  static async getQuests(filters?: FilterOptions, token?: string): Promise<Quest[]> {
     try {
-      const response = await QuestsApi.list(filters);
+      const response = await QuestsApi.list(filters, token);
       return Array.isArray(response)
         ? response.map((quest: any) => ({
             ...quest,
@@ -225,10 +225,11 @@ export class QuestService {
   static async submitQuest(
     questId: string,
     userId: string,
-    content: SubmissionContent
+    content: SubmissionContent,
+    token?: string
   ): Promise<Submission> {
     try {
-      const response = await SubmissionsApi.submit(questId, content);
+      const response = await SubmissionsApi.submit(questId, content, token);
       return {
         ...response,
         id: String(response.id),
@@ -241,10 +242,11 @@ export class QuestService {
 
   static async getSubmissions(
     questId?: string,
-    userId?: string
+    userId?: string,
+    token?: string
   ): Promise<Submission[]> {
     try {
-      const response = await SubmissionsApi.list({ questId, userId });
+      const response = await SubmissionsApi.list({ questId, userId }, token);
       return Array.isArray(response)
         ? response.map((submission: any) => ({
             ...submission,
@@ -259,9 +261,9 @@ export class QuestService {
     }
   }
 
-  static async getQuestCompletions(): Promise<any> {
+  static async getQuestCompletions(token?: string): Promise<any> {
     try {
-      const response = await SubmissionsApi.getQuestCompletions();
+      const response = await SubmissionsApi.getQuestCompletions(token);
       return response;
     } catch (error) {
       console.error("Error fetching quest completions:", error);
@@ -273,14 +275,15 @@ export class QuestService {
     submissionId: string,
     status: "approved" | "rejected" | "needs-revision",
     feedback?: string,
-    points?: number
+    points?: number,
+    token?: string
   ): Promise<Submission> {
     try {
       const response = await SubmissionsApi.review(submissionId, {
         status,
         feedback,
         points,
-      });
+      }, token);
       return {
         ...response,
         id: String(response.id),
@@ -292,9 +295,9 @@ export class QuestService {
   }
 
   // Badge methods
-  static async getUserBadges(userId: string): Promise<Badge[]> {
+  static async getUserBadges(userId: string, token?: string): Promise<Badge[]> {
     try {
-      const badges = await BadgesApi.listByUser(userId);
+      const badges = await BadgesApi.listByUser(userId, token);
       return badges;
     } catch (error) {
       console.error("Error fetching user badges:", error);
@@ -303,9 +306,9 @@ export class QuestService {
     }
   }
 
-  static async getAllBadges(): Promise<Badge[]> {
+  static async getAllBadges(token?: string): Promise<Badge[]> {
     try {
-      const response = await BadgesApi.list();
+      const response = await BadgesApi.list(undefined, token);
       return response.data;
     } catch (error) {
       console.error("Error fetching all badges:", error);
@@ -313,9 +316,9 @@ export class QuestService {
     }
   }
 
-  static async awardBadge(userId: string, badgeId: string): Promise<Badge> {
+  static async awardBadge(userId: string, badgeId: string, token?: string): Promise<Badge> {
     try {
-      const badge = await BadgesApi.award(userId, badgeId);
+      const badge = await BadgesApi.award(userId, badgeId, token);
       return badge;
     } catch (error) {
       console.error("Error awarding badge:", error);
@@ -335,9 +338,9 @@ export class QuestService {
   }
 
   // Event methods
-  static async getEvents(): Promise<Event[]> {
+  static async getEvents(token?: string): Promise<Event[]> {
     try {
-      const events = await EventsApi.list();
+      const events = await EventsApi.list(token);
       return events;
     } catch (error) {
       console.error("Error fetching events:", error);
@@ -345,9 +348,9 @@ export class QuestService {
     }
   }
 
-  static async getEvent(id: string): Promise<Event | null> {
+  static async getEvent(id: string, token?: string): Promise<Event | null> {
     try {
-      const event = await EventsApi.get(id);
+      const event = await EventsApi.get(id, token);
       return event;
     } catch (error) {
       console.error("Error fetching event:", error);
@@ -356,10 +359,11 @@ export class QuestService {
   }
 
   // Dashboard methods
-  static async getDashboardStats(): Promise<any> {
+  static async getDashboardStats(token?: string): Promise<any> {
     try {
-      const { api } = await import("./api/client");
-      const response = await api.get("/admin/dashboard");
+      const { createApiClientWithToken } = await import("./api/client");
+      const apiClient = token ? createApiClientWithToken(token) : (await import("./api/client")).api;
+      const response = await apiClient.get("/admin/dashboard");
       return response.data;
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);

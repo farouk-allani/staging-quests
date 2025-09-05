@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 // Removed DashboardStats import as we're using the new API structure
 import { QuestService } from '@/lib/services';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,12 +33,13 @@ const RC: any = ResponsiveContainer as any;
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const loadStats = async () => {
       setIsLoading(true);
       try {
-        const data = await QuestService.getDashboardStats();
+        const data = await QuestService.getDashboardStats(session?.user?.token);
         setStats(data);
       } catch (error) {
         console.error('Failed to load admin stats:', error);
@@ -73,7 +75,6 @@ export default function AdminDashboard() {
 
   // Calculate percentage changes for display
   const userGrowth = userData.count > 0 ? Math.round((userData.lastWeek / userData.count) * 100) : 0;
-  const approvalRate = questSubmissionData.count > 0 ? Math.round((approvalData.count / questSubmissionData.count) * 100) : 0;
   const submissionGrowth = questSubmissionData.count > 0 ? Math.round((questSubmissionData.lastWeek / questSubmissionData.count) * 100) : 0;
 
   // Activity data for charts (placeholder data)
@@ -105,7 +106,7 @@ export default function AdminDashboard() {
 
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 hover:shadow-lg transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/5" />
             <CardHeader className="relative pb-3">
@@ -153,39 +154,18 @@ export default function AdminDashboard() {
             <CardHeader className="relative pb-3">
               <div className="flex items-center justify-between">
                 <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                  <FileText className="h-5 w-5 text-purple-600" />
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
                 </div>
                 <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20 font-mono text-xs">
-                  +{approvalData.lastWeek}
+                  {approvalData.count}%
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="relative">
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-purple-600/80 font-mono uppercase tracking-wide">Approvals</h3>
-                <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 font-mono">{approvalData.count}</div>
-                <p className="text-xs text-purple-600/60 font-mono">{approvalData.lastWeek} this week</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/30 hover:shadow-lg transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/5" />
-            <CardHeader className="relative pb-3">
-              <div className="flex items-center justify-between">
-                <div className="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                  <TrendingUp className="h-5 w-5 text-orange-600" />
-                </div>
-                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 font-mono text-xs">
-                  {approvalRate}%
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="relative">
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-orange-600/80 font-mono uppercase tracking-wide">Approval Rate</h3>
-                <div className="text-3xl font-bold text-orange-700 dark:text-orange-300 font-mono">{approvalRate}%</div>
-                <p className="text-xs text-orange-600/60 font-mono">overall rate</p>
+                <h3 className="text-sm font-medium text-purple-600/80 font-mono uppercase tracking-wide">Approval Rate</h3>
+                <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 font-mono">{approvalData.count}%</div>
+                <p className="text-xs text-purple-600/60 font-mono">overall rate</p>
               </div>
             </CardContent>
           </Card>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { tokenStorage } from '@/lib/api/client';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const [adminProfile, setAdminProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
@@ -86,7 +87,7 @@ export default function SettingsPage() {
     setSettings(prev => ({ ...prev, questValidationAutomation: checked }));
     
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) return;
       
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://hedera-quests.com';
@@ -122,7 +123,7 @@ export default function SettingsPage() {
 
   const fetchAdminProfile = async () => {
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         setLoading(false);
         return;
@@ -190,7 +191,7 @@ export default function SettingsPage() {
 
   const handleTwitterConnect = async () => {
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         alert('Please log in to connect your Twitter account.');
         return;
@@ -224,7 +225,7 @@ export default function SettingsPage() {
 
   const handleDiscordConnect = async () => {
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         alert('Please log in to connect your Discord account.');
         return;
@@ -258,7 +259,7 @@ export default function SettingsPage() {
 
   const handleFacebookConnect = async () => {
     try {
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         alert('Please log in to connect your Facebook account.');
         return;

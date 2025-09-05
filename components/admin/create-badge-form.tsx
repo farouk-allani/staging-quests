@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useSession } from 'next-auth/react';
 import { BadgesApi } from '@/lib/api/badges';
 import { BadgeRarity, Badge, CreateBadgeResponse } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { tokenStorage } from '@/lib/api/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +47,7 @@ interface CreateBadgeFormProps {
 }
 
 export function CreateBadgeForm({ onBadgeCreated, badge, isEditing = false }: CreateBadgeFormProps) {
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -89,7 +90,7 @@ export function CreateBadgeForm({ onBadgeCreated, badge, isEditing = false }: Cr
 
     try {
       // Check if user is authenticated
-      const token = tokenStorage.getAccessToken();
+      const token = session?.user?.token;
       if (!token) {
         throw new Error(`Authentication required. Please log in to ${isEditing ? 'update' : 'create'} badges.`);
       }
@@ -101,8 +102,8 @@ export function CreateBadgeForm({ onBadgeCreated, badge, isEditing = false }: Cr
       };
 
       const response = isEditing && badge
-        ? await BadgesApi.update(badge.id, payload)
-        : await BadgesApi.create(payload);
+        ? await BadgesApi.update(badge.id, payload, token)
+        : await BadgesApi.create(payload, token);
       
       toast({
         title: 'Success!',

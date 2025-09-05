@@ -70,8 +70,8 @@ import {
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { QuestService } from '@/lib/services';
-import { tokenStorage } from '@/lib/api/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from 'next-auth/react';
 
 interface Submission {
   id: string;
@@ -176,6 +176,7 @@ interface SubmissionReviewProps {
 
 export default function SubmissionReview({ className }: SubmissionReviewProps = {}) {
   const { toast } = useToast();
+  const { data: session } = useSession();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<Submission[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -202,7 +203,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         setLoading(true);
         
         // Load submissions
-        const submissionsData = await QuestService.getSubmissions();
+        const submissionsData = await QuestService.getSubmissions(undefined, undefined,session?.user?.token)
         
         // Transform basic submission data to match expected format
         const enrichedSubmissions = submissionsData.map((submission: any, index: number) => ({
@@ -229,7 +230,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         setSubmissions(enrichedSubmissions);
         
         // Load quests
-        const response = await QuestService.getQuestCompletions();
+        const response = await QuestService.getQuestCompletions(session?.user?.token);
         if (response.success) {
           setQuests(response.quests || []);
           toast({

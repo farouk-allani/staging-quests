@@ -1,4 +1,4 @@
-import { api, tokenStorage } from './client';
+import { api } from './client';
 import axios from 'axios';
 import type { User } from '@/lib/types';
 
@@ -28,10 +28,7 @@ export const AuthService = {
       const data = await response.json();
       console.log('Login response:', data);
 
-      // Store token using the proper token storage mechanism
-      if (data.token) {
-        tokenStorage.setAccessToken(data.token);
-      }
+      // Token is now handled by NextAuth session
 
       // Handle both admin and regular user data structures
       const userData = data.admin || data.user || data;
@@ -123,9 +120,7 @@ export const AuthService = {
       completedQuests: []
     };
 
-    // Store tokens if present
-    if (data?.accessToken) tokenStorage.setAccessToken(data.accessToken);
-    if (data?.refreshToken) tokenStorage.setRefreshToken(data.refreshToken);
+    // Tokens are now handled by NextAuth session
     return user;
   },
 
@@ -143,8 +138,9 @@ export const AuthService = {
   async logout(): Promise<void> {
     try {
       await api.post('/auth/logout');
-    } finally {
-      tokenStorage.clearAll();
+    } catch (error) {
+      // Logout is handled by NextAuth, API call is optional
+      console.log('API logout failed, but NextAuth will handle session cleanup');
     }
   },
 

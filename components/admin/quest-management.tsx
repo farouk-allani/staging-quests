@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ import type { Quest } from '@/lib/types';
 
 function QuestManagement() {
   const { toast } = useToast();
+  const { data: session } = useSession();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [filteredQuests, setFilteredQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,8 @@ function QuestManagement() {
   const loadQuests = async () => {
     try {
       setLoading(true);
-      const data = await QuestService.getQuests();
+      const token = session?.user?.token;
+      const data = await QuestService.getQuests(undefined, token);
       setQuests(data);
     } catch (error) {
       console.error('Failed to load quests:', error);

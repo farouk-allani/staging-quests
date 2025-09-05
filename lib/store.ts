@@ -255,6 +255,8 @@ const useStore = create<AppState>((set, get) => ({
     set({ isLoading: true });
     try {
       const { filters } = get();
+      // Get token from NextAuth session (this will be passed from components using the store)
+      // For now, we'll call without token and let the API handle authentication
       const quests = await QuestService.getQuests(filters);
       set({ quests, isLoading: false });
     } catch (error) {
