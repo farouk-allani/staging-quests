@@ -190,49 +190,27 @@ export default function ProfilePage() {
     }
 
     try {
-      // Fetch user statistics directly from the backend using NextAuth session token
+      // Fetch user statistics using the dedicated /user/stats endpoint
       const baseUrl = "https://hedera-quests.com";
+      const response = await fetch(`${baseUrl}/user/stats`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      // Fetch badges and submissions in parallel
-      const [badgesResponse, submissionsResponse] = await Promise.all([
-        fetch(`${baseUrl}/badges/user/${session.user.id}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-        }).catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
-        fetch(`${baseUrl}/submissions/user/${session.user.id}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.user.token}`,
-            "Content-Type": "application/json",
-          },
-        }).catch(() => ({ ok: false, json: () => Promise.resolve([]) })),
-      ]);
+      if (!response.ok) {
+        throw new Error("Failed to fetch user stats");
+      }
 
-      const badges = badgesResponse.ok ? await badgesResponse.json() : [];
-      const submissions = submissionsResponse.ok ? await submissionsResponse.json() : [];
+      const data = await response.json();
 
-      // Calculate quest statistics
-      const completedQuests = submissions.filter(
-        (sub: any) => sub.status === "approved"
-      );
-      const rejectedQuests = submissions.filter(
-        (sub: any) => sub.status === "rejected"
-      );
-      const pendingQuests = submissions.filter(
-        (sub: any) => sub.status === "pending" || sub.status === "needs-revision"
-      );
-
-      const stats = {
-        numberOfBadges: Array.isArray(badges) ? badges.length : 0,
-        numberOfquestCompleted: completedQuests.length,
-        numberOfquestRejected: rejectedQuests.length,
-        numberOfquestPending: pendingQuests.length,
-      };
-
-      setUserStats(stats);
+      if (data.success && data.stats) {
+        setUserStats(data.stats);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error) {
       console.error("Failed to load user stats:", error);
       // Set default stats on error
