@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { Badge, Quest, Event } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { EventsApi } from "@/lib/api/events";
+import { useSession } from "next-auth/react";
 
 const editQuestSchema = z.object({
   title: z.string().min(1, "Title is required").optional(),
@@ -107,6 +108,7 @@ export function EditQuestForm({
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -137,8 +139,8 @@ export function EditQuestForm({
         setLoadingEvents(true);
 
         const [badgesList, eventsList] = await Promise.all([
-          QuestService.getAllBadges(),
-          EventsApi.list(),
+          QuestService.getAllBadges(session?.user?.token),
+          EventsApi.list(session?.user?.token),
         ]);
 
         setBadges(badgesList);
@@ -261,7 +263,7 @@ export function EditQuestForm({
         return;
       }
 
-      await QuestService.updateQuest(String(quest.id), updateData);
+      await QuestService.updateQuest(String(quest.id), updateData, session?.user?.token);
       
       // Dismiss loading toast
       loadingToast.dismiss();

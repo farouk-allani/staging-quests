@@ -43,9 +43,6 @@ export const QuestsApi = {
       | "easy"
       | "medium"
       | "hard"
-      | "beginner"
-      | "intermediate"
-      | "advanced"
       | "expert";
     status?: "active" | "completed" | "expired" | "draft";
     startDate?: string;

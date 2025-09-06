@@ -156,9 +156,9 @@ export class QuestService {
     interaction_type?: string;
     quest_link?: string;
     event_id?: number;
-  }): Promise<Quest> {
+  }, token?: string): Promise<Quest> {
     try {
-      const response = await QuestsApi.create(quest);
+      const response = await QuestsApi.create(quest, token);
       return {
         ...response,
         id: String(response.id),
@@ -182,10 +182,11 @@ export class QuestService {
       endDate?: string;
       maxParticipants?: number;
       badgeIds?: number[];
-    }
+    },
+    token?: string
   ): Promise<Quest> {
     try {
-      const response = await QuestsApi.update(id, updates);
+      const response = await QuestsApi.update(id, updates, token);
       return {
         ...response,
         id: String(response.id),

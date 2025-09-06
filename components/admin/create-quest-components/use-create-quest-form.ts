@@ -4,6 +4,7 @@ import { QuestService } from "@/lib/services";
 import { Badge, Event } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import DOMPurify from "dompurify";
+import { useSession } from "next-auth/react";
 
 interface CreateQuestFormData {
   title: string;
@@ -46,6 +47,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [platform, setPlatform] = useState<string>("");
+  const { data: session } = useSession();
 
   const { toast } = useToast();
 
@@ -65,8 +67,8 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         setLoadingEvents(true);
 
         const [badgesList, eventsList] = await Promise.all([
-          QuestService.getAllBadges(),
-          QuestService.getEvents(),
+          QuestService.getAllBadges(session?.user?.token),
+          QuestService.getEvents(session?.user?.token),
         ]);
 
         setBadges(badgesList);
@@ -149,7 +151,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         event_id: data.event_id ? Number(data.event_id) : undefined,
       };
 
-      await QuestService.createQuest(questData);
+      await QuestService.createQuest(questData, session?.user?.token);
       
       // Dismiss loading toast
       loadingToast.dismiss();
