@@ -291,14 +291,18 @@ export function EditQuestForm({
       });
       
       onSuccess?.();
-    } catch (err) {
+    } catch (err: any) {
       // Dismiss loading toast
       loadingToast.dismiss();
       
       console.error("Error updating quest:", err);
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "Failed to update quest. Please try again.";
+      
+      // Extract error message from the API error structure
+      // The API client transforms errors, so we check multiple possible locations
+      const errorMessage = err?.message || 
+                           err?.response?.data?.message || 
+                           err?.data?.message ||
+                           "Failed to update quest. Please try again.";
       setError(errorMessage);
       
       // Show appropriate error toast

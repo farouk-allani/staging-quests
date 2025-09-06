@@ -85,8 +85,14 @@ export function SubmissionForm({ quest, onSubmit, onCancel }: SubmissionFormProp
 
       await QuestService.submitQuest(String(quest.id), 'current-user-id', content);
       onSubmit();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Submission failed');
+    } catch (err: any) {
+      // Extract error message from the API error structure
+      // The API client transforms errors, so we check multiple possible locations
+      const errorMessage = err?.message || 
+                           err?.response?.data?.message || 
+                           err?.data?.message ||
+                           'Submission failed';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

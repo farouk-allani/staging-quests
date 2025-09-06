@@ -181,7 +181,20 @@ export default function QuestDetailPage() {
       loadingToast.dismiss();
       
       console.error('Verification failed:', error);
-      const errorMessage = error?.response?.data?.message || 'Verification failed. Please try again.';
+      console.error('Error structure:', {
+        message: error?.message,
+        responseData: error?.response?.data,
+        data: error?.data
+      });
+      
+      // Extract error message from the API error structure
+      // The API client transforms errors, so we check multiple possible locations
+      const errorMessage = error?.message || 
+                           error?.response?.data?.message || 
+                           error?.data?.message ||
+                           'Verification failed. Please try again.';
+      
+      console.log('Extracted error message:', errorMessage);
       setVerifyMessage(errorMessage);
       
       // Show appropriate error toast based on error type
@@ -197,6 +210,9 @@ export default function QuestDetailPage() {
       } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('connection')) {
         toastTitle = "Connection Error";
         toastDescription = "Unable to verify quest due to connection issues. Please try again.";
+      } else if (errorMessage.toLowerCase().includes('not verified')) {
+        toastTitle = "User Not Verified";
+        toastDescription = "Please verify your account before completing quests.";
       }
       
       toast({
@@ -256,7 +272,7 @@ export default function QuestDetailPage() {
           className="border-2 border-dashed border-gray-400 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 font-mono text-sm transition-all duration-200 shadow-sm hover:shadow-md gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          ← Back to Quests
+           Back to Quests
         </Button>
       </Link>
 

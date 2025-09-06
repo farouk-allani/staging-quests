@@ -465,7 +465,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         variant: "default",
       });
       
-    } catch (error) {
+    } catch (error: any) {
       // Dismiss loading toast if it exists
       const loadingToast = toast({
         title: "Processing Review...",
@@ -476,8 +476,12 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
       
       console.error('Error reviewing submission:', error);
       
-      // Show appropriate error toast
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      // Extract error message from the API error structure
+      // The API client transforms errors, so we check multiple possible locations
+      const errorMessage = error?.message || 
+                           error?.response?.data?.message || 
+                           error?.data?.message ||
+                           'Unknown error occurred';
       let toastTitle = "Review Failed";
       let toastDescription = "Failed to submit review. Please try again.";
       
