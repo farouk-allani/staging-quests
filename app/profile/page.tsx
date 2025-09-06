@@ -675,7 +675,7 @@ export default function ProfilePage() {
                         </p>
                         {profileData?.user?.email && (
                           <div className="flex items-center gap-2">
-                            {profileData?.user?.emailVerified ? (
+                            {profileData?.user?.email_verified ? (
                               <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono text-xs">
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 VERIFIED
