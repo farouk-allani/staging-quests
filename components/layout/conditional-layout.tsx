@@ -20,7 +20,7 @@ export function ConditionalLayout({ children, className }: ConditionalLayoutProp
   // Show loading state during hydration
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-background font-mono flex items-center justify-center">
+      <div className="min-h-screen bg-background font-mono flex flex-col items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
