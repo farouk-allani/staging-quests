@@ -61,7 +61,7 @@ useEffect(() => {
           difficulties: [],
           search: '',
           showCompleted: false
-        }), // charge TOUTES les quêtes une seule fois
+        },session?.user?.token), // charge TOUTES les quêtes une seule fois
         QuestService.getCurrentUser(session?.user?.token)
       ]);
       setQuests(Array.isArray(questsData) ? questsData : []);
