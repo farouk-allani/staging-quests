@@ -310,7 +310,7 @@ export function FeaturedQuestsSection({ quests, completedQuestIds, onQuestSelect
   return (
     <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5 hover:border-solid transition-all duration-200">
       <CardHeader className="bg-gradient-to-r from-primary/10 to-blue-500/10">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between max-sm:flex-wrap">
           <CardTitle className="font-mono bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
             FEATURED_QUESTS
           </CardTitle>
