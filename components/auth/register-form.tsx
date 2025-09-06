@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthService } from '@/lib/api/auth';
+import type { ApiError } from '@/lib/api/client';
 import type { User } from '@/lib/types';
 import { Eye, EyeOff, Mail, Lock, User as UserIcon, AlertCircle } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
@@ -102,34 +103,36 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       
       // Registration successful - redirect to login
       onSwitchToLogin();
-    } catch (err) {
+    } catch (err: any) {
       // Dismiss loading toast
       loadingToast.dismiss();
       
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
-      setError(errorMessage);
+      // Extract the actual error message from the API response
+      let errorMessage = 'Registration failed. Please try again.';
       
-      // Show appropriate error toast based on error type
-      let toastTitle = "Registration Failed";
-      let toastDescription = errorMessage;
-      
-      if (errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('already')) {
-        toastTitle = "Email Already Registered";
-        toastDescription = "An account with this email address already exists. Please try signing in instead.";
-      } else if (errorMessage.toLowerCase().includes('password')) {
-        toastTitle = "Password Requirements Not Met";
-        toastDescription = "Please ensure your password meets all requirements and try again.";
-      } else if (errorMessage.toLowerCase().includes('name')) {
-        toastTitle = "Invalid Name";
-        toastDescription = "Please enter a valid name and try again.";
-      } else if (errorMessage.toLowerCase().includes('network') || errorMessage.toLowerCase().includes('connection')) {
-        toastTitle = "Connection Error";
-        toastDescription = "Unable to connect to our servers. Please check your internet connection and try again.";
+      // Handle ApiError from our client
+      if (err && typeof err === 'object' && err.message) {
+        errorMessage = err.message;
+      }
+      // Handle axios error response format
+      else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      // Handle string errors
+      else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      // Handle standard Error objects
+      else if (err instanceof Error) {
+        errorMessage = err.message;
       }
       
+      setError(errorMessage);
+      
+      // Show error toast with the actual backend message
       toast({
-        title: toastTitle,
-        description: toastDescription,
+        title: "Registration Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
