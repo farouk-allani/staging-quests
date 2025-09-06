@@ -162,7 +162,7 @@ export default function ProfilePage() {
         points: 0,
         level: 1,
         streak: 0,
-        joinedAt: data.user.created_at || new Date().toISOString(),
+        joinedAt: data.user.userLevel?.created_at || new Date().toISOString(),
         role: data.is_admin ? "admin" : "user",
         badges: [],
         completedQuests: [],
@@ -610,8 +610,8 @@ export default function ProfilePage() {
               </h1>
               <p className="text-muted-foreground font-mono text-sm">
                 {">"} Member since{" "}
-                {profileData?.user?.created_at
-                  ? formatDistanceToNow(new Date(profileData.user.created_at), {
+                {profileData?.user?.userLevel?.created_at
+                  ? formatDistanceToNow(new Date(profileData.user.userLevel.created_at), {
                       addSuffix: true,
                     })
                   : "Unknown"}
