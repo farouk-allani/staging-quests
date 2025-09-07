@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                     <span className="sm:hidden">Subs</span>
                   </div>
                 </TabsTrigger>
-                <TabsTrigger 
+                {/* <TabsTrigger 
                   value="analytics" 
                   className="relative font-mono text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-muted/50"
                 >
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                     <span className="hidden sm:inline">Reports</span>
                     <span className="sm:hidden">Rep</span>
                   </div>
-                </TabsTrigger>
+                </TabsTrigger> */}
               </TabsList>
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          {/* Category Popularity */}
+        
           <Card>
             <CardHeader>
               <CardTitle>Popular Categories</CardTitle>
