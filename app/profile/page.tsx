@@ -84,7 +84,14 @@ export default function ProfilePage() {
 
   const handleVerifyEmail = async () => {
     const email = profileData?.user?.email;
-    if (!email || !session?.user?.token) return;
+    if (!email || !session?.user?.token) {
+      toast({
+        title: "Verification Error",
+        description: "No email address or session found. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsVerifyingEmail(true);
     setEmailVerificationSuccess(false);
@@ -100,20 +107,44 @@ export default function ProfilePage() {
         body: JSON.stringify({ email }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to send verification email");
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
-      setEmailVerificationSuccess(true);
-      setTimeout(() => setEmailVerificationSuccess(false), 5000);
+      if (data.success) {
+        toast({
+          title: "Verification Email Sent",
+          description: "Check your inbox for the verification email.",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        setEmailVerificationSuccess(true);
+        setTimeout(() => setEmailVerificationSuccess(false), 5000);
+      } else {
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Error verifying email:", error);
-      setSaveError(
-        error instanceof Error
-          ? error.message
-          : "Failed to send verification email"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      toast({
+        title: "Verification Failed",
+        description: error instanceof Error ? error.message : "Failed to send verification email",
+        variant: "destructive",
+      });
     } finally {
       setIsVerifyingEmail(false);
     }
@@ -243,7 +274,14 @@ export default function ProfilePage() {
   };
 
   const handleConnectTwitter = async () => {
-    if (!session?.user?.token) return;
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to connect your Twitter account.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsConnectingTwitter(true);
     try {
@@ -256,35 +294,60 @@ export default function ProfilePage() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get Twitter authorization URL");
-      }
-
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to get Twitter authorization URL";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (data.success && data.url) {
+        // Show success message before redirect
+        toast({
+          title: "Connecting to Twitter",
+          description: "Redirecting to Twitter authentication...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
         // Redirect to Twitter authorization URL
         window.location.href = data.url;
       } else {
-        throw new Error("Invalid response from server");
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error connecting to Twitter:", error);
-      setSaveError(
-        error instanceof Error ? error.message : "Failed to connect to Twitter"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Twitter",
+        variant: "destructive",
+      });
     } finally {
       setIsConnectingTwitter(false);
     }
   };
+
   const handleConnectHedera = async () => {
     // setIsConnectingHedera(true);
     try {
       const accessToken = session?.user?.token;
       if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
+        toast({
+          title: "Authentication Error",
+          description: "No access token found. Please login again.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -297,27 +360,48 @@ export default function ProfilePage() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get Twitter authorization URL");
-      }
-
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to connect to Hedera";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (data.success && data.url) {
-        // Redirect to Twitter authorization URL
+        // Show success message before redirect
+        toast({
+          title: "Connecting to Hedera",
+          description: "Redirecting to Hedera authentication...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        // Redirect to Hedera authorization URL
         window.location.href = data.url;
       } else {
-        throw new Error("Invalid response from server");
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error connecting to Twitter:", error);
-      setSaveError(
-        error instanceof Error ? error.message : "Failed to connect to Twitter"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      console.error("Error connecting to Hedera:", error);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Hedera",
+        variant: "destructive",
+      });
     } finally {
-      console.log("Finished connecting to Twitter");
-      // setIsConnectingTwitter(false);
+      console.log("Finished connecting to Hedera");
+      // setIsConnectingHedera(false);
     }
   };
 
@@ -326,8 +410,11 @@ export default function ProfilePage() {
     try {
       const accessToken = session?.user?.token;
       if (!accessToken) {
-        setSaveError("No access token found. Please login again.");
-        setTimeout(() => setSaveError(null), 5000);
+        toast({
+          title: "Authentication Error",
+          description: "No access token found. Please login again.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -343,32 +430,60 @@ export default function ProfilePage() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to get Twitter authorization URL");
-      }
-
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (data.success && data.url) {
-        // Redirect to Twitter authorization URL
+        // Show success message before redirect
+        toast({
+          title: "Verification Email Sent",
+          description: "Check your email for verification instructions.",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        // Redirect to verification URL
         window.location.href = data.url;
       } else {
-        throw new Error("Invalid response from server");
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        toast({
+          title: "Verification Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error("Error connecting to Twitter:", error);
-      setSaveError(
-        error instanceof Error ? error.message : "Failed to connect to Twitter"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      console.error("Error verifying Hedera DID email:", error);
+      toast({
+        title: "Verification Failed",
+        description: error instanceof Error ? error.message : "Failed to send verification email",
+        variant: "destructive",
+      });
     } finally {
-      console.log("Finished connecting to Twitter");
-      // setIsConnectingTwitter(false);
+      console.log("Finished Hedera DID email verification");
+      // setIsConnectingHedera(false);
     }
   };
 
   const handleConnectFacebook = async () => {
-    if (!session?.user?.token) return;
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to connect your Facebook account.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsConnectingFacebook(true);
     try {
@@ -381,24 +496,45 @@ export default function ProfilePage() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get Facebook authorization URL");
-      }
-
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to get Facebook authorization URL";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (data.success && data.url) {
+        // Show success message before redirect
+        toast({
+          title: "Connecting to Facebook",
+          description: "Redirecting to Facebook authentication...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
         // Redirect to Facebook authorization URL
         window.location.href = data.url;
       } else {
-        throw new Error("Invalid response from server");
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error connecting to Facebook:", error);
-      setSaveError(
-        error instanceof Error ? error.message : "Failed to connect to Facebook"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Facebook",
+        variant: "destructive",
+      });
     } finally {
       setIsConnectingFacebook(false);
     }
@@ -487,7 +623,14 @@ export default function ProfilePage() {
   };
 
   const handleConnectDiscord = async () => {
-    if (!session?.user?.token) return;
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to connect your Discord account.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsConnectingDiscord(true);
     try {
@@ -500,24 +643,45 @@ export default function ProfilePage() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get Discord authorization URL");
-      }
-
       const data = await response.json();
 
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = data?.data || data?.message || "Failed to get Discord authorization URL";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (data.success && data.url) {
+        // Show success message before redirect
+        toast({
+          title: "Connecting to Discord",
+          description: "Redirecting to Discord authentication...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
         // Redirect to Discord authorization URL
         window.location.href = data.url;
       } else {
-        throw new Error("Invalid response from server");
+        // Handle backend error responses
+        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error connecting to Discord:", error);
-      setSaveError(
-        error instanceof Error ? error.message : "Failed to connect to Discord"
-      );
-      setTimeout(() => setSaveError(null), 5000);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Discord",
+        variant: "destructive",
+      });
     } finally {
       setIsConnectingDiscord(false);
     }
@@ -892,7 +1056,7 @@ export default function ProfilePage() {
                                     profileData?.user?.hederaMail?.last_send
                                   ).getTime() >
                                 20 * 60 * 1000
-                              ? "RESET"
+                              ? "RESEND"
                               : "VERIFY"}
                           </Button>
                         </div>
