@@ -349,7 +349,7 @@ export default function Dashboard() {
                     className="font-mono border-dashed"
                   />
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="text-sm font-mono text-muted-foreground uppercase tracking-wider">CATEGORY</label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="font-mono border-dashed">
@@ -380,7 +380,7 @@ export default function Dashboard() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
               </div>
             </CardContent>
           </Card>
