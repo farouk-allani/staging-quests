@@ -40,6 +40,7 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
     register,
     handleSubmit,
     onSubmit,
+    setValue,
   } = useCreateQuestForm(onSuccess);
 
   return (
@@ -60,6 +61,7 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
           platformInteractions={platformInteractions}
           events={events}
           loadingEvents={loadingEvents}
+          setValue={setValue}
         />
         <RewardsForm
           register={register}
@@ -80,6 +82,7 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
           setStartTime={setStartTime}
           endTime={endTime}
           setEndTime={setEndTime}
+          setValue={setValue}
         />
 
         <div className="flex justify-end space-x-4">

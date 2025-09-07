@@ -13,16 +13,20 @@ interface QuestDetailsFormProps {
   platformInteractions: { [key: string]: string[] };
   events: Event[];
   loadingEvents: boolean;
+  setValue: (name: any, value: any) => void;
 }
 
-export function QuestDetailsForm({ register, platform, setPlatform, platformInteractions, events, loadingEvents }: QuestDetailsFormProps) {
+export function QuestDetailsForm({ register, platform, setPlatform, platformInteractions, events, loadingEvents, setValue }: QuestDetailsFormProps) {
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold border-b pb-2">Quest Details</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <Label htmlFor="platform_type">Platform *</Label>
-          <Select onValueChange={(value) => setPlatform(value)} {...register('platform_type')}>
+          <Select onValueChange={(value) => {
+            setPlatform(value);
+            setValue("platform_type", value);
+          }}>
             <SelectTrigger className="max-w-md">
               <SelectValue placeholder="Select a platform" />
             </SelectTrigger>
@@ -35,7 +39,7 @@ export function QuestDetailsForm({ register, platform, setPlatform, platformInte
         </div>
         <div>
           <Label htmlFor="interaction_type">Interaction Type *</Label>
-          <Select {...register('interaction_type')}>
+          <Select onValueChange={(value) => setValue("interaction_type", value)}>
             <SelectTrigger className="max-w-md">
               <SelectValue placeholder="Select an interaction type" />
             </SelectTrigger>
@@ -63,7 +67,7 @@ export function QuestDetailsForm({ register, platform, setPlatform, platformInte
         </div>
         <div>
           <Label htmlFor="event_id">Related Event (Optional)</Label>
-          <Select {...register('event_id')}>
+          <Select onValueChange={(value) => setValue("event_id", value ? Number(value) : undefined)}>
             <SelectTrigger className="max-w-md">
               <SelectValue placeholder="Select an event" />
             </SelectTrigger>

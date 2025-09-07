@@ -33,6 +33,7 @@ interface SchedulingStatusFormProps {
   setStartTime: (time: string) => void;
   endTime: string;
   setEndTime: (time: string) => void;
+  setValue: (name: any, value: any) => void;
 }
 
 export function SchedulingStatusForm({
@@ -47,6 +48,7 @@ export function SchedulingStatusForm({
   setStartTime,
   endTime,
   setEndTime,
+  setValue,
 }: SchedulingStatusFormProps) {
   return (
     <div className="space-y-6">
@@ -70,7 +72,7 @@ export function SchedulingStatusForm({
         </div>
         <div>
           <Label htmlFor="difficulty">Difficulty *</Label>
-          <Select {...register("difficulty")}>
+          <Select onValueChange={(value) => setValue("difficulty", value)}>
             <SelectTrigger className="max-w-md">
               <SelectValue placeholder="Select difficulty" />
             </SelectTrigger>

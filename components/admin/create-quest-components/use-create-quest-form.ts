@@ -21,6 +21,10 @@ interface CreateQuestFormData {
   interaction_type?: string;
   quest_link?: string;
   event_id?: number;
+  quest_type?: string;
+  progress_to_add?: number;
+  createdBy?: number;
+  added_by?: number;
 }
 
 // Input sanitization helper
@@ -47,6 +51,8 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [platform, setPlatform] = useState<string>("");
+  const [questType, setQuestType] = useState<string>("hedera_profile_completion");
+  const [progressToAdd, setProgressToAdd] = useState<number>(10);
   const { data: session } = useSession();
 
   const { toast } = useToast();
@@ -143,12 +149,13 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         maxParticipants: data.maxParticipants || undefined,
         currentParticipants: 0, // New quests start with 0 participants
         badgeIds: selectedBadges.length > 0 ? selectedBadges : undefined,
-        platform_type: data.platform_type,
-        interaction_type: data.interaction_type,
         quest_link: data.quest_link
           ? sanitizeInput(data.quest_link.trim())
           : undefined,
-        event_id: data.event_id ? Number(data.event_id) : undefined,
+        quest_type: questType,
+        progress_to_add: progressToAdd,
+        createdBy: session?.user?.id ? Number(session.user.id) : undefined,
+        added_by: session?.user?.id ? Number(session.user.id) : undefined,
       };
 
       await QuestService.createQuest(questData, session?.user?.token);
@@ -234,9 +241,14 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     loadingEvents,
     platform,
     setPlatform,
+    questType,
+    setQuestType,
+    progressToAdd,
+    setProgressToAdd,
     platformInteractions,
     register,
     handleSubmit,
     onSubmit,
+    setValue, // Export setValue so components can use it directly
   };
 };
