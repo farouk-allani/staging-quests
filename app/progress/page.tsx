@@ -30,8 +30,8 @@ export default function ProgressPage() {
         
         if (userData) {
           const [badgesData, submissionsData] = await Promise.all([
-            QuestService.getUserBadges(String(userData.id)),
-            QuestService.getSubmissions(undefined, String(userData.id),session?.user?.token)
+            QuestService.getUserBadges(undefined, session?.user?.token),
+            QuestService.getUserCompletions(session?.user?.token)
           ]);
           setBadges(badgesData);
           setSubmissions(submissionsData);
@@ -44,7 +44,7 @@ export default function ProgressPage() {
     };
 
     loadData();
-  }, []);
+  }, [session?.user?.token]);
 
   if (isLoading) {
     return (
@@ -70,7 +70,7 @@ export default function ProgressPage() {
 
   const submissionStats = {
     total: submissions.length,
-    approved: submissions.filter(s => s.status === 'approved').length,
+    approved: submissions.filter(s => s.status === 'validated' || s.status === 'approved').length,
     pending: submissions.filter(s => s.status === 'pending').length,
     needsRevision: submissions.filter(s => s.status === 'needs-revision').length,
     rejected: submissions.filter(s => s.status === 'rejected').length
@@ -277,18 +277,20 @@ export default function ProgressPage() {
                   {submissions.map((submission) => (
                     <div key={submission.id} className="border-2 border-dashed border-primary/10 rounded-lg p-4 bg-gradient-to-r from-background/50 to-muted/20 hover:border-solid transition-all duration-200">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium font-mono text-primary">QUEST_#{submission.questId}</div>
+                        <div className="font-medium font-mono text-primary">
+                          {submission.quest?.title || `QUEST_#${submission.questId}`}
+                        </div>
                         <Badge 
                           variant="outline"
                           className={cn(
                             'font-mono border-2 border-dashed',
-                            submission.status === 'approved' && 'border-green-500/30 text-green-700 bg-green-500/10',
+                            (submission.status === 'approved' || submission.status === 'validated') && 'border-green-500/30 text-green-700 bg-green-500/10',
                             submission.status === 'pending' && 'border-yellow-500/30 text-yellow-700 bg-yellow-500/10',
                             submission.status === 'needs-revision' && 'border-orange-500/30 text-orange-700 bg-orange-500/10',
                             submission.status === 'rejected' && 'border-red-500/30 text-red-700 bg-red-500/10'
                           )}
                         >
-                          {submission.status.replace('-', '_').toUpperCase()}
+                          {submission.status === 'validated' ? 'APPROVED' : submission.status.replace('-', '_').toUpperCase()}
                         </Badge>
                       </div>
                       
@@ -349,12 +351,12 @@ export default function ProgressPage() {
                     <div key={submission.id} className="flex items-center gap-4 p-3 border-2 border-dashed border-primary/10 rounded-lg bg-gradient-to-r from-background/50 to-muted/20 hover:border-solid transition-all duration-200">
                       <div className={cn(
                         'w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center',
-                        submission.status === 'approved' && 'bg-green-500/10 border-green-500/30',
+                        (submission.status === 'approved' || submission.status === 'validated') && 'bg-green-500/10 border-green-500/30',
                         submission.status === 'pending' && 'bg-yellow-500/10 border-yellow-500/30',
                         submission.status === 'needs-revision' && 'bg-orange-500/10 border-orange-500/30',
                         submission.status === 'rejected' && 'bg-red-500/10 border-red-500/30'
                       )}>
-                        {submission.status === 'approved' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                        {(submission.status === 'approved' || submission.status === 'validated') && <CheckCircle className="w-4 h-4 text-green-600" />}
                         {submission.status === 'pending' && <Clock className="w-4 h-4 text-yellow-600" />}
                         {submission.status === 'needs-revision' && <AlertCircle className="w-4 h-4 text-orange-600" />}
                         {submission.status === 'rejected' && <XCircle className="w-4 h-4 text-red-600" />}
@@ -362,13 +364,13 @@ export default function ProgressPage() {
                       
                       <div className="flex-1">
                         <div className="font-medium font-mono text-primary">
-                          {submission.status === 'approved' && '✅ QUEST_COMPLETED'}
+                          {(submission.status === 'approved' || submission.status === 'validated') && '✅ QUEST_COMPLETED'}
                           {submission.status === 'pending' && '⏳ QUEST_SUBMITTED'}
                           {submission.status === 'needs-revision' && '🔄 REVISION_REQUESTED'}
                           {submission.status === 'rejected' && '❌ SUBMISSION_REJECTED'}
                         </div>
                         <div className="text-sm text-muted-foreground font-mono">
-                          {'>'} QUEST_#{submission.questId} • {formatDistanceToNow(new Date(submission.submittedAt), { addSuffix: true })}
+                          {'>'} {submission.quest?.title || `QUEST_#${submission.questId}`} • {formatDistanceToNow(new Date(submission.submittedAt), { addSuffix: true })}
                         </div>
                       </div>
                       

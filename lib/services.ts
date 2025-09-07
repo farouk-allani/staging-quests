@@ -315,13 +315,38 @@ export class QuestService {
   }
 
   // Badge methods
-  static async getUserBadges(userId: string, token?: string): Promise<Badge[]> {
+  static async getUserBadges(userId?: string, token?: string): Promise<Badge[]> {
     try {
-      const badges = await BadgesApi.listByUser(userId, token);
+      const badges = await BadgesApi.listByUser(userId || '', token);
       return badges;
     } catch (error) {
       console.error("Error fetching user badges:", error);
       // Return empty array instead of mock data to prevent false badge counts
+      return [];
+    }
+  }
+
+  static async getUserCompletions(token?: string): Promise<any[]> {
+    try {
+      const response = await SubmissionsApi.getUserCompletions(token);
+      // Handle the new data structure
+      if (response && response.data) {
+        return response.data.map((completion: any) => ({
+          id: completion.id,
+          questId: completion.questId,
+          userId: completion.userId,
+          status: completion.status, // 'validated' maps to 'approved'
+          submittedAt: completion.completedAt || completion.created_at,
+          reviewedAt: completion.validatedAt,
+          rejectedAt: completion.rejectedAt,
+          feedback: completion.rejectionReason,
+          points: completion.quest?.progress_to_add,
+          quest: completion.quest
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching user completions:", error);
       return [];
     }
   }

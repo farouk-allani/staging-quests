@@ -7,6 +7,12 @@ export const SubmissionsApi = {
     const { data } = await apiClient.get('/quest-completions/submissions', { params });
     return data;
   },
+  
+  async getUserCompletions(token?: string): Promise<any> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/quest-completions/user/completions');
+    return data;
+  },
   async getQuestCompletions(token?: string): Promise<any> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const { data } = await apiClient.get('/quest-completions/submissions');

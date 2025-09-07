@@ -91,6 +91,7 @@ export interface Submission {
   content: SubmissionContent;
   feedback?: string;
   points?: number;
+  quest?: Quest;
 }
 
 export interface Badge {
@@ -142,7 +143,7 @@ export type Difficulty = 'easy' | 'medium' | 'hard' | 'beginner' | 'intermediate
 
 export type SubmissionType = 'url' | 'text' | 'file' | 'transaction-id' | 'account-id';
 
-export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'needs-revision';
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'needs-revision' | 'validated';
 
 export type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary';
 

@@ -11,7 +11,7 @@ import type {
 export const BadgesApi = {
   async listByUser(userId: string, token?: string): Promise<Badge[]> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
-    const { data } = await apiClient.get(`/users/${userId}/badges`);
+    const { data } = await apiClient.get(`/badges/user/badges`);
     return data;
   },
 
