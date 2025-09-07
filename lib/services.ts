@@ -230,10 +230,11 @@ export class QuestService {
   }
 
   static async deleteQuest(
-    id: string
+    id: string,
+    token?:string
   ): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await QuestsApi.deleteQuest(id);
+      const response = await QuestsApi.deleteQuest(id,token);
       return response;
     } catch (error) {
       throw error;

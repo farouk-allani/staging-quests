@@ -87,7 +87,7 @@ function QuestManagement() {
 
   const handleDeleteQuest = async (questId: string) => {
     try {
-      await QuestService.deleteQuest(questId);
+      await QuestService.deleteQuest(questId,session?.user.token);
       await loadQuests();
       toast({
         title: 'Success',
