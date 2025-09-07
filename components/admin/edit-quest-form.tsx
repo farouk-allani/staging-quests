@@ -52,61 +52,45 @@ const editQuestSchema = z.object({
   interaction_type: z.string().optional(),
   quest_link: z.string().optional(),
   event_id: z.number().optional(),
+  quest_type: z.string().optional(),
+  progress_to_add: z.number().optional(),
+  createdBy: z.number().optional(),
+  added_by: z.number().optional(),
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
 
 interface EditQuestFormProps {
-  quest: Quest;
+  questId: number | string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
 export function EditQuestForm({
-  quest,
+  questId,
   onSuccess,
   onCancel,
 }: EditQuestFormProps) {
+  console.log("EditQuestForm mounted with questId:", questId);
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingQuest, setIsLoadingQuest] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quest, setQuest] = useState<Quest | null>(null);
   const [status, setStatus] = useState<
     "draft" | "active" | "completed" | "expired"
-  >((quest.status as any) || "draft");
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    quest.startDate ? new Date(quest.startDate) : undefined
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    quest.endDate ? new Date(quest.endDate) : undefined
-  );
-  const [startTime, setStartTime] = useState(() => {
-    if (quest.startDate) {
-      const date = new Date(quest.startDate);
-      return `${date.getHours().toString().padStart(2, "0")}:${date
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return "12:00";
-  });
-  const [endTime, setEndTime] = useState(() => {
-    if (quest.endDate) {
-      const date = new Date(quest.endDate);
-      return `${date.getHours().toString().padStart(2, "0")}:${date
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return "18:00";
-  });
-  const [selectedBadges, setSelectedBadges] = useState<number[]>(
-    quest.badges?.map((badge) =>
-      typeof badge === "object" ? badge.id : badge
-    ) || []
-  );
+  >("draft");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [startTime, setStartTime] = useState("12:00");
+  const [endTime, setEndTime] = useState("18:00");
+  const [selectedBadges, setSelectedBadges] = useState<number[]>([]);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loadingBadges, setLoadingBadges] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [questType, setQuestType] = useState<string>("hedera_profile_completion");
+  const [progressToAdd, setProgressToAdd] = useState<number>(10);
   const { toast } = useToast();
   const { data: session } = useSession();
 
@@ -116,20 +100,117 @@ export function EditQuestForm({
     formState: { errors },
     setValue,
     watch,
+    reset,
   } = useForm<EditQuestFormData>({
     resolver: zodResolver(editQuestSchema),
-    defaultValues: {
-      title: quest.title,
-      description: quest.description,
-      reward:
-        typeof quest.reward === "string"
-          ? parseFloat(quest.reward)
-          : quest.reward,
-      difficulty: quest.difficulty as any,
-      status: quest.status as any,
-      maxParticipants: quest.maxParticipants,
-    },
   });
+
+  // Fetch quest data by ID
+  useEffect(() => {
+    const fetchQuest = async () => {
+      if (!questId) {
+        console.log("No questId provided");
+        return;
+      }
+      
+      try {
+        console.log("Starting to fetch quest with ID:", questId);
+        console.log("Session token available:", session?.user?.token ? "Yes" : "No");
+        
+        setIsLoadingQuest(true);
+        setError(null);
+        
+        // Add timeout to prevent infinite hanging
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout after 15 seconds')), 15000)
+        );
+        
+        const questPromise = QuestService.getQuest(String(questId), session?.user?.token);
+        
+        console.log("Making API call...");
+        const questData = await Promise.race([questPromise, timeoutPromise]);
+        
+        console.log("Quest data received:", questData);
+        
+        if (!questData) {
+          throw new Error("Quest not found");
+        }
+        
+        setQuest(questData);
+        
+        // Initialize form with quest data
+        console.log("Quest platform_type from API:", questData.platform_type);
+        console.log("Quest interaction_type from API:", questData.interaction_type);
+        
+        reset({
+          title: questData.title,
+          description: questData.description,
+          reward: typeof questData.reward === "string" ? parseFloat(questData.reward) : questData.reward,
+          difficulty: questData.difficulty as any,
+          status: questData.status as any,
+          maxParticipants: questData.maxParticipants,
+          platform_type: questData.platform_type || "",
+          interaction_type: questData.interaction_type || "",
+          quest_link: questData.quest_link || "",
+          event_id: questData.event_id,
+          quest_type: questData.quest_type,
+          progress_to_add: questData.progress_to_add,
+          createdBy: questData.createdBy,
+          added_by: questData.added_by,
+        });
+        
+        // Initialize state variables
+        setStatus((questData.status as any) || "draft");
+        setStartDate(questData.startDate ? new Date(questData.startDate) : undefined);
+        setEndDate(questData.endDate ? new Date(questData.endDate) : undefined);
+        
+        // Initialize time fields
+        if (questData.startDate) {
+          const date = new Date(questData.startDate);
+          setStartTime(`${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`);
+        }
+        if (questData.endDate) {
+          const date = new Date(questData.endDate);
+          setEndTime(`${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`);
+        }
+        
+        // Initialize badges
+        const questBadgeIds = questData.badges?.map((badge: any) => 
+          typeof badge === "object" ? badge.id : badge
+        ) || [];
+        setSelectedBadges(questBadgeIds);
+        
+        // Initialize quest type and progress
+        setQuestType(questData.quest_type || "hedera_profile_completion");
+        setProgressToAdd(questData.progress_to_add || 10);
+        
+        // Force form to update platform and interaction types
+        setTimeout(() => {
+          if (questData.platform_type) {
+            setValue("platform_type", questData.platform_type);
+          }
+          if (questData.interaction_type) {
+            setValue("interaction_type", questData.interaction_type);
+          }
+        }, 100);
+        
+      } catch (err) {
+        console.error("Error fetching quest:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch quest data. Please try again.";
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        console.log("Setting isLoadingQuest to false");
+        setIsLoadingQuest(false);
+      }
+    };
+
+    fetchQuest();
+  }, [questId, session?.user?.token, reset, toast]);
 
   // Fetch badges and events when component mounts
   useEffect(() => {
@@ -154,9 +235,18 @@ export function EditQuestForm({
     };
 
     fetchData();
-  }, []);
+  }, [session?.user?.token]);
 
   const onSubmit = async (data: EditQuestFormData) => {
+    if (!quest) {
+      toast({
+        title: "Error",
+        description: "Quest data not loaded. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -241,10 +331,10 @@ export function EditQuestForm({
         updateData.event_id = data.event_id;
       }
       if (data.platform_type !== quest.platform_type) {
-        updateData.platform_type = data.platform_type;
+        updateData.platform_type = data.platform_type === "" ? null : data.platform_type;
       }
       if (data.interaction_type !== quest.interaction_type) {
-        updateData.interaction_type = data.interaction_type;
+        updateData.interaction_type = data.interaction_type === "" ? null : data.interaction_type;
       }
       if (data.quest_link !== quest.quest_link) {
         updateData.quest_link = data.quest_link;
@@ -345,6 +435,56 @@ export function EditQuestForm({
         : [...prev, badgeId]
     );
   };
+
+  // Show loading state while fetching quest
+  if (isLoadingQuest) {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="text-lg">Loading quest data...</span>
+          </div>
+        </div>
+        {/* Add timeout warning after some time */}
+        <div className="text-center mt-4 text-sm text-muted-foreground">
+          If this takes longer than expected, there might be a connection issue.
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if quest failed to load
+  if (error || !quest) {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error || "Failed to load quest data. Please try again."}
+          </AlertDescription>
+        </Alert>
+        <div className="mt-4 flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setError("");
+              // Trigger a refetch by updating the dependency
+              if (questId && session?.user?.token) {
+                setIsLoadingQuest(true);
+                window.location.reload(); // Simple way to retry
+              }
+            }}
+          >
+            Retry
+          </Button>
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
@@ -451,7 +591,7 @@ export function EditQuestForm({
             <div className="space-y-2">
               <Label htmlFor="difficulty">Difficulty</Label>
               <Select
-                value={watch("difficulty") || quest.difficulty}
+                value={watch("difficulty") || quest?.difficulty || "easy"}
                 onValueChange={(value) => setValue("difficulty", value as any)}
               >
                 <SelectTrigger className="max-w-xs">
@@ -483,6 +623,58 @@ export function EditQuestForm({
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quest_type">Quest Type</Label>
+              <Select
+                value={questType}
+                onValueChange={(value) => {
+                  setQuestType(value);
+                  setValue("quest_type", value);
+                }}
+              >
+                <SelectTrigger className="max-w-xs">
+                  <SelectValue placeholder="Select quest type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hedera_profile_completion">Hedera Profile Completion</SelectItem>
+                  <SelectItem value="social_engagement">Social Engagement</SelectItem>
+                  <SelectItem value="event_participation">Event Participation</SelectItem>
+                  <SelectItem value="community_contribution">Community Contribution</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="progress_to_add">Progress to Add</Label>
+              <Input
+                id="progress_to_add"
+                type="number"
+                placeholder="Enter progress value"
+                className="max-w-xs"
+                value={progressToAdd}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setProgressToAdd(value);
+                  setValue("progress_to_add", value);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Progress points to add when quest is completed
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Advanced Settings */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold border-b pb-2">
+            Advanced Settings
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Add any advanced settings here if needed */}
           </div>
         </div>
 
@@ -506,7 +698,7 @@ export function EditQuestForm({
                 value={
                   watch("event_id")
                     ? String(watch("event_id"))
-                    : quest.event_id
+                    : quest?.event_id
                     ? String(quest.event_id)
                     : "none"
                 }
@@ -551,11 +743,11 @@ export function EditQuestForm({
             <div className="space-y-2">
               <Label htmlFor="platform_type">Platform Type</Label>
               <Select
-                value={watch("platform_type") || quest.platform_type || "none"}
+                value={watch("platform_type") || "none"}
                 onValueChange={(value) =>
                   setValue(
                     "platform_type",
-                    value === "none" ? undefined : value
+                    value === "none" ? "" : value
                   )
                 }
               >
@@ -581,13 +773,11 @@ export function EditQuestForm({
             <div className="space-y-2">
               <Label htmlFor="interaction_type">Interaction Type</Label>
               <Select
-                value={
-                  watch("interaction_type") || quest.interaction_type || "none"
-                }
+                value={watch("interaction_type") || "none"}
                 onValueChange={(value) =>
                   setValue(
                     "interaction_type",
-                    value === "none" ? undefined : value
+                    value === "none" ? "" : value
                   )
                 }
               >

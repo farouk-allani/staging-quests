@@ -76,6 +76,7 @@ export interface Quest {
   interaction_type?: string;
   quest_link?: string;
   event_id?: number;
+  progress_to_add?: number;
   user_status?: string;
 }
 

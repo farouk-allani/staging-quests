@@ -24,8 +24,16 @@ export const QuestsApi = {
     return response.data;
   },
   async get(id: string, token?: string): Promise<Quest> {
+    console.log("QuestsApi.get called with:", { id, hasToken: !!token });
+    
     const apiClient = token ? createApiClientWithToken(token) : require("./client").api;
+    
+    console.log("Making API request to:", `/quests/${id}`);
+    console.log("API base URL:", apiClient.defaults.baseURL);
+    
     const response = await apiClient.get(`/quests/${id}`);
+    
+    console.log("Quest API response received:", response.data);
 
     // Handle the response format: { success: true, data: {...} }
     if (response.data.success && response.data.data) {

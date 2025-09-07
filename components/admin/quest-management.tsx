@@ -599,7 +599,7 @@ function QuestManagement() {
           </DialogHeader>
           {selectedQuest && (
             <EditQuestForm
-              quest={selectedQuest}
+              questId={selectedQuest.id}
               onSuccess={() => {
                 setIsEditDialogOpen(false);
                 loadQuests();

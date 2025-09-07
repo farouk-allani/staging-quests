@@ -124,13 +124,22 @@ export class QuestService {
 
   static async getQuest(id: string,token?: string): Promise<Quest | null> {
     try {
+      console.log("QuestService.getQuest called with:", { id, hasToken: !!token });
+      
       const response = await QuestsApi.get(id,token);
-      return {
+      
+      console.log("QuestService.getQuest response:", response);
+      
+      const processedQuest = {
         ...response,
         id: String(response.id),
         createdAt: response.createdAt || (response as any).created_at,
         updatedAt: response.updatedAt || response.updated_at,
       };
+      
+      console.log("Processed quest data:", processedQuest);
+      
+      return processedQuest;
     } catch (error) {
       console.error("Error fetching quest:", error);
       throw error;
@@ -182,6 +191,14 @@ export class QuestService {
       endDate?: string;
       maxParticipants?: number;
       badgeIds?: number[];
+      platform_type?: string;
+      interaction_type?: string;
+      quest_link?: string;
+      event_id?: number;
+      quest_type?: string;
+      progress_to_add?: number;
+      createdBy?: number;
+      added_by?: number;
     },
     token?: string
   ): Promise<Quest> {
