@@ -268,9 +268,9 @@ export default function LeaderboardPage() {
                         </Avatar>
                         <div>
                           <h4 className="font-semibold">{entry.user.name}</h4>
-                          <p className="text-sm text-muted-foreground">
+                          {/* <p className="text-sm text-muted-foreground">
                             {entry.user.completedQuests.length} Quests Completed
-                          </p>
+                          </p> */}
                         </div>
                       </div>
 
