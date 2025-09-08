@@ -11,8 +11,16 @@ import type {
 export const BadgesApi = {
   async listByUser(userId: string, token?: string): Promise<Badge[]> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
-    const { data } = await apiClient.get(`/badges/user/badges`);
-    return data;
+    const response = await apiClient.get(`/badges/user/badges`);
+    
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      return response.data.data.map((item: any) => ({
+        ...item.badge,
+        earnedAt: item.earnedAt 
+      }));
+    }
+    
+    return response.data || [];
   },
 
   async award(userId: string, badgeId: string, token?: string): Promise<Badge> {
