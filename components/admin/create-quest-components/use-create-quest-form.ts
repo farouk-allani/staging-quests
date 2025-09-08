@@ -152,7 +152,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         quest_link: data.quest_link
           ? sanitizeInput(data.quest_link.trim())
           : undefined,
-        quest_type: questType,
+        // quest_type: questType,
         progress_to_add: progressToAdd,
         createdBy: session?.user?.id ? Number(session.user.id) : undefined,
         added_by: session?.user?.id ? Number(session.user.id) : undefined,

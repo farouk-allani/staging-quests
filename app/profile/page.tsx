@@ -65,7 +65,7 @@ export default function ProfilePage() {
         ).getTime();
         const now = Date.now();
         const diff = now - lastSend;
-        const cooldown = 60 * 60 * 1000 - diff;
+        const cooldown = 10 * 60 * 1000 - diff; 
         setHederaMailCooldown(cooldown > 0 ? cooldown : 0);
       };
       updateCooldown();
@@ -111,7 +111,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to send verification email";
         toast({
           title: "Verification Failed",
           description: errorMessage,
@@ -131,7 +131,7 @@ export default function ProfilePage() {
         setTimeout(() => setEmailVerificationSuccess(false), 5000);
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to send verification email";
         toast({
           title: "Verification Failed",
           description: errorMessage,
@@ -298,7 +298,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to get Twitter authorization URL";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to get Twitter authorization URL";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -319,7 +319,7 @@ export default function ProfilePage() {
         window.location.href = data.url;
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -364,7 +364,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to connect to Hedera";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to connect to Hedera";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -385,7 +385,7 @@ export default function ProfilePage() {
         window.location.href = data.url;
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -434,7 +434,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to send verification email";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to send verification email";
         toast({
           title: "Verification Failed",
           description: errorMessage,
@@ -443,19 +443,31 @@ export default function ProfilePage() {
         return;
       }
 
-      if (data.success && data.url) {
-        // Show success message before redirect
-        toast({
-          title: "Verification Email Sent",
-          description: "Check your email for verification instructions.",
-          variant: "default",
-          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
-        });
-        // Redirect to verification URL
-        window.location.href = data.url;
+      if (data.success) {
+        if (data.url) {
+          // Show success message before redirect
+          toast({
+            title: "Verification Email Sent",
+            description: "Check your email for verification instructions.",
+            variant: "default",
+            className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+          });
+          // Redirect to verification URL
+          window.location.href = data.url;
+        } else {
+          // Show success message for email sent (no redirect)
+          toast({
+            title: "Verification Email Sent",
+            description: "Check your email for verification instructions.",
+            variant: "default",
+            className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+          });
+          // Optionally reload profile data to reflect any changes
+          loadUser();
+        }
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
         toast({
           title: "Verification Failed",
           description: errorMessage,
@@ -500,7 +512,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to get Facebook authorization URL";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to get Facebook authorization URL";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -521,7 +533,7 @@ export default function ProfilePage() {
         window.location.href = data.url;
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -647,7 +659,7 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         // Handle HTTP error responses
-        const errorMessage = data?.data || data?.message || "Failed to get Discord authorization URL";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to get Discord authorization URL";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -668,7 +680,7 @@ export default function ProfilePage() {
         window.location.href = data.url;
       } else {
         // Handle backend error responses
-        const errorMessage = data?.data || data?.message || "Invalid response from server";
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
         toast({
           title: "Connection Failed",
           description: errorMessage,
@@ -1055,7 +1067,7 @@ export default function ProfilePage() {
                                   new Date(
                                     profileData?.user?.hederaMail?.last_send
                                   ).getTime() >
-                                20 * 60 * 1000
+                                10 * 60 * 1000
                               ? "RESEND"
                               : "VERIFY"}
                           </Button>
