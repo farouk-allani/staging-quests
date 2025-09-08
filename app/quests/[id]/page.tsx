@@ -10,6 +10,7 @@ import { QuestService } from '@/lib/services';
 import { api, createApiClientWithToken } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { SocialLinkModal } from '@/components/quests/social-link-modal';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,6 +82,14 @@ export default function QuestDetailPage() {
   const [verifying, setVerifying] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState<string | null>(null);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const [showSocialLinkModal, setShowSocialLinkModal] = useState(false);
+  const [modalPlatform, setModalPlatform] = useState<string>('');
+  const [questStats, setQuestStats] = useState<{
+    validated: number;
+    all: number;
+    approvedRate: number;
+    rejected: number;
+  } | null>(null);
     const { data: session } = useSession();
 
   const now = new Date();
@@ -95,6 +104,39 @@ export default function QuestDetailPage() {
   const completedQuests = quest && quest.user_status === "validated";
 
    const isExpired = quest && quest.endDate && new Date(quest.endDate) < now;
+
+  // Check if social media account is linked for the quest platform
+  const isAccountLinked = (platformType: string) => {
+    if (!user || !platformType) return true; // Return true for non-social platforms
+    
+    switch (platformType.toLowerCase()) {
+      case 'twitter':
+        return !!user.twitterProfile;
+      case 'facebook':
+        return !!user.facebookProfile;
+      case 'discord':
+        return !!user.discordProfile;
+      case 'instagram':
+        // Add instagram profile check when available
+        return false;
+      default:
+        return true; // Allow other platforms by default
+    }
+  };
+
+  // Handle start quest click
+  const handleStartQuest = (e: React.MouseEvent) => {
+    // Check if quest has a platform type that requires social media linking
+    if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'instagram'].includes(quest.platform_type.toLowerCase())) {
+      if (!isAccountLinked(quest.platform_type)) {
+        e.preventDefault();
+        setModalPlatform(quest.platform_type);
+        setShowSocialLinkModal(true);
+        return;
+      }
+    }
+    // If account is linked or it's not a social platform, proceed normally
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +171,22 @@ export default function QuestDetailPage() {
 
         setQuest(questDetails);
         setUser(userData);
+
+     
+        if (session?.user?.token) {
+          try {
+            const apiWithToken = createApiClientWithToken(session.user.token);
+            const statsResponse = await apiWithToken.get(`/quest-completions/quest/stats/${questId}`);
+            
+            if (statsResponse.data && statsResponse.data.success) {
+              setQuestStats(statsResponse.data.data);
+              console.log('Quest stats loaded:', statsResponse.data.data);
+            }
+          } catch (statsError) {
+            console.error('Failed to load quest stats:', statsError);
+           
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load quest data');
         console.error('Quest loading error:', err);
@@ -451,7 +509,7 @@ export default function QuestDetailPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {(quest as any).currentParticipants || 0} / {(quest as any).maxParticipants || '∞'}
+                          {questStats?.all || (quest as any).currentParticipants || 0} / {(quest as any).maxParticipants || '∞'}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
                       </div>
@@ -489,14 +547,25 @@ export default function QuestDetailPage() {
       <Button
         size="lg"
         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-0 text-sm sm:text-base"
-        asChild
+        onClick={handleStartQuest}
         aria-label="Start quest on external platform"
       >
         <a
           href={quest.quest_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3"
+          className="flex items-center justify-center gap-3 w-full"
+          onClick={(e) => {
+            // Check if we need to show the modal
+            if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'instagram'].includes(quest.platform_type.toLowerCase())) {
+              if (!isAccountLinked(quest.platform_type)) {
+                e.preventDefault();
+                setModalPlatform(quest.platform_type);
+                setShowSocialLinkModal(true);
+                return;
+              }
+            }
+          }}
         >
           <ExternalLink className="w-5 h-5" />
           Start Quest
@@ -642,7 +711,7 @@ export default function QuestDetailPage() {
             {/* Quest Details */}
             <section aria-label="Quest Details">
               <Tabs defaultValue="requirements" className="space-y-6" aria-label="Quest Information Tabs">
-                <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden" role="tablist">
+                <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden" role="tablist">
                   <TabsTrigger
                     value="requirements"
                     className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 text-xs sm:text-sm"
@@ -653,7 +722,7 @@ export default function QuestDetailPage() {
                     <span className="hidden sm:inline">Requirements</span>
                     <span className="sm:hidden">Req</span>
                   </TabsTrigger>
-                  <TabsTrigger
+                  {/* <TabsTrigger
                     value="resources"
                     className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 text-xs sm:text-sm"
                     role="tab"
@@ -662,7 +731,7 @@ export default function QuestDetailPage() {
                     <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Resources</span>
                     <span className="sm:hidden">Res</span>
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger
                     value="badges"
                     className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 text-xs sm:text-sm"
@@ -896,7 +965,7 @@ export default function QuestDetailPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center gap-3">
                         <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <span className="font-medium text-blue-700 dark:text-blue-300">Potential Reward</span>
+                        <span className="font-medium text-blue-700 dark:text-blue-300">Reward</span>
                       </div>
                       <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                         {quest.reward || (quest as any).points || 0}
@@ -973,7 +1042,7 @@ export default function QuestDetailPage() {
                       </span>
                     </div>
                     <span className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400">
-                      {(quest as any).completionRate || 67}%
+                      {questStats?.approvedRate || (quest as any).completionRate || 0}%
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -984,10 +1053,10 @@ export default function QuestDetailPage() {
                       </span>
                     </div>
                     <span className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400">
-                      {quest.completions || 0}
+                      {questStats?.all || quest.completions || 0}
                     </span>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                     <div className="flex items-center gap-3">
                       <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
                       <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">
@@ -997,13 +1066,21 @@ export default function QuestDetailPage() {
                     <span className="text-sm sm:text-base font-bold text-yellow-600 dark:text-yellow-400">
                       {(quest as any).averageRating || 4.8}/5
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>
           </aside>
         </div>
       </header>
+
+      {/* Social Link Modal */}
+      <SocialLinkModal
+        user={user}
+        platform={modalPlatform}
+        isOpen={showSocialLinkModal}
+        onClose={() => setShowSocialLinkModal(false)}
+      />
     </main>
   );
 }
