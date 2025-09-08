@@ -373,16 +373,28 @@ export default function ProfilePage() {
         return;
       }
 
-      if (data.success && data.url) {
-        // Show success message before redirect
-        toast({
-          title: "Connecting to Hedera",
-          description: "Redirecting to Hedera authentication...",
-          variant: "default",
-          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
-        });
-        // Redirect to Hedera authorization URL
-        window.location.href = data.url;
+      if (data.success) {
+        if (data.url) {
+          // Show success message before redirect
+          toast({
+            title: "Connecting to Hedera",
+            description: "Redirecting to Hedera authentication...",
+            variant: "default",
+            className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+          });
+          // Redirect to Hedera authorization URL
+          window.location.href = data.url;
+        } else {
+          // Hedera profile was created/updated successfully without redirect
+          toast({
+            title: "Hedera Connected",
+            description: "Your Hedera profile has been successfully connected.",
+            variant: "default",
+            className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+          });
+          // Refresh profile data to show the updated connection
+          await loadUser();
+        }
       } else {
         // Handle backend error responses
         const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";

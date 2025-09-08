@@ -46,42 +46,42 @@ const slides: CarouselSlide[] = [
     ],
     gradient: 'from-purple-500/20 via-cyan-500/20 to-blue-500/20'
   },
-  {
-    id: 'quests',
-    title: 'Interactive Learning Quests',
-    subtitle: 'Learn by Doing',
-    description: 'Dive into hands-on challenges designed to teach you Hedera development through practical experience. From beginner to expert level.',
-    image: '🎯',
-    cta: {
-      text: 'Explore Quests',
-      href: '/quests',
-      variant: 'default'
-    },
-    stats: [
-      { label: 'Difficulty Levels', value: 'TBD', icon: <Star className="w-4 h-4" /> },
-      { label: 'Categories', value: 'TBD', icon: <BookOpen className="w-4 h-4" /> },
-      { label: 'Avg Completion', value: 'TBD', icon: <Zap className="w-4 h-4" /> }
-    ],
-    gradient: 'from-green-500/20 via-emerald-500/20 to-teal-500/20'
-  },
-  {
-    id: 'progress',
-    title: 'Track Your Progress',
-    subtitle: 'Level Up Your Skills',
-    description: 'Monitor your learning journey with detailed analytics, earn badges, and climb the leaderboard as you master Hedera development.',
-    image: '📈',
-    cta: {
-      text: 'View Progress',
-      href: '/progress',
-      variant: 'default'
-    },
-    stats: [
-      { label: 'XP System', value: 'Gamified', icon: <Trophy className="w-4 h-4" /> },
-      { label: 'Badges', value: 'TBD', icon: <Award className="w-4 h-4" /> },
-      { label: 'Leaderboard', value: 'Global', icon: <TrendingUp className="w-4 h-4" /> }
-    ],
-    gradient: 'from-yellow-500/20 via-orange-500/20 to-red-500/20'
-  }
+  // {
+  //   id: 'quests',
+  //   title: 'Interactive Learning Quests',
+  //   subtitle: 'Learn by Doing',
+  //   description: 'Dive into hands-on challenges designed to teach you Hedera development through practical experience. From beginner to expert level.',
+  //   image: '🎯',
+  //   cta: {
+  //     text: 'Explore Quests',
+  //     href: '/quests',
+  //     variant: 'default'
+  //   },
+  //   stats: [
+  //     { label: 'Difficulty Levels', value: 'TBD', icon: <Star className="w-4 h-4" /> },
+  //     { label: 'Categories', value: 'TBD', icon: <BookOpen className="w-4 h-4" /> },
+  //     { label: 'Avg Completion', value: 'TBD', icon: <Zap className="w-4 h-4" /> }
+  //   ],
+  //   gradient: 'from-green-500/20 via-emerald-500/20 to-teal-500/20'
+  // },
+  // {
+  //   id: 'progress',
+  //   title: 'Track Your Progress',
+  //   subtitle: 'Level Up Your Skills',
+  //   description: 'Monitor your learning journey with detailed analytics, earn badges, and climb the leaderboard as you master Hedera development.',
+  //   image: '📈',
+  //   cta: {
+  //     text: 'View Progress',
+  //     href: '/progress',
+  //     variant: 'default'
+  //   },
+  //   stats: [
+  //     { label: 'XP System', value: 'Gamified', icon: <Trophy className="w-4 h-4" /> },
+  //     { label: 'Badges', value: 'TBD', icon: <Award className="w-4 h-4" /> },
+  //     { label: 'Leaderboard', value: 'Global', icon: <TrendingUp className="w-4 h-4" /> }
+  //   ],
+  //   gradient: 'from-yellow-500/20 via-orange-500/20 to-red-500/20'
+  // }
 ];
 
 export function HeroCarousel() {
@@ -143,7 +143,7 @@ export function HeroCarousel() {
               </div>
 
               {/* Stats */}
-              {currentSlideData.stats && (
+              {/* {currentSlideData.stats && (
                 <div className="grid grid-cols-3 gap-3">
                   {currentSlideData.stats.map((stat, index) => (
                     <div key={index} className="text-center p-2 bg-background/50 backdrop-blur-sm rounded-lg border border-dashed border-primary/20">
@@ -159,7 +159,7 @@ export function HeroCarousel() {
                     </div>
                   ))}
                 </div>
-              )}
+              )} */}
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-3">
@@ -173,7 +173,7 @@ export function HeroCarousel() {
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                
+{/*                 
                 <Button 
                   variant="outline" 
                   size="default"
@@ -185,7 +185,7 @@ export function HeroCarousel() {
                     'ml-2 h-4 w-4 transition-transform',
                     isAutoPlaying && 'scale-0'
                   )} />
-                </Button>
+                </Button> */}
               </div>
             </div>
 

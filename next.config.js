@@ -9,6 +9,10 @@ const nextConfig = {
   images: { unoptimized: true },
   // Add React strict mode to help identify issues
   reactStrictMode: true,
+  // Remove console logs in production
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   // Suppress hydration errors in development
   onDemandEntries: {
     // period (in ms) where the server will keep pages in the buffer
