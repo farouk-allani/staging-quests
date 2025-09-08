@@ -120,7 +120,7 @@ export function HeroCarousel() {
       {/* Main Carousel */}
       <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-primary/20 bg-gradient-to-br from-background/50 to-muted/20">
         <div className={cn(
-          'absolute inset-0 bg-gradient-to-br opacity-50',
+          'absolute inset-0 bg-gradient-to-br ',
           currentSlideData.gradient
         )} />
         
@@ -191,12 +191,12 @@ export function HeroCarousel() {
 
             {/* Visual Element */}
             <div className="flex items-center justify-center">
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="text-[120px] md:text-[150px] lg:text-[180px] opacity-20 select-none">
                   {currentSlideData.image}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

@@ -113,7 +113,7 @@ export function Navbar({ className }: NavbarProps) {
 
   return (
     <nav className={cn(
-      'sticky top-0 z-50 w-full border-b-2 border-dashed border-purple-500/30 bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60 font-mono text-slate-100',
+      'sticky top-0 z-50 w-full border-b-2 border-dashed border-purple-500/30  supports-[backdrop-filter]:bg-slate-900 font-mono text-slate-100',
       className
     )}>
       <div className="container mx-auto px-4">
