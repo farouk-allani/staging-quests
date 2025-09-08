@@ -399,7 +399,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
       });
       
       // Call the API to review the submission
-      await QuestService.reviewSubmission(submissionId, status, feedback, score);
+      await QuestService.reviewSubmission(submissionId, status, feedback, score, session?.user?.token);
       
       // Dismiss loading toast
       loadingToast.dismiss();
