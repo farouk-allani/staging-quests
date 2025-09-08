@@ -194,9 +194,9 @@ export default function EventManagement() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = async (eventId: number) => {
+  const handleDelete = async (eventId: number,token:string) => {
     try {
-      await EventsApi.delete(eventId);
+      await EventsApi.delete(eventId,token);
       toast({
         title: 'Success',
         description: 'Event deleted successfully!',
@@ -347,7 +347,20 @@ export default function EventManagement() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel className="font-mono">CANCEL</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(event.id)} className="font-mono bg-destructive hover:bg-destructive/90">
+                              <AlertDialogAction
+                                onClick={() => {
+                                  if (session?.user?.token) {
+                                    handleDelete(event.id, session.user.token);
+                                  } else {
+                                    toast({
+                                      title: 'Error',
+                                      description: 'User token is missing. Please log in again.',
+                                      variant: 'destructive',
+                                    });
+                                  }
+                                }}
+                                className="font-mono bg-destructive hover:bg-destructive/90"
+                              >
                                 DELETE
                               </AlertDialogAction>
                             </AlertDialogFooter>
