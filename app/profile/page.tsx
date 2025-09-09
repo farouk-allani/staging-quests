@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { User } from "@/lib/types";
 import { QuestService } from "@/lib/services";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,8 @@ interface UserStats {
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -53,6 +56,8 @@ export default function ProfilePage() {
   // const [isConnectingHedera, setIsConnectingHedera] = useState(false);
   const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
   const [isConnectingDiscord, setIsConnectingDiscord] = useState(false);
+  const [isValidatingHedera, setIsValidatingHedera] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
 
   // Timer for Hedera DID verification button
   const [hederaMailCooldown, setHederaMailCooldown] = useState<number>(0);
@@ -81,6 +86,26 @@ export default function ProfilePage() {
   // console.log("profileData",profileData.user.hederaProfile.hedera_did === "null");
 
   const { toast } = useToast();
+
+  // Handle tab selection from query params
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab && (tab === 'profile' || tab === 'account')) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (searchParams) {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      current.set('tab', value);
+      const search = current.toString();
+      const query = search ? `?${search}` : "";
+      router.push(`${window.location.pathname}${query}`);
+    }
+  };
 
   const handleVerifyEmail = async () => {
     const email = profileData?.user?.email;
@@ -752,6 +777,70 @@ export default function ProfilePage() {
     }
   };
 
+  const handleValidateHedera = async () => {
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to validate your Hedera account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsValidatingHedera(true);
+    try {
+      const baseUrl = "https://hedera-quests.com";
+      const response = await fetch(`${baseUrl}/profile/hederadid/validate-user`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to validate Hedera account";
+        toast({
+          title: "Validation Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.success) {
+        toast({
+          title: "Hedera Validated",
+          description: "Your Hedera account has been successfully validated.",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        // Refresh profile data to show the updated validation status
+        await loadUser();
+      } else {
+        // Handle backend error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to validate Hedera account";
+        toast({
+          title: "Validation Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error validating Hedera:", error);
+      toast({
+        title: "Validation Failed",
+        description: error instanceof Error ? error.message : "Failed to validate Hedera account",
+        variant: "destructive",
+      });
+    } finally {
+      setIsValidatingHedera(false);
+    }
+  };
+
   if (status === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -809,7 +898,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger
             value="profile"
@@ -1026,10 +1115,10 @@ export default function ProfilePage() {
               {/* hedera Integration */}
 
               <div className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-3 flex-wrap">
                   <div>
                     <h3 className="font-mono font-semibold text-pink-600 dark:text-purple-400 uppercase tracking-wider">
-                      {">"} HEDERA_INTEGRATION
+                      {">"} IDTrust_Verification
                     </h3>
                     {profileData?.user?.hederaProfile ? (
                       <p className="text-sm text-muted-foreground font-mono">
@@ -1044,7 +1133,7 @@ export default function ProfilePage() {
                     )}
                   </div>
                   {profileData?.user?.hederaProfile ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         CONNECTED
@@ -1083,6 +1172,17 @@ export default function ProfilePage() {
                               ? "RESEND"
                               : "VERIFY"}
                           </Button>
+                          {profileData?.user?.hederaProfile && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-6 px-2 text-xs font-mono border-dashed border-blue-500/50 hover:border-solid"
+                              onClick={handleValidateHedera}
+                              disabled={isValidatingHedera}
+                            >
+                              {isValidatingHedera ? "VALIDATING..." : "VALIDATE"}
+                            </Button>
+                          )}
                         </div>
                       )}
 
@@ -1426,9 +1526,11 @@ export default function ProfilePage() {
               {/* Discord Integration */}
               <Card className="border-2 border-dashed border-[#5865F2]/30 bg-gradient-to-br from-[#5865F2]/5 to-indigo-600/5 hover:border-solid transition-all duration-200">
                 <CardHeader className="border-b border-dashed border-[#5865F2]/30 bg-gradient-to-r from-[#5865F2]/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2 font-mono">
+                  <CardTitle className="flex items-center gap-2 font-mono flex-wrap">
+                    <span className="flex items-center gap-2">
                     <SiDiscord className="w-5 h-5 text-[#5865F2]" />
                     [DISCORD_INTEGRATION]
+                    </span>
                     <Badge
                       variant="secondary"
                       className="ml-auto border border-dashed border-[#5865F2]/50 bg-[#5865F2]/10 text-[#5865F2] font-mono"
