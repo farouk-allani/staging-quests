@@ -1740,7 +1740,7 @@ export default function ProfilePage() {
                     </h3>
                     {profileData?.user?.linkedInProfile ? (
                       <p className="text-sm text-muted-foreground font-mono">
-                        [CONNECTED] {profileData.user.linkedInProfile.linkedin_name}
+                        [CONNECTED] {profileData.user.linkedInProfile.linked_in_username}
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground font-mono">
@@ -1769,17 +1769,17 @@ export default function ProfilePage() {
                         <AvatarImage
                           src={
                             profileData.user.linkedInProfile
-                              .linkedin_profile_picture
+                              .linked_in_profile_picture
                           }
                         />
                         <AvatarFallback className="font-mono">LI</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <p className="font-medium font-mono">
-                          {profileData.user.linkedInProfile.linkedin_name}
+                          {profileData.user.linkedInProfile.linked_in_username}
                         </p>
                         <p className="text-sm text-muted-foreground font-mono">
-                          ID: {profileData.user.linkedInProfile.linkedin_id}
+                          ID: {profileData.user.linkedInProfile.linked_in_id || 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -1788,12 +1788,17 @@ export default function ProfilePage() {
                         variant="outline"
                         size="sm"
                         className="border-dashed border-[#0077B5]/50 hover:border-solid font-mono"
-                        onClick={() =>
-                          window.open(
-                            `https://linkedin.com/in/${profileData.user.linkedInProfile.linkedin_id}`,
-                            "_blank"
-                          )
-                        }
+                        onClick={() => {
+                          if (profileData.user.linkedInProfile.linked_in_id) {
+                            window.open(
+                              `https://linkedin.com/in/${profileData.user.linkedInProfile.linked_in_id}`,
+                              "_blank"
+                            );
+                          } else {
+                            window.open("https://linkedin.com", "_blank");
+                          }
+                        }}
+                        disabled={!profileData.user.linkedInProfile.linked_in_id}
                       >
                         <ExternalLink className="w-4 h-4 mr-1" />
                         View Profile
