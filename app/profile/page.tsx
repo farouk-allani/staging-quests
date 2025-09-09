@@ -28,6 +28,7 @@ import {
   Award,
   Clock,
   XCircle,
+  Linkedin,
 } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { formatDistanceToNow } from "date-fns";
@@ -56,6 +57,7 @@ export default function ProfilePage() {
   // const [isConnectingHedera, setIsConnectingHedera] = useState(false);
   const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
   const [isConnectingDiscord, setIsConnectingDiscord] = useState(false);
+  const [isConnectingLinkedIn, setIsConnectingLinkedIn] = useState(false);
   const [isValidatingHedera, setIsValidatingHedera] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -770,6 +772,112 @@ export default function ProfilePage() {
     } catch (error) {
       toast({
         title: "Failed to disconnect Discord",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConnectLinkedIn = async () => {
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to connect your LinkedIn account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsConnectingLinkedIn(true);
+    try {
+      const baseUrl = "https://hedera-quests.com";
+      const response = await fetch(`${baseUrl}/profile/linked-in/url`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session?.user?.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to get LinkedIn authorization URL";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.success && data.result) {
+        // Show success message before redirect
+        toast({
+          title: "Connecting to LinkedIn",
+          description: "Redirecting to LinkedIn authentication...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        // Redirect to LinkedIn authorization URL
+        window.location.href = data.result;
+      } else {
+        // Handle backend error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Invalid response from server";
+        toast({
+          title: "Connection Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error connecting to LinkedIn:", error);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to LinkedIn",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConnectingLinkedIn(false);
+    }
+  };
+
+  const handleDisconnectLinkedIn = async () => {
+    if (!session?.user?.token) return;
+
+    try {
+      const baseUrl = "https://hedera-quests.com";
+      const response = await fetch(`${baseUrl}/profile/linkedin/profile`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.user.token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "LinkedIn Disconnected",
+          description:
+            "Your LinkedIn account has been successfully disconnected.",
+          variant: "default",
+          className:
+            "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        // Refresh profile data
+        await loadUser();
+      } else {
+        const data = await response.json();
+        toast({
+          title: "Failed to disconnect LinkedIn",
+          description: data.message || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to disconnect LinkedIn",
         description:
           error instanceof Error ? error.message : "Something went wrong.",
         variant: "destructive",
@@ -1622,6 +1730,118 @@ export default function ProfilePage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* LinkedIn Integration */}
+              <div className="border-2 border-dashed border-[#0077B5]/30 bg-gradient-to-br from-[#0077B5]/5 to-blue-600/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-mono font-semibold text-[#0077B5] dark:text-[#0077B5] uppercase tracking-wider">
+                      {">"} LINKEDIN_INTEGRATION
+                    </h3>
+                    {profileData?.user?.linkedInProfile ? (
+                      <p className="text-sm text-muted-foreground font-mono">
+                        [CONNECTED] {profileData.user.linkedInProfile.linkedin_name}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground font-mono">
+                        [DISCONNECTED] Link your LinkedIn account to verify
+                        professional quests
+                      </p>
+                    )}
+                  </div>
+                  {profileData?.user?.linkedInProfile ? (
+                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      CONNECTED
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono">
+                      <AlertCircle className="w-3 h-3 mr-1" />
+                      NOT_CONNECTED
+                    </Badge>
+                  )}
+                </div>
+
+                {profileData?.user?.linkedInProfile ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-[#0077B5]/10 rounded-lg border border-dashed border-[#0077B5]/30">
+                      <Avatar className="w-10 h-10 border border-dashed border-[#0077B5]/50">
+                        <AvatarImage
+                          src={
+                            profileData.user.linkedInProfile
+                              .linkedin_profile_picture
+                          }
+                        />
+                        <AvatarFallback className="font-mono">LI</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium font-mono">
+                          {profileData.user.linkedInProfile.linkedin_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          ID: {profileData.user.linkedInProfile.linkedin_id}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-dashed border-[#0077B5]/50 hover:border-solid font-mono"
+                        onClick={() =>
+                          window.open(
+                            `https://linkedin.com/in/${profileData.user.linkedInProfile.linkedin_id}`,
+                            "_blank"
+                          )
+                        }
+                      >
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        View Profile
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono"
+                        onClick={handleDisconnectLinkedIn}
+                      >
+                        <Link className="w-4 h-4 mr-1" />
+                        Disconnect
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-[#0077B5] hover:bg-[#0077B5]/90 text-white border-dashed border-[#0077B5]/50 hover:border-solid font-mono"
+                        onClick={handleConnectLinkedIn}
+                        disabled={isConnectingLinkedIn}
+                      >
+                        <Linkedin className="w-4 h-4 mr-1" />
+                        {isConnectingLinkedIn
+                          ? "CONNECTING..."
+                          : "CONNECT_LINKEDIN"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-dashed border-gray-500/50 font-mono"
+                        disabled
+                      >
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        View Profile
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 font-mono">
+                      [INFO] Connecting your LinkedIn account allows you to
+                      participate in professional quests and earn additional
+                      rewards.
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Email Verification */}
               <div

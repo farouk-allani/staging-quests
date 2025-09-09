@@ -8,7 +8,7 @@ import { Header } from '@/components/layout/header';
 import { ConditionalLayout } from '@/components/layout/conditional-layout';
 import { AuthPage } from '@/components/auth/auth-page';
 import { SocialMediaPromptModal } from '@/components/admin/social-media-prompt-modal';
-import { HederaVerificationModal } from '@/components/auth/hedera-verification-modal';
+// import { HederaVerificationModal } from '@/components/auth/hedera-verification-modal';
 import { User } from '@/lib/types';
 import { BalanceWidget } from '@/components/ui/balance-widget';
 
@@ -16,7 +16,7 @@ export function AppContent({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSocialMediaPrompt, setShowSocialMediaPrompt] = useState(false);
   const [hasCheckedSocialMedia, setHasCheckedSocialMedia] = useState(false);
-  const [showHederaVerificationModal, setShowHederaVerificationModal] = useState(false);
+  // const [showHederaVerificationModal, setShowHederaVerificationModal] = useState(false);
   const [hasCheckedHederaVerification, setHasCheckedHederaVerification] = useState(false);
   const [previousSessionId, setPreviousSessionId] = useState<string | null>(null);
   const { data: session, status } = useSession();
@@ -90,65 +90,65 @@ export function AppContent({ children }: { children: React.ReactNode }) {
   }, [user, isAuthenticated, isLoading, hasCheckedSocialMedia]);
 
   // Check for Hedera verification for non-admin users
-  useEffect(() => {
-    const checkHederaVerification = async () => {
-      if (user && user.role !== 'admin' && isAuthenticated && !isLoading && !hasCheckedHederaVerification && session?.user?.token) {
-        try {
-          const baseUrl = "https://hedera-quests.com";
-          const response = await fetch(`${baseUrl}/profile/me`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${session.user.token}`,
-              "Content-Type": "application/json",
-            },
-          });
+  // useEffect(() => {
+  //   const checkHederaVerification = async () => {
+  //     if (user && user.role !== 'admin' && isAuthenticated && !isLoading && !hasCheckedHederaVerification && session?.user?.token) {
+  //       try {
+  //         const baseUrl = "https://hedera-quests.com";
+  //         const response = await fetch(`${baseUrl}/profile/me`, {
+  //           method: "GET",
+  //           headers: {
+  //             Authorization: `Bearer ${session.user.token}`,
+  //             "Content-Type": "application/json",
+  //           },
+  //         });
 
-          if (response.ok) {
-            const data = await response.json();
-            const needsVerification = !data.user.hederaProfile || !data.user.hederaProfile.hedera_did;
-            const neverShowAgain = typeof window !== 'undefined' ? localStorage.getItem(`hedera-verification-never-show-${data.user.id}`) === 'true' : false;
+  //         if (response.ok) {
+  //           const data = await response.json();
+  //           const needsVerification = !data.user.hederaProfile || !data.user.hederaProfile.hedera_did;
+  //           const neverShowAgain = typeof window !== 'undefined' ? localStorage.getItem(`hedera-verification-never-show-${data.user.id}`) === 'true' : false;
 
-            // If user has completed verification, clear any existing flags
-            if (typeof window !== 'undefined' && data.user.hederaProfile && data.user.hederaProfile.hedera_did) {
-              localStorage.removeItem(`hedera-verification-never-show-${data.user.id}`);
-            }
+  //           // If user has completed verification, clear any existing flags
+  //           if (typeof window !== 'undefined' && data.user.hederaProfile && data.user.hederaProfile.hedera_did) {
+  //             localStorage.removeItem(`hedera-verification-never-show-${data.user.id}`);
+  //           }
 
-            // Show modal if user needs verification AND hasn't selected "never show again"
-            if (needsVerification && !neverShowAgain) {
-              // Small delay to ensure the user interface is fully loaded
-              const timer = setTimeout(() => {
-                setShowHederaVerificationModal(true);
-              }, 1500);
+  //           // Show modal if user needs verification AND hasn't selected "never show again"
+  //           if (needsVerification && !neverShowAgain) {
+  //             // Small delay to ensure the user interface is fully loaded
+  //             const timer = setTimeout(() => {
+  //               setShowHederaVerificationModal(true);
+  //             }, 1500);
 
-              return () => clearTimeout(timer);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to check Hedera verification status:', error);
-        }
+  //             return () => clearTimeout(timer);
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error('Failed to check Hedera verification status:', error);
+  //       }
 
-        setHasCheckedHederaVerification(true);
-      }
-    };
+  //       setHasCheckedHederaVerification(true);
+  //     }
+  //   };
 
-    checkHederaVerification();
-  }, [user, isAuthenticated, isLoading, hasCheckedHederaVerification, session?.user?.token]);
+  //   checkHederaVerification();
+  // }, [user, isAuthenticated, isLoading, hasCheckedHederaVerification, session?.user?.token]);
 
-  const handleCloseHederaModal = () => {
-    setShowHederaVerificationModal(false);
-    setHasCheckedHederaVerification(true);
-    // Don't set any localStorage flag for "Maybe Later" - modal should show again on next login
-  };
+  // const handleCloseHederaModal = () => {
+  //   setShowHederaVerificationModal(false);
+  //   setHasCheckedHederaVerification(true);
+   
+  // };
 
-  const handleNeverShowHederaModalAgain = () => {
-    setShowHederaVerificationModal(false);
-    setHasCheckedHederaVerification(true);
+  // const handleNeverShowHederaModalAgain = () => {
+  //   setShowHederaVerificationModal(false);
+  //   setHasCheckedHederaVerification(true);
     
-    // Mark that user never wants to see this modal again
-    if (typeof window !== 'undefined' && user?.id) {
-      localStorage.setItem(`hedera-verification-never-show-${user.id}`, 'true');
-    }
-  };
+   
+  //   if (typeof window !== 'undefined' && user?.id) {
+  //     localStorage.setItem(`hedera-verification-never-show-${user.id}`, 'true');
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -212,11 +212,11 @@ export function AppContent({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Hedera Verification Modal - Shows for non-admin users who need verification */}
-      <HederaVerificationModal
+      {/* <HederaVerificationModal
         isOpen={showHederaVerificationModal}
         onClose={handleCloseHederaModal}
         onNeverShowAgain={handleNeverShowHederaModalAgain}
-      />
+      /> */}
     </>
   );
 }
