@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { User } from "@/lib/types";
 import { QuestService } from "@/lib/services";
@@ -13,6 +13,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   User as UserIcon,
@@ -29,6 +40,7 @@ import {
   Clock,
   XCircle,
   Linkedin,
+  Trash2,
 } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 import { formatDistanceToNow } from "date-fns";
@@ -60,6 +72,9 @@ export default function ProfilePage() {
   const [isConnectingLinkedIn, setIsConnectingLinkedIn] = useState(false);
   const [isValidatingHedera, setIsValidatingHedera] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Timer for Hedera DID verification button
   const [hederaMailCooldown, setHederaMailCooldown] = useState<number>(0);
@@ -979,6 +994,84 @@ export default function ProfilePage() {
       });
     } finally {
       setIsValidatingHedera(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!session?.user?.token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please login to delete your account.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (deleteConfirmText.toLowerCase() !== "delete my account") {
+      toast({
+        title: "Confirmation Error",
+        description: "Please type 'delete my account' exactly to confirm.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const baseUrl = "https://hedera-quests.com";
+      const response = await fetch(`${baseUrl}/user/remove-account`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.user.token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle HTTP error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to delete account";
+        toast({
+          title: "Deletion Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data.success) {
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been successfully deleted. Logging out...",
+          variant: "default",
+          className: "border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-50",
+        });
+        
+        // Sign out and redirect to home page
+        setTimeout(async () => {
+          await signOut({ callbackUrl: "/" });
+        }, 1500);
+      } else {
+        // Handle backend error responses
+        const errorMessage = (typeof data?.data === 'string' ? data.data : data?.message) || "Failed to delete account";
+        toast({
+          title: "Deletion Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Deletion Failed",
+        description: error instanceof Error ? error.message : "Failed to delete account",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+      setIsDeleteDialogOpen(false);
+      setDeleteConfirmText("");
     }
   };
 
@@ -1978,6 +2071,112 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Delete Account Section */}
+              <div className="border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-mono font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">
+                      {">"} DANGER_ZONE
+                    </h3>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      [WARNING] Permanently delete your account and all data
+                    </p>
+                  </div>
+                  <Badge className="bg-red-500/20 text-red-700 dark:text-red-300 border border-dashed border-red-500/50 font-mono">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    DESTRUCTIVE
+                  </Badge>
+                </div>
+                <div className="space-y-3">
+                  <div className="p-3 border border-dashed border-red-500/30 bg-red-500/10 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
+                      <Trash2 className="w-4 h-4" />
+                      <span className="font-semibold text-xs uppercase tracking-wider">
+                        Account Deletion
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      This action cannot be undone. This will permanently delete your account, all your data, quest progress, badges, and social media connections.
+                    </p>
+                  </div>
+                  <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="font-mono border-2 border-dashed border-red-500/50  transition-all duration-200 bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        DELETE_ACCOUNT
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="sm:max-w-md font-mono border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-50/50 to-pink-50/50 dark:from-red-950/20 dark:to-pink-950/20">
+                      <AlertDialogHeader className="text-center space-y-4">
+                        <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center border border-dashed border-red-500/30">
+                          <Trash2 className="w-6 h-6 text-red-500" />
+                        </div>
+                        <AlertDialogTitle className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+                          [DELETE_ACCOUNT_CONFIRMATION]
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div className="text-sm text-muted-foreground space-y-3">
+                            <div className="p-3 border border-dashed border-red-500/30 bg-gradient-to-r from-red-500/5 to-pink-500/5 rounded-lg">
+                              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="font-semibold text-xs uppercase tracking-wider">
+                                  PERMANENT ACTION
+                                </span>
+                              </div>
+                              <p className="text-xs text-red-600 dark:text-red-400">
+                                This action cannot be undone. All your data, including quest progress, badges, and social media connections will be permanently deleted.
+                              </p>
+                            </div>
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="delete-confirmation" className="font-mono text-sm text-red-600 dark:text-red-400">
+                            TYPE_TO_CONFIRM
+                          </Label>
+                          <Input
+                            id="delete-confirmation"
+                            placeholder="delete my account"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            className="font-mono border-dashed border-red-500/50 focus:border-solid focus:border-red-500"
+                          />
+                          <p className="text-xs text-muted-foreground font-mono">
+                            [INPUT] Type "delete my account" to confirm
+                          </p>
+                        </div>
+                        <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                          <AlertDialogCancel 
+                            className="font-mono border-dashed border-gray-500/50 hover:border-solid transition-all duration-200"
+                            onClick={() => {
+                              setDeleteConfirmText("");
+                              setIsDeleteDialogOpen(false);
+                            }}
+                          >
+                            CANCEL
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteAccount}
+                            disabled={isDeletingAccount || deleteConfirmText.toLowerCase() !== "delete my account"}
+                            className="font-mono bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {isDeletingAccount ? "DELETING..." : "DELETE_FOREVER"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </div>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    [INFO] Once deleted, your account cannot be recovered. All progress will be lost permanently.
+                  </p>
                 </div>
               </div>
             </CardContent>
