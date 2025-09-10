@@ -89,6 +89,8 @@ export class QuestService {
         twitterProfile: userData.twitterProfile,
         discordProfile: userData.discordProfile,
         linkedInProfile: userData.linkedInProfile,
+        email_verified: userData.email_verified,
+        hederaProfile: userData.hederaProfile,
       };
 
       return user;

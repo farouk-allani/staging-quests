@@ -33,6 +33,15 @@ export interface User {
   facebookProfile?: any;
   twitterProfile?: any;
   discordProfile?: any;
+  email_verified?: boolean;
+  hederaProfile?: {
+    id: number;
+    hedera_id: string;
+    hedera_did?: string | null;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+  } | null;
 }
 
 export interface Quest {

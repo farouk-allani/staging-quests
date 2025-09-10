@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trophy, Users, TrendingUp, Clock, Zap, ArrowRight, Award, CheckCircle, XCircle, AlertCircle, Calendar, BookOpen, Sparkles } from 'lucide-react';
 import { QuestCard } from '@/components/quests/quest-card';
 import { FeaturedQuestsSection } from '@/components/quests/featured-quests-section';
+import { TodoChecklist } from '@/components/onboarding/todo-checklist';
 import { HeroCarousel } from '@/components/landing/hero-carousel';
 import { FeatureHighlights } from '@/components/landing/feature-highlights';
 import { StatsOverview } from '@/components/landing/stats-overview';
@@ -257,6 +258,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Todo Checklist - Setup Progress */}
+      <TodoChecklist user={user} />
 
 
 
