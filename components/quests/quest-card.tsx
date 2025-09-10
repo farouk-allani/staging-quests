@@ -55,6 +55,7 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
       'group cursor-pointer transition-all duration-200 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] border-2 border-dashed hover:border-solid',
       'bg-gradient-to-br from-background via-background to-muted/20',
       'ring-2 ring-green-500/20 bg-gradient-to-br from-green-50/50 via-background to-green-50/20 dark:from-blue-950/20 dark:to-blue-950/10 border-blue-300 dark:border-blue-700',
+      'flex flex-col h-full',
       isCompleted && 'ring-2 ring-green-500/20 bg-gradient-to-br from-green-50/50 via-background to-green-50/20 dark:from-green-950/20 dark:to-green-950/10 border-green-300 dark:border-green-700',
       isRejected && 'ring-2 ring-red-500/20 bg-gradient-to-br from-red-50/50 via-background to-red-50/20 dark:from-red-950/20 dark:to-red-950/10 border-red-300 dark:border-red-700',
       isPending && 'ring-2 ring-yellow-500/20 bg-gradient-to-br from-yellow-50/50 via-background to-yellow-50/20 dark:from-yellow-950/20 dark:to-yellow-950/10 border-yellow-300 dark:border-yellow-700',
@@ -83,7 +84,7 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         )}
       </div>
       
-      <CardContent className="p-4 relative bg-gradient-to-b from-transparent to-primary/5">
+      <CardContent className="p-4 relative bg-gradient-to-b from-transparent to-primary/5 flex-grow flex flex-col">
         
         <div className="flex items-start justify-between mb-2">
            {isCompleted && 
@@ -152,6 +153,9 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
           </Badge>
         </div>
 
+        {/* Spacer to push progress to bottom */}
+        <div className="flex-grow"></div>
+
         {progress > 0 && (
           <div className="mt-3">
             <div className="flex items-center justify-between text-sm mb-1">
@@ -163,7 +167,7 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         )}
       </CardContent>
       
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-4 pt-0 mt-auto">
         {(isCompleted || isRejected || isPending || isExpired) ? (
           <Button 
             className={cn(
