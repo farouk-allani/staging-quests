@@ -24,8 +24,22 @@ export function UserLayout({ children, className }: UserLayoutProps) {
       {!hideFooter && (
         <footer className="border-t-2 border-dashed border-purple-500/30 bg-gradient-to-r from-purple-500/5 to-cyan-500/5 mt-auto">
           <div className="container mx-auto px-4 py-6">
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
               <p>&copy; 2025 Hedera Quest. All rights reserved.</p>
+              <div className="flex items-center gap-4">
+                <a 
+                  href="/privacy-policy" 
+                  className="hover:text-primary transition-colors underline"
+                >
+                  Privacy Policy
+                </a>
+                <a 
+                  href="/cookie-settings" 
+                  className="hover:text-primary transition-colors underline"
+                >
+                  Cookie Settings
+                </a>
+              </div>
             </div>
           </div>
         </footer>

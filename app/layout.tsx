@@ -8,6 +8,7 @@ import { SessionSync } from '@/components/providers/session-sync';
 import ErrorBoundary from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { AppContent } from '../components/app-content';
+import { GoogleAnalytics, CookieConsent, AnalyticsProvider } from '@/components/analytics';
 import type { Metadata } from 'next';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -128,6 +129,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        {/* Google Analytics */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gtagId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
+        
         <ThemeProvider defaultTheme="system" attribute="class" enableSystem disableTransitionOnChange>
           <NextAuthProvider>
             <SessionSync />
@@ -138,14 +144,19 @@ export default function RootLayout({
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
                 }>
-                  <AppContent>
-                    {children}
-                  </AppContent>
+                  <AnalyticsProvider>
+                    <AppContent>
+                      {children}
+                    </AppContent>
+                  </AnalyticsProvider>
                 </Suspense>
               {/* </ClientProvider> */}
             </ErrorBoundary>
           </NextAuthProvider>
           <Toaster />
+          
+          {/* Cookie Consent Banner */}
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>
