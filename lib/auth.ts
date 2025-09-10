@@ -10,7 +10,8 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
         token: { label: 'Token', type: 'text' }, // Add token for post-registration auth
-        isRegistration: { label: 'IsRegistration', type: 'text' } // Flag for registration flow
+        isRegistration: { label: 'IsRegistration', type: 'text' }, // Flag for registration flow
+        recaptchaToken: { label: 'ReCaptcha Token', type: 'text' } // Add reCAPTCHA token
       },
       async authorize(credentials) {
         console.log('NextAuth: authorize function called with credentials:', {
@@ -117,6 +118,7 @@ export const authOptions: NextAuthOptions = {
             body: JSON.stringify({
               email: credentials.email,
               password: credentials.password,
+              recaptchaToken: credentials.recaptchaToken,
             }),
           })
 

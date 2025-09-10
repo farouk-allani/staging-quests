@@ -53,6 +53,37 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section>
+          <h2 className="text-2xl font-semibold mb-4">Security Protection</h2>
+          <p className="text-muted-foreground mb-4">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a 
+              href="https://policies.google.com/privacy" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline hover:no-underline"
+            >
+              Privacy Policy
+            </a>{' '}
+            and{' '}
+            <a 
+              href="https://policies.google.com/terms" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline hover:no-underline"
+            >
+              Terms of Service
+            </a>{' '}
+            apply.
+          </p>
+          <p className="text-muted-foreground mb-4">
+            We use Google reCAPTCHA v3 to protect our forms from spam and abuse. reCAPTCHA collects 
+            hardware and software information, such as device and application data, and sends this 
+            data to Google for analysis. Your use of reCAPTCHA is subject to Google's Privacy Policy 
+            and Terms of Service.
+          </p>
+        </section>
+
+        <section>
           <h2 className="text-2xl font-semibold mb-4">Data Security</h2>
           <p className="text-muted-foreground mb-4">
             We implement appropriate security measures to protect your personal information against 

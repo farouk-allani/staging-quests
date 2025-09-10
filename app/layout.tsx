@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/ui/theme-provider';
 import { Suspense } from 'react';
 // import { ClientProvider } from '@/components/providers/client-provider';
 import { NextAuthProvider } from '@/components/providers/nextauth-provider';
+import { RecaptchaProvider } from '@/components/providers/recaptcha-provider';
 import { SessionSync } from '@/components/providers/session-sync';
 import ErrorBoundary from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -135,24 +136,26 @@ export default function RootLayout({
         )}
         
         <ThemeProvider defaultTheme="system" attribute="class" enableSystem disableTransitionOnChange>
-          <NextAuthProvider>
-            <SessionSync />
-            <ErrorBoundary>
-              {/* <ClientProvider> */}
-                <Suspense fallback={
-                  <div className="flex flex-col items-center justify-center min-h-screen">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                }>
-                  <AnalyticsProvider>
-                    <AppContent>
-                      {children}
-                    </AppContent>
-                  </AnalyticsProvider>
-                </Suspense>
-              {/* </ClientProvider> */}
-            </ErrorBoundary>
-          </NextAuthProvider>
+          <RecaptchaProvider>
+            <NextAuthProvider>
+              <SessionSync />
+              <ErrorBoundary>
+                {/* <ClientProvider> */}
+                  <Suspense fallback={
+                    <div className="flex flex-col items-center justify-center min-h-screen">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  }>
+                    <AnalyticsProvider>
+                      <AppContent>
+                        {children}
+                      </AppContent>
+                    </AnalyticsProvider>
+                  </Suspense>
+                {/* </ClientProvider> */}
+              </ErrorBoundary>
+            </NextAuthProvider>
+          </RecaptchaProvider>
           <Toaster />
           
           {/* Cookie Consent Banner */}

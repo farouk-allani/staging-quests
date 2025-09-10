@@ -13,10 +13,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, Shield } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
 import { useToast } from '@/hooks/use-toast';
+import { useRecaptcha } from '@/hooks/use-recaptcha';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -35,10 +36,31 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { getRecaptchaToken, isAvailable: isRecaptchaAvailable } = useRecaptcha();
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
   });
+
+  const verifyRecaptcha = async (): Promise<string | null> => {
+    if (!isRecaptchaAvailable) {
+      console.warn('reCAPTCHA not available, proceeding without verification');
+      return null; // Allow login without reCAPTCHA if not available
+    }
+
+    try {
+      const token = await getRecaptchaToken('login');
+      if (!token) {
+        throw new Error('Failed to get reCAPTCHA token');
+      }
+
+      console.log('reCAPTCHA token generated successfully');
+      return token;
+    } catch (error) {
+      console.error('reCAPTCHA verification error:', error);
+      return null;
+    }
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -63,11 +85,15 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     });
 
     try {
+      // Get reCAPTCHA token (will be null if not available)
+      const recaptchaToken = await verifyRecaptcha();
+
       console.log('LoginForm: Attempting NextAuth signIn with:', { email: data.email, hasPassword: !!data.password });
 
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
+        recaptchaToken: recaptchaToken || undefined,
         redirect: false,
       });
 
@@ -197,6 +223,14 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
+          )}
+
+          {/* reCAPTCHA Protection Indicator */}
+          {isRecaptchaAvailable && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground border rounded-md p-2 bg-muted/20">
+              <Shield className="h-3 w-3" />
+              <span>Protected by reCAPTCHA</span>
+            </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>

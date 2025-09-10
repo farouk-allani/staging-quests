@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide reCAPTCHA badge */
+.grecaptcha-badge { 
+  visibility: hidden !important;
+}
+
 :root {
   --foreground-rgb: 227, 227, 227;
   --background-start-rgb: 24, 27, 35;

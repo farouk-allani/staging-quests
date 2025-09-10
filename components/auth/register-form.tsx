@@ -13,10 +13,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthService } from '@/lib/api/auth';
 import type { ApiError } from '@/lib/api/client';
 import type { User } from '@/lib/types';
-import { Eye, EyeOff, Mail, Lock, User as UserIcon, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, AlertCircle, Shield } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
 import { useToast } from '@/hooks/use-toast';
+import { useRecaptcha } from '@/hooks/use-recaptcha';
 
 const registerSchema = z.object({
   name: z.string()
@@ -47,10 +48,31 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess }: Registe
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
+  const { getRecaptchaToken, isAvailable: isRecaptchaAvailable } = useRecaptcha();
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema)
   });
+
+  const verifyRecaptcha = async (): Promise<string | null> => {
+    if (!isRecaptchaAvailable) {
+      console.warn('reCAPTCHA not available, proceeding without verification');
+      return null; // Allow registration without reCAPTCHA if not available
+    }
+
+    try {
+      const token = await getRecaptchaToken('register');
+      if (!token) {
+        throw new Error('Failed to get reCAPTCHA token');
+      }
+
+      console.log('reCAPTCHA token generated successfully');
+      return token;
+    } catch (error) {
+      console.error('reCAPTCHA verification error:', error);
+      return null;
+    }
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
@@ -85,11 +107,15 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess }: Registe
     });
 
     try {
+      // Get reCAPTCHA token (will be null if not available)
+      const recaptchaToken = await verifyRecaptcha();
+
       const result = await AuthService.register({
         name: data.name,
         email: data.email,
         password: data.password,
-        confirmPassword: data.confirmPassword
+        confirmPassword: data.confirmPassword,
+        recaptchaToken: recaptchaToken || undefined,
       });
       
       // Dismiss loading toast
@@ -248,6 +274,14 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess }: Registe
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
+          )}
+
+          {/* reCAPTCHA Protection Indicator */}
+          {isRecaptchaAvailable && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground border rounded-md p-2 bg-muted/20">
+              <Shield className="h-3 w-3" />
+              <span>Protected by reCAPTCHA</span>
+            </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>

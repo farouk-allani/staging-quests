@@ -2,8 +2,8 @@ import { api, createApiClientWithToken } from './client';
 import axios from 'axios';
 import type { User } from '@/lib/types';
 
-export type LoginRequest = { email: string; password: string };
-export type RegisterRequest = { name: string; email: string; password: string; confirmPassword: string };
+export type LoginRequest = { email: string; password: string; recaptchaToken?: string };
+export type RegisterRequest = { name: string; email: string; password: string; confirmPassword: string; recaptchaToken?: string };
 export type AuthResponse = { user: User; accessToken: string; refreshToken?: string };
 
 export const AuthService = {
