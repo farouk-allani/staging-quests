@@ -97,6 +97,39 @@ export default function ProfilePage() {
     }
   }, [searchParams]);
 
+  // Handle auto-scroll to social media section
+  useEffect(() => {
+    const social = searchParams?.get('social');
+    if (social && activeTab === 'account') {
+      // Wait for the DOM to be ready and the account tab to be visible
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`social-${social.toLowerCase()}`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          // Add a highlight effect
+          element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+          }, 3000);
+          
+          // Clear the social parameter from URL after scrolling
+          if (searchParams) {
+            const current = new URLSearchParams(Array.from(searchParams.entries()));
+            current.delete('social');
+            const search = current.toString();
+            const query = search ? `?${search}` : "";
+            router.replace(`${window.location.pathname}${query}`, { scroll: false });
+          }
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, activeTab, router]);
+
   // Update URL when tab changes
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -1222,7 +1255,10 @@ export default function ProfilePage() {
             <CardContent className="space-y-6">
               {/* hedera Integration */}
 
-              <div className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+              <div 
+                id="social-hedera"
+                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+              >
                 <div className="flex items-center justify-between mb-3 flex-wrap">
                   <div>
                     <h3 className="font-mono font-semibold text-pink-600 dark:text-purple-400 uppercase tracking-wider">
@@ -1403,7 +1439,10 @@ export default function ProfilePage() {
               </div>
 
               {/* Social Media Integration */}
-              <div className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+              <div 
+                id="social-twitter"
+                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-mono font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
@@ -1516,7 +1555,10 @@ export default function ProfilePage() {
               </div>
 
               {/* Facebook Integration */}
-              <div className="border-2 border-dashed border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+              <div 
+                id="social-facebook"
+                className="border-2 border-dashed border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
@@ -1632,7 +1674,10 @@ export default function ProfilePage() {
               </div>
 
               {/* Discord Integration */}
-              <Card className="border-2 border-dashed border-[#5865F2]/30 bg-gradient-to-br from-[#5865F2]/5 to-indigo-600/5 hover:border-solid transition-all duration-200">
+              <Card 
+                id="social-discord"
+                className="border-2 border-dashed border-[#5865F2]/30 bg-gradient-to-br from-[#5865F2]/5 to-indigo-600/5 hover:border-solid transition-all duration-200"
+              >
                 <CardHeader className="border-b border-dashed border-[#5865F2]/30 bg-gradient-to-r from-[#5865F2]/5 to-transparent">
                   <CardTitle className="flex items-center gap-2 font-mono flex-wrap">
                     <span className="flex items-center gap-2">
@@ -1732,7 +1777,10 @@ export default function ProfilePage() {
               </Card>
 
               {/* LinkedIn Integration */}
-              <div className="border-2 border-dashed border-[#0077B5]/30 bg-gradient-to-br from-[#0077B5]/5 to-blue-600/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
+              <div 
+                id="social-linkedin"
+                className="border-2 border-dashed border-[#0077B5]/30 bg-gradient-to-br from-[#0077B5]/5 to-blue-600/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="font-mono font-semibold text-[#0077B5] dark:text-[#0077B5] uppercase tracking-wider">

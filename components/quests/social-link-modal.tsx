@@ -20,7 +20,8 @@ import {
   Instagram, 
   AlertCircle, 
   ExternalLink,
-  LinkIcon 
+  LinkIcon, 
+  Linkedin
 } from 'lucide-react';
 import { User } from '@/lib/types';
 
@@ -43,8 +44,8 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
         return <Facebook className="w-6 h-6" />;
       case 'discord':
         return <MessageSquare className="w-6 h-6" />;
-      case 'instagram':
-        return <Instagram className="w-6 h-6" />;
+      case 'linkedin':
+        return <Linkedin className="w-6 h-6" />;
       default:
         return <LinkIcon className="w-6 h-6" />;
     }
@@ -90,9 +91,9 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
         return !!user.facebookProfile;
       case 'discord':
         return !!user.discordProfile;
-      case 'instagram':
-        // Add instagram profile check when available
-        return false;
+      case 'linkedin':
+        return !!user.linkedInProfile
+        
       default:
         return false;
     }
@@ -101,8 +102,7 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
   const handleLinkAccount = () => {
     setIsLoading(true);
     onClose();
-    // Navigate to profile page where users can link their accounts
-    router.push('/profile');
+    router.push(`/profile?tab=account&social=${platform.toLowerCase()}`);
   };
 
   const handleCancel = () => {

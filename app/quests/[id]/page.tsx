@@ -116,18 +116,18 @@ export default function QuestDetailPage() {
         return !!user.facebookProfile;
       case 'discord':
         return !!user.discordProfile;
-      case 'instagram':
-        // Add instagram profile check when available
-        return false;
+      case 'linkedin':
+        return !!user.linkedInProfile
+        
       default:
-        return true; // Allow other platforms by default
+        return true; 
     }
   };
 
-  // Handle start quest click
+  
   const handleStartQuest = (e: React.MouseEvent) => {
-    // Check if quest has a platform type that requires social media linking
-    if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'instagram'].includes(quest.platform_type.toLowerCase())) {
+  
+    if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'linkedin'].includes(quest.platform_type.toLowerCase())) {
       if (!isAccountLinked(quest.platform_type)) {
         e.preventDefault();
         setModalPlatform(quest.platform_type);
@@ -135,7 +135,7 @@ export default function QuestDetailPage() {
         return;
       }
     }
-    // If account is linked or it's not a social platform, proceed normally
+   
   };
 
   useEffect(() => {

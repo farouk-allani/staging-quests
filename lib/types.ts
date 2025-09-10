@@ -10,6 +10,7 @@ export interface UserLevel {
 }
 
 export interface User {
+  
   id: string | number;
   firstName?: string;
   lastName?: string;
@@ -28,6 +29,7 @@ export interface User {
   badges: Badge[];
   completedQuests: string[];
   userLevel?: UserLevel;
+  linkedInProfile?: any;
   facebookProfile?: any;
   twitterProfile?: any;
   discordProfile?: any;
