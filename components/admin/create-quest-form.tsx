@@ -37,6 +37,8 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
     platform,
     setPlatform,
     platformInteractions,
+    steps,
+    setSteps,
     register,
     handleSubmit,
     onSubmit,
@@ -62,6 +64,8 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
           events={events}
           loadingEvents={loadingEvents}
           setValue={setValue}
+          steps={steps}
+          setSteps={setSteps}
         />
         <RewardsForm
           register={register}

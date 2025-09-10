@@ -753,23 +753,48 @@ export default function QuestDetailPage() {
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold">Quest Requirements</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Complete these tasks to finish the quest</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Follow these step-by-step instructions to complete the quest</p>
                         </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 sm:p-6">
                       <div className="space-y-3 sm:space-y-4">
-                        {(quest.requirements || []).map((requirement: string, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
-                          >
-                            <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full mt-0.5 flex-shrink-0">
-                              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        {/* Show quest steps if available */}
+                        {(quest as any).quest_steps ? (
+                          (quest as any).quest_steps.split('#quest_ending#').filter((step: string) => step.trim()).map((step: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                            >
+                              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold mt-0.5">
+                                {index + 1}
+                              </div>
+                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{step.trim()}</p>
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{requirement}</p>
+                          ))
+                        ) : (
+                          /* Fallback to requirements if quest_steps not available */
+                          (quest.requirements || []).map((requirement: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                            >
+                              <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full mt-0.5 flex-shrink-0">
+                                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{requirement}</p>
+                            </div>
+                          ))
+                        )}
+                        
+                        {/* Show message if no steps or requirements */}
+                        {!(quest as any).quest_steps && (!quest.requirements || quest.requirements.length === 0) && (
+                          <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                            <div className="text-muted-foreground">
+                              No specific instructions provided. Complete the quest as described.
+                            </div>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </CardContent>
                   </Card>

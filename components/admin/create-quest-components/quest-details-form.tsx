@@ -3,8 +3,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { UseFormRegister } from 'react-hook-form';
 import { Event } from '@/lib/types';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface QuestDetailsFormProps {
   register: UseFormRegister<any>;
@@ -14,9 +16,27 @@ interface QuestDetailsFormProps {
   events: Event[];
   loadingEvents: boolean;
   setValue: (name: any, value: any) => void;
+  steps: string[];
+  setSteps: (steps: string[]) => void;
 }
 
-export function QuestDetailsForm({ register, platform, setPlatform, platformInteractions, events, loadingEvents, setValue }: QuestDetailsFormProps) {
+export function QuestDetailsForm({ register, platform, setPlatform, platformInteractions, events, loadingEvents, setValue, steps, setSteps }: QuestDetailsFormProps) {
+  
+  const addStep = () => {
+    setSteps([...steps, '']);
+  };
+
+  const removeStep = (index: number) => {
+    const newSteps = steps.filter((_, i) => i !== index);
+    setSteps(newSteps);
+  };
+
+  const updateStep = (index: number, value: string) => {
+    const newSteps = [...steps];
+    newSteps[index] = value;
+    setSteps(newSteps);
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold border-b pb-2">Quest Details</h3>
@@ -84,6 +104,61 @@ export function QuestDetailsForm({ register, platform, setPlatform, platformInte
             </SelectContent>
           </Select>
         </div>
+      </div>
+      
+      {/* Quest Instructions Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label className="text-base font-semibold">Quest Instructions (Optional)</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addStep}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Step
+          </Button>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Add step-by-step instructions to help users complete this quest.
+        </div>
+        
+        {steps.length > 0 && (
+          <div className="space-y-3">
+            {steps.map((step, index) => (
+              <div key={index} className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold">
+                  {index + 1}
+                </div>
+                <Input
+                  placeholder={`Step ${index + 1} instruction...`}
+                  value={step}
+                  onChange={(e) => updateStep(index, e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeStep(index)}
+                  className="flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {steps.length === 0 && (
+          <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+            <div className="text-muted-foreground">
+              No instructions added yet. Click "Add Step" to create step-by-step instructions.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

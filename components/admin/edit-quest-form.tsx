@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { QuestService } from "@/lib/services";
-import { AlertCircle, CalendarIcon, Loader2 } from "lucide-react";
+import { AlertCircle, CalendarIcon, Loader2, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Badge, Quest, Event } from "@/lib/types";
@@ -56,6 +56,7 @@ const editQuestSchema = z.object({
   progress_to_add: z.number().optional(),
   createdBy: z.number().optional(),
   added_by: z.number().optional(),
+  steps: z.array(z.string()).optional(),
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
@@ -91,6 +92,7 @@ export function EditQuestForm({
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [questType, setQuestType] = useState<string>("hedera_profile_completion");
   const [progressToAdd, setProgressToAdd] = useState<number>(10);
+  const [steps, setSteps] = useState<string[]>([]);
   const { toast } = useToast();
   const { data: session } = useSession();
 
@@ -183,6 +185,18 @@ export function EditQuestForm({
         // Initialize quest type and progress
         setQuestType(questData.quest_type || "hedera_profile_completion");
         setProgressToAdd(questData.progress_to_add || 10);
+        
+        // Parse and initialize steps from quest_steps
+        if (questData.quest_steps && typeof questData.quest_steps === 'string') {
+          const parsedSteps = questData.quest_steps.split('#quest_ending#').filter(step => step.trim() !== '');
+          setSteps(parsedSteps);
+        } else if (questData.quest_steps && typeof questData.quest_steps === 'string') {
+          // Fallback to instructions field if quest_steps is not available
+          const parsedSteps = questData.quest_steps.split('#quest_ending#').filter(step => step.trim() !== '');
+          setSteps(parsedSteps);
+        } else {
+          setSteps([]);
+        }
         
         // Force form to update platform and interaction types
         setTimeout(() => {
@@ -340,6 +354,15 @@ export function EditQuestForm({
         updateData.quest_link = data.quest_link;
       }
 
+      // Handle steps update
+      const filteredSteps = steps.filter(step => step.trim() !== '');
+      const currentQuestSteps = quest.quest_steps || quest.quest_steps || '';
+      const currentSteps = currentQuestSteps ? currentQuestSteps.split('#quest_ending#').filter((step: string) => step.trim() !== '') : [];
+      
+      if (JSON.stringify(filteredSteps) !== JSON.stringify(currentSteps)) {
+        updateData.steps = filteredSteps;
+      }
+
       if (Object.keys(updateData).length === 0) {
         // Dismiss loading toast
         loadingToast.dismiss();
@@ -434,6 +457,22 @@ export function EditQuestForm({
         ? prev.filter((id) => id !== badgeId)
         : [...prev, badgeId]
     );
+  };
+
+  // Step management functions
+  const addStep = () => {
+    setSteps([...steps, '']);
+  };
+
+  const removeStep = (index: number) => {
+    const newSteps = steps.filter((_, i) => i !== index);
+    setSteps(newSteps);
+  };
+
+  const updateStep = (index: number, value: string) => {
+    const newSteps = [...steps];
+    newSteps[index] = value;
+    setSteps(newSteps);
   };
 
   // Show loading state while fetching quest
@@ -757,6 +796,7 @@ export function EditQuestForm({
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="twitter">Twitter</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
                   <SelectItem value="discord">Discord</SelectItem>
                   <SelectItem value="telegram">Telegram</SelectItem>
                   <SelectItem value="website">Website</SelectItem>
@@ -820,6 +860,65 @@ export function EditQuestForm({
             <p className="text-xs text-muted-foreground">
               Link to the content or page users need to interact with
             </p>
+          </div>
+        </div>
+
+        {/* Quest Instructions */}
+        <div className="space-y-6">
+          <h3 className="text-lg font-semibold border-b pb-2">Quest Instructions</h3>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Step-by-Step Instructions (Optional)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addStep}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Step
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Add step-by-step instructions to help users complete this quest.
+            </div>
+            
+            {steps.length > 0 && (
+              <div className="space-y-3">
+                {steps.map((step, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold">
+                      {index + 1}
+                    </div>
+                    <Input
+                      placeholder={`Step ${index + 1} instruction...`}
+                      value={step}
+                      onChange={(e) => updateStep(index, e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeStep(index)}
+                      className="flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {steps.length === 0 && (
+              <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                <div className="text-muted-foreground">
+                  No instructions added yet. Click "Add Step" to create step-by-step instructions.
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

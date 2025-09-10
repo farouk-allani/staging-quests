@@ -25,6 +25,7 @@ interface CreateQuestFormData {
   progress_to_add?: number;
   createdBy?: number;
   added_by?: number;
+  steps?: string[];
 }
 
 // Input sanitization helper
@@ -53,6 +54,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
   const [platform, setPlatform] = useState<string>("");
   const [questType, setQuestType] = useState<string>("hedera_profile_completion");
   const [progressToAdd, setProgressToAdd] = useState<number>(10);
+  const [steps, setSteps] = useState<string[]>([]);
   const { data: session } = useSession();
 
   const { toast } = useToast();
@@ -60,6 +62,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
   const platformInteractions: { [key: string]: string[] } = {
     twitter: ["follow", "like", "comment", "tweet"],
     facebook: ["follow", "like", "comment", "share"],
+    linkedin: [ "like", "comment", "share","connect"],
     discord: ["join", "message", "react"],
     other: ["visit", "signup", "complete", "submit", "participate"],
   };
@@ -156,6 +159,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         progress_to_add: progressToAdd,
         createdBy: session?.user?.id ? Number(session.user.id) : undefined,
         added_by: session?.user?.id ? Number(session.user.id) : undefined,
+        steps: steps.filter(step => step.trim() !== ''), // Only include non-empty steps
       };
 
       await QuestService.createQuest(questData, session?.user?.token);
@@ -245,6 +249,8 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     setQuestType,
     progressToAdd,
     setProgressToAdd,
+    steps,
+    setSteps,
     platformInteractions,
     register,
     handleSubmit,

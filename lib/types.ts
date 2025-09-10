@@ -80,6 +80,7 @@ export interface Quest {
   event_id?: number;
   progress_to_add?: number;
   user_status?: string;
+  quest_steps?: string;
 }
 
 export interface Submission {
