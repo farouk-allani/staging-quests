@@ -117,7 +117,7 @@ export default function QuestDetailPage() {
       case 'discord':
         return !!user.discordProfile;
       case 'linkedin':
-        return !!user.linkedInProfile
+        return !!user.linkedInProfile;
         
       default:
         return true; 
@@ -557,7 +557,7 @@ export default function QuestDetailPage() {
           className="flex items-center justify-center gap-3 w-full"
           onClick={(e) => {
             // Check if we need to show the modal
-            if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'instagram'].includes(quest.platform_type.toLowerCase())) {
+            if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'linkedin'].includes(quest.platform_type.toLowerCase())) {
               if (!isAccountLinked(quest.platform_type)) {
                 e.preventDefault();
                 setModalPlatform(quest.platform_type);

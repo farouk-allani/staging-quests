@@ -59,6 +59,8 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
         return 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20';
       case 'discord':
         return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+      case 'linkedin':
+        return 'bg-blue-700/10 text-blue-700 border-blue-700/20';
       case 'instagram':
         return 'bg-pink-500/10 text-pink-600 border-pink-500/20';
       default:
@@ -74,6 +76,8 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
         return 'Facebook';
       case 'discord':
         return 'Discord';
+      case 'linkedin':
+        return 'LinkedIn';
       case 'instagram':
         return 'Instagram';
       default:
@@ -92,7 +96,7 @@ export function SocialLinkModal({ user, platform, isOpen, onClose }: SocialLinkM
       case 'discord':
         return !!user.discordProfile;
       case 'linkedin':
-        return !!user.linkedInProfile
+        return !!user.linkedInProfile;
         
       default:
         return false;
