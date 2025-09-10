@@ -38,9 +38,10 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
+  onRegistrationSuccess: (email: string, token: string) => void;
 }
 
-export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
+export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -84,7 +85,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     });
 
     try {
-      await AuthService.register({
+      const result = await AuthService.register({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -97,12 +98,12 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       // Show success toast
       toast({
         title: "Account Created Successfully!",
-        description: "Welcome to Hedera Quest! Please sign in to continue your journey.",
+        description: "Please check your email for a verification code.",
         variant: "default"
       });
       
-      // Registration successful - redirect to login
-      onSwitchToLogin();
+      // Registration successful - proceed to OTP verification
+      onRegistrationSuccess(data.email, result.token);
     } catch (err: any) {
       // Dismiss loading toast
       loadingToast.dismiss();

@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/header';
 import { ConditionalLayout } from '@/components/layout/conditional-layout';
 import { AuthPage } from '@/components/auth/auth-page';
 import { SocialMediaPromptModal } from '@/components/admin/social-media-prompt-modal';
+import { OtpRouteGuard } from '@/components/auth/otp-route-guard';
 // import { HederaVerificationModal } from '@/components/auth/hedera-verification-modal';
 import { User } from '@/lib/types';
 import { BalanceWidget } from '@/components/ui/balance-widget';
@@ -202,14 +203,16 @@ export function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <ConditionalLayout>
-        {children}
-      </ConditionalLayout>
+      <OtpRouteGuard>
+        <ConditionalLayout>
+          {children}
+        </ConditionalLayout>
 
-      {/* Balance Widget - Shows for all authenticated users except loading states */}
-      {isAuthenticated && user && !isLoading && !hideFooter && (
-        <BalanceWidget />
-      )}
+        {/* Balance Widget - Shows for all authenticated users except loading states */}
+        {isAuthenticated && user && !isLoading && !hideFooter && (
+          <BalanceWidget />
+        )}
+      </OtpRouteGuard>
 
       {/* Hedera Verification Modal - Shows for non-admin users who need verification */}
       {/* <HederaVerificationModal

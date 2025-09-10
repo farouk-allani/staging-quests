@@ -83,7 +83,7 @@ export const AuthService = {
     }
   },
 
-  async register(payload: RegisterRequest): Promise<User> {
+  async register(payload: RegisterRequest): Promise<{ user: User; token: string }> {
     // Map current UI fields to backend contract at /user/register
     const [firstName, ...rest] = payload.name.trim().split(' ');
     const lastName = rest.join(' ') || firstName;
@@ -120,8 +120,11 @@ export const AuthService = {
       completedQuests: []
     };
 
-    // Tokens are now handled by NextAuth session
-    return user;
+    // Return both user and token for OTP verification
+    return { 
+      user, 
+      token: data?.token || data?.accessToken || '' 
+    };
   },
 
 
@@ -145,15 +148,65 @@ export const AuthService = {
     }
   },
 
-  async verifyToken(token: string): Promise<{ success: boolean; message: string }> {
-    console.log('Verifying token:', token);
+  async verifyToken(token: string, otpCode: string): Promise<{ success: boolean; message: string }> {
+    console.log('Verifying OTP token:', otpCode);
 
-    const { data } = await api.get('/profile/verify-token', {
-      params: { token }
-    });
+    try {
+      const response = await fetch('https://hedera-quests.com/profile/verify-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ token: otpCode })
+      });
 
-    console.log('Token verification response:', data);
-    return data;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Invalid verification code' }));
+        throw new Error(errorData.message || 'Invalid verification code');
+      }
+
+      const data = await response.json();
+      console.log('OTP verification response:', data);
+      
+      return { 
+        success: true, 
+        message: data.message || 'Email verified successfully' 
+      };
+    } catch (error: any) {
+      console.error('OTP verification error:', error);
+      throw error;
+    }
+  },
+
+  async resendVerificationEmail(token: string): Promise<{ success: boolean; message: string }> {
+    console.log('Resending verification email');
+
+    try {
+      const response = await fetch('https://hedera-quests.com/profile/verify-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to resend verification email' }));
+        throw new Error(errorData.message || 'Failed to resend verification email');
+      }
+
+      const data = await response.json();
+      console.log('Resend email response:', data);
+      
+      return { 
+        success: true, 
+        message: data.message || 'Verification email sent successfully' 
+      };
+    } catch (error: any) {
+      console.error('Resend email error:', error);
+      throw error;
+    }
   }
 };
 

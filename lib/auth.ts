@@ -8,22 +8,107 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        token: { label: 'Token', type: 'text' }, // Add token for post-registration auth
+        isRegistration: { label: 'IsRegistration', type: 'text' } // Flag for registration flow
       },
       async authorize(credentials) {
         console.log('NextAuth: authorize function called with credentials:', {
           hasEmail: !!credentials?.email,
           hasPassword: !!credentials?.password,
+          hasToken: !!credentials?.token,
+          isRegistration: credentials?.isRegistration,
           email: credentials?.email
         })
 
+        // Handle post-registration flow with token
+        if (credentials?.isRegistration === 'true' && credentials?.token) {
+          console.log('NextAuth: Post-registration auth flow with token')
+          
+          try {
+            // Verify the user profile with the token
+            const response = await fetch('https://hedera-quests.com/profile/me', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${credentials.token}`,
+                'Content-Type': 'application/json',
+              },
+            })
+
+            console.log('NextAuth: Profile API response status:', response.status)
+
+            if (!response.ok) {
+              console.log('NextAuth: Profile API error')
+              return null
+            }
+
+            const data = await response.json()
+            console.log('NextAuth: Profile API response data:', JSON.stringify(data, null, 2))
+
+            const isAdmin = data.is_admin || false
+            const userData = data.admin || data.user || data
+
+            // Create comprehensive user object from response data
+            const userObj: User = {
+              id: String(userData.id || Date.now()),
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              username: userData.username,
+              name: (() => {
+                if (isAdmin) {
+                  const firstName = userData.firstName || '';
+                  const lastName = userData.lastName || '';
+                  const fullName = `${firstName} ${lastName}`.trim();
+                  return fullName || userData.username?.replace(/\[.*?\]/g, '').trim() || 'Admin';
+                } else {
+                  const firstName = userData.firstName || '';
+                  const lastName = userData.lastName || '';
+                  const fullName = `${firstName} ${lastName}`.trim();
+                  return fullName || userData.username?.replace(/\[.*?\]/g, '').trim() || 'User';
+                }
+              })(),
+              email: userData.email || credentials.email,
+              bio: userData.bio || '',
+              avatar: '/logo.png',
+              hederaAccountId: null,
+              points: isAdmin ? undefined : (userData.total_points || 0),
+              level: userData.userLevel?.level || 1,
+              streak: 0,
+              joinedAt: userData.created_at || new Date().toISOString(),
+              role: isAdmin ? 'admin' : 'user',
+              badges: [],
+              completedQuests: [],
+              userLevel: userData.userLevel,
+              facebookProfile: userData.facebookProfile,
+              twitterProfile: userData.twitterProfile,
+              discordProfile: userData.discordProfile
+            };
+
+            return {
+              id: userObj.id,
+              email: userObj.email,
+              name: userObj.name,
+              image: userObj.avatar,
+              role: userObj.role,
+              token: credentials.token,
+              isAdmin,
+              userData: userObj,
+            } as any
+
+          } catch (error) {
+            console.log('NextAuth: Post-registration auth error:', error)
+            return null
+          }
+        }
+
+        // Regular login flow
         if (!credentials?.email || !credentials?.password) {
-          console.log('NextAuth: Missing credentials')
+          console.log('NextAuth: Missing credentials for login')
           return null
         }
 
         try {
-          console.log('NextAuth: Making API call to backend')
+          console.log('NextAuth: Making API call to backend for login')
           const response = await fetch('https://hedera-quests.com/auth/login', {
             method: 'POST',
             headers: {
@@ -35,17 +120,16 @@ export const authOptions: NextAuthOptions = {
             }),
           })
 
-          console.log('NextAuth: API response :', response)
-          console.log('NextAuth: API response headers:', Object.fromEntries(response.headers.entries()))
+          console.log('NextAuth: Login API response status:', response.status)
 
           if (!response.ok) {
             const errorText = await response.text()
-            console.log('NextAuth: API error response:', errorText)
+            console.log('NextAuth: Login API error response:', errorText)
             return null
           }
 
           const data = await response.json()
-          console.log('NextAuth: API response data:', JSON.stringify(data, null, 2))
+          console.log('NextAuth: Login API response data:', JSON.stringify(data, null, 2))
 
           if (!data.token) {
             console.log('NextAuth: No token in response')

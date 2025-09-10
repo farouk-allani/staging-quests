@@ -3,14 +3,62 @@
 import { useState } from 'react';
 import { LoginForm } from './login-form';
 import { RegisterForm } from './register-form';
+import { OtpVerification } from './otp-verification';
 import { Trophy, Star, Users, Target } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
 
 import { User } from '@/lib/types';
 
+type AuthFlow = 'login' | 'register' | 'otp-verification';
+
 export function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [currentFlow, setCurrentFlow] = useState<AuthFlow>('login');
+  const [registrationData, setRegistrationData] = useState<{
+    email: string;
+    token: string;
+  } | null>(null);
+
+  const handleSwitchToLogin = () => {
+    setCurrentFlow('login');
+    setRegistrationData(null);
+  };
+
+  const handleSwitchToRegister = () => {
+    setCurrentFlow('register');
+    setRegistrationData(null);
+  };
+
+  const handleRegistrationSuccess = (email: string, token: string) => {
+    setRegistrationData({ email, token });
+    setCurrentFlow('otp-verification');
+  };
+
+  const renderAuthForm = () => {
+    switch (currentFlow) {
+      case 'login':
+        return (
+          <LoginForm onSwitchToRegister={handleSwitchToRegister} />
+        );
+      case 'register':
+        return (
+          <RegisterForm 
+            onSwitchToLogin={handleSwitchToLogin}
+            onRegistrationSuccess={handleRegistrationSuccess}
+          />
+        );
+      case 'otp-verification':
+        return registrationData ? (
+          <OtpVerification
+            email={registrationData.email}
+            token={registrationData.token}
+            onBack={handleSwitchToLogin}
+          />
+        ) : null;
+      default:
+        return <LoginForm onSwitchToRegister={handleSwitchToRegister} />;
+    }
+  };
 
   return (
     <ErrorBoundary>
@@ -82,17 +130,9 @@ export function AuthPage() {
 
         </div>
 
-        {/* Right Side - Auth Forms */}
-        <div className="flex justify-center">
-          {isLogin ? (
-            <LoginForm
-              onSwitchToRegister={() => setIsLogin(false)}
-            />
-          ) : (
-            <RegisterForm
-              onSwitchToLogin={() => setIsLogin(true)}
-            />
-          )}
+        {/* Right Side - Auth Form */}
+        <div className="flex justify-center lg:justify-end">
+          {renderAuthForm()}
         </div>
       </div>
     </div>
