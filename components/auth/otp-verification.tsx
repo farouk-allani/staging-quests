@@ -159,8 +159,8 @@ export function OtpVerification({ email, token, onBack, onVerificationComplete }
       // Small delay to show success message
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Redirect to dashboard
-      router.push('/quests');
+  
+      router.push('/');
       
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to verify code. Please try again.';
