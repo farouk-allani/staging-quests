@@ -316,7 +316,7 @@ export function FeaturedQuestsSection({ quests, completedQuestIds, onQuestSelect
           </CardTitle>
           <div className="flex items-center gap-2">
             {/* View Toggle Controls */}
-            <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-dashed border-primary/20">
+            {/* <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-dashed border-primary/20">
               <Button
                 variant={viewMode === 'card' ? 'default' : 'ghost'}
                 size="sm"
@@ -350,7 +350,7 @@ export function FeaturedQuestsSection({ quests, completedQuestIds, onQuestSelect
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
-            </div>
+            </div> */}
             <Link href="/quests">
               <Button variant="outline" size="sm" className="font-mono border-dashed hover:border-solid transition-all duration-200">
                 View All <ArrowRight className="ml-2 h-4 w-4" />
