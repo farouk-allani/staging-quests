@@ -103,8 +103,8 @@ export default function ProgressPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${user.role === 'admin' ? 'lg:grid-cols-3' : 'lg:grid-cols-3'} gap-6`}>
-        <Card className="border-2 border-dashed border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 hover:border-solid transition-all duration-200">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${user.role === 'admin' ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-6`}>
+        {/* <Card className="border-2 border-dashed border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 hover:border-solid transition-all duration-200">
           <CardContent className="p-6 text-center">
             <div className="p-2 bg-yellow-500/10 rounded-lg border border-dashed border-yellow-500/30 w-fit mx-auto mb-3">
               <Trophy className="w-6 h-6 text-yellow-500" />
@@ -114,7 +114,7 @@ export default function ProgressPage() {
             </div>
             <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">LEVEL</div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {user.role !== 'admin' && (
           <Card className="border-2 border-dashed border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200">
