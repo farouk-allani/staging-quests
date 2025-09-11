@@ -21,6 +21,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -57,6 +63,7 @@ import {
   MessageCircle,
   Share,
   XCircle,
+  Info,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -109,6 +116,29 @@ export default function QuestDetailPage() {
   const completedQuests = quest && quest.user_status === "validated";
 
    const isExpired = quest && quest.endDate && new Date(quest.endDate) < now;
+
+  // Check if quest has requirements to show info icon
+  const hasRequirements = quest && (
+    ((quest as any).quest_steps && (quest as any).quest_steps.trim()) ||
+    (quest.requirements && quest.requirements.length > 0)
+  );
+
+  // Smooth scroll to requirements section
+  const scrollToRequirements = () => {
+    const requirementsElement = document.getElementById('requirements-panel');
+    if (requirementsElement) {
+      requirementsElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+      
+      // Also switch to requirements tab if not already active
+      const requirementsTab = document.querySelector('[data-state="inactive"][value="requirements"]') as HTMLButtonElement;
+      if (requirementsTab) {
+        requirementsTab.click();
+      }
+    }
+  };
 
   // Check if social media account is linked for the quest platform
   const isAccountLinked = (platformType: string) => {
@@ -386,7 +416,8 @@ export default function QuestDetailPage() {
   // const now = new Date();
 
   return (
-    <main className="max-w-6xl mx-auto space-y-6" role="main" aria-label="Quest Details">
+    <TooltipProvider>
+      <main className="max-w-6xl mx-auto space-y-6" role="main" aria-label="Quest Details">
       {/* Back Button */}
       <Link href="/quests">
         <Button
@@ -511,10 +542,30 @@ export default function QuestDetailPage() {
               <CardContent className="p-8 space-y-8">
                 {/* Quest Description */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    Description
-                  </h2>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      Description
+                    </h2>
+                    {hasRequirements && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={scrollToRequirements}
+                              className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                              aria-label="View quest requirements"
+                            >
+                              <Info className="w-4 h-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Click to view requirements</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300" aria-describedby="quest-title">
                     {quest.description}
                   </p>
@@ -1240,5 +1291,6 @@ export default function QuestDetailPage() {
         onClose={() => setShowSocialLinkModal(false)}
       />
     </main>
+    </TooltipProvider>
   );
 }
