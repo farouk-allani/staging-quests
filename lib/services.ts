@@ -197,7 +197,7 @@ export class QuestService {
       platform_type?: string;
       interaction_type?: string;
       quest_link?: string;
-      event_id?: number;
+      event_id?: number | null;
       quest_type?: string;
       progress_to_add?: number;
       createdBy?: number;

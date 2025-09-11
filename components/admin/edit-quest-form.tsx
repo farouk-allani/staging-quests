@@ -51,7 +51,7 @@ const editQuestSchema = z.object({
   platform_type: z.string().optional(),
   interaction_type: z.string().optional(),
   quest_link: z.string().optional(),
-  event_id: z.number().optional(),
+  event_id: z.number().nullable().optional(),
   quest_type: z.string().optional(),
   progress_to_add: z.number().optional(),
   createdBy: z.number().optional(),
@@ -93,6 +93,7 @@ export function EditQuestForm({
   const [questType, setQuestType] = useState<string>("hedera_profile_completion");
   const [progressToAdd, setProgressToAdd] = useState<number>(10);
   const [steps, setSteps] = useState<string[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>("none");
   const { toast } = useToast();
   const { data: session } = useSession();
 
@@ -186,6 +187,9 @@ export function EditQuestForm({
         setQuestType(questData.quest_type || "hedera_profile_completion");
         setProgressToAdd(questData.progress_to_add || 10);
         
+        // Initialize selected event
+        setSelectedEventId(questData.event_id ? String(questData.event_id) : "none");
+        
         // Parse and initialize steps from quest_steps
         if (questData.quest_steps && typeof questData.quest_steps === 'string') {
           const parsedSteps = questData.quest_steps.split('#quest_ending#').filter(step => step.trim() !== '');
@@ -273,6 +277,7 @@ export function EditQuestForm({
 
     try {
       console.log("Updating quest data:", data);
+      console.log("Current quest event_id:", quest.event_id, "New event_id:", data.event_id);
 
       // Format dates with times
       const formatDateTime = (date: Date | undefined, time: string) => {
@@ -341,8 +346,11 @@ export function EditQuestForm({
         updateData.badgeIds = selectedBadges.length > 0 ? selectedBadges : [];
       }
 
-      if (data.event_id !== quest.event_id) {
-        updateData.event_id = data.event_id;
+      // Handle event_id update - properly handle null to clear event association
+      const currentEventId = quest.event_id;
+      const newEventId = data.event_id;
+      if (currentEventId !== newEventId) {
+        updateData.event_id = newEventId;
       }
       if (data.platform_type !== quest.platform_type) {
         updateData.platform_type = data.platform_type === "" ? null : data.platform_type;
@@ -362,6 +370,8 @@ export function EditQuestForm({
       if (JSON.stringify(filteredSteps) !== JSON.stringify(currentSteps)) {
         updateData.steps = filteredSteps;
       }
+
+      console.log("Final update data being sent to backend:", updateData);
 
       if (Object.keys(updateData).length === 0) {
         // Dismiss loading toast
@@ -527,10 +537,10 @@ export function EditQuestForm({
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h2 className="text-2xl font-bold">Edit Quest</h2>
         <p className="text-muted-foreground">Update the quest details below</p>
-      </div>
+      </div> */}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {error && (
@@ -734,19 +744,14 @@ export function EditQuestForm({
               </div>
             ) : (
               <Select
-                value={
-                  watch("event_id")
-                    ? String(watch("event_id"))
-                    : quest?.event_id
-                    ? String(quest.event_id)
-                    : "none"
-                }
-                onValueChange={(value) =>
+                value={selectedEventId}
+                onValueChange={(value) => {
+                  setSelectedEventId(value);
                   setValue(
                     "event_id",
-                    value === "none" ? undefined : Number(value)
-                  )
-                }
+                    value === "none" ? null : Number(value)
+                  );
+                }}
               >
                 <SelectTrigger className="max-w-xs">
                   <SelectValue placeholder="Select an event" />
@@ -767,7 +772,7 @@ export function EditQuestForm({
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              Associate this quest with a specific event
+              Associate this quest with a specific event (completely optional)
             </p>
           </div>
         </div>
