@@ -217,7 +217,7 @@ const filteredQuests = quests.filter((quest) => {
               </p>
             </div>
         
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -252,7 +252,7 @@ const filteredQuests = quests.filter((quest) => {
                   <List className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
