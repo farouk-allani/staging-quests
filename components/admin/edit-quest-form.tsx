@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -57,6 +58,7 @@ const editQuestSchema = z.object({
   createdBy: z.number().optional(),
   added_by: z.number().optional(),
   steps: z.array(z.string()).optional(),
+  with_evidence: z.boolean().optional(),
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
@@ -160,6 +162,7 @@ export function EditQuestForm({
           progress_to_add: questData.progress_to_add,
           createdBy: questData.createdBy,
           added_by: questData.added_by,
+          with_evidence: questData.with_evidence || false,
         });
         
         // Initialize state variables
@@ -360,6 +363,11 @@ export function EditQuestForm({
       }
       if (data.quest_link !== quest.quest_link) {
         updateData.quest_link = data.quest_link;
+      }
+
+      // Handle with_evidence update
+      if (data.with_evidence !== (quest.with_evidence || false)) {
+        updateData.with_evidence = data.with_evidence || false;
       }
 
       // Handle steps update
@@ -586,6 +594,25 @@ export function EditQuestForm({
                   {errors.description.message}
                 </p>
               )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                id="with_evidence"
+                checked={watch("with_evidence") || false}
+                onCheckedChange={(checked: boolean) => {
+                  setValue("with_evidence", checked === true);
+                }}
+              />
+              <Label 
+                htmlFor="with_evidence" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Manual Submission Quest
+              </Label>
+            </div>
+            <div className="text-xs text-muted-foreground ml-6">
+              Check this box if the quest requires manual submission and evidence verification
             </div>
           </div>
         </div>

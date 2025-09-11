@@ -26,6 +26,7 @@ interface CreateQuestFormData {
   createdBy?: number;
   added_by?: number;
   steps?: string[];
+  with_evidence?: boolean;
 }
 
 // Input sanitization helper
@@ -67,7 +68,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     other: ["visit", "signup", "complete", "submit", "participate"],
   };
 
-  const { register, handleSubmit, setValue } = useForm<CreateQuestFormData>();
+  const { register, handleSubmit, setValue, watch } = useForm<CreateQuestFormData>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -160,6 +161,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         createdBy: session?.user?.id ? Number(session.user.id) : undefined,
         added_by: session?.user?.id ? Number(session.user.id) : undefined,
         steps: steps.filter(step => step.trim() !== ''), // Only include non-empty steps
+        with_evidence: data.with_evidence || false, // Include the manual submission flag
       };
 
       await QuestService.createQuest(questData, session?.user?.token);
@@ -255,6 +257,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     register,
     handleSubmit,
     onSubmit,
-    setValue, // Export setValue so components can use it directly
+    setValue,
+    watch, 
   };
 };

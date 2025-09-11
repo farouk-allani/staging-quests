@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import DOMPurify from 'dompurify';
 
 import { Quest, User } from '@/lib/types';
 import { QuestService } from '@/lib/services';
@@ -17,6 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -84,6 +87,8 @@ export default function QuestDetailPage() {
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [showSocialLinkModal, setShowSocialLinkModal] = useState(false);
   const [modalPlatform, setModalPlatform] = useState<string>('');
+  const [evidenceUrl, setEvidenceUrl] = useState<string>('');
+  const [evidenceError, setEvidenceError] = useState<string | null>(null);
   const [questStats, setQuestStats] = useState<{
     validated: number;
     all: number;
@@ -124,9 +129,48 @@ export default function QuestDetailPage() {
     }
   };
 
-  
+  // Sanitize and validate evidence URL
+  const sanitizeUrl = (url: string): string => {
+    const trimmedUrl = url.trim();
+    // Use DOMPurify if available, otherwise fallback to basic sanitization
+    if (typeof window !== "undefined" && DOMPurify) {
+      return DOMPurify.sanitize(trimmedUrl, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    }
+    return trimmedUrl.replace(/[<>"'&]/g, '');
+  };
+
+  const validateEvidenceUrl = (url: string): boolean => {
+    if (!url || url.trim() === '') {
+      setEvidenceError('Evidence URL is required for manual submission quests');
+      return false;
+    }
+
+    const sanitizedUrl = sanitizeUrl(url);
+    
+    // Basic URL validation
+    try {
+      const urlObj = new URL(sanitizedUrl);
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        setEvidenceError('Please provide a valid HTTP or HTTPS URL');
+        return false;
+      }
+      setEvidenceError(null);
+      return true;
+    } catch {
+      setEvidenceError('Please provide a valid URL (e.g., https://example.com/evidence)');
+      return false;
+    }
+  };
+
+  const handleEvidenceUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEvidenceUrl(value);
+    if (evidenceError) {
+      setEvidenceError(null); // Clear error on input change
+    }
+  };
+
   const handleStartQuest = (e: React.MouseEvent) => {
-  
     if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'linkedin'].includes(quest.platform_type.toLowerCase())) {
       if (!isAccountLinked(quest.platform_type)) {
         e.preventDefault();
@@ -135,7 +179,6 @@ export default function QuestDetailPage() {
         return;
       }
     }
-   
   };
 
   useEffect(() => {
@@ -203,6 +246,13 @@ export default function QuestDetailPage() {
   const handleVerifyQuest = async () => {
     if (!quest || !session?.user?.token) return;
 
+    // Validate evidence URL for manual submission quests
+    if (quest.with_evidence) {
+      if (!validateEvidenceUrl(evidenceUrl)) {
+        return; // Stop if validation fails
+      }
+    }
+
     setVerifying(true);
     setVerifyMessage(null);
     setShowVerifyDialog(false);
@@ -216,7 +266,14 @@ export default function QuestDetailPage() {
 
     try {
       const apiWithToken = createApiClientWithToken(session.user.token);
-      await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`);
+      
+      // Prepare payload
+      const payload: any = {};
+      if (quest.with_evidence && evidenceUrl) {
+        payload.evidence = sanitizeUrl(evidenceUrl);
+      }
+
+      await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`, payload);
       
       // Dismiss loading toast
       loadingToast.dismiss();
@@ -232,6 +289,10 @@ export default function QuestDetailPage() {
       
       // Update quest status to pending instead of reloading
       setQuest(prev => prev ? { ...prev, user_status: "pending" } : prev);
+      
+      // Reset evidence URL
+      setEvidenceUrl('');
+      setEvidenceError(null);
     } catch (error: any) {
       // Dismiss loading toast
       loadingToast.dismiss();
@@ -269,6 +330,9 @@ export default function QuestDetailPage() {
       } else if (errorMessage.toLowerCase().includes('not verified')) {
         toastTitle = "User Not Verified";
         toastDescription = "Please verify your account before completing quests.";
+      } else if (errorMessage.toLowerCase().includes('evidence')) {
+        toastTitle = "Evidence Required";
+        toastDescription = "Please provide valid evidence URL for this quest.";
       }
       
       toast({
@@ -282,6 +346,9 @@ export default function QuestDetailPage() {
   };
 
   const handleVerifyClick = () => {
+    // Reset evidence URL and error when opening dialog
+    setEvidenceUrl('');
+    setEvidenceError(null);
     setShowVerifyDialog(true);
   };
 
@@ -451,6 +518,67 @@ export default function QuestDetailPage() {
                   <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300" aria-describedby="quest-title">
                     {quest.description}
                   </p>
+                  
+                  {/* Manual Submission Indicator */}
+                  {quest.with_evidence && (
+                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                        <Shield className="w-5 h-5" />
+                        <span className="font-semibold">Manual Submission Quest</span>
+                      </div>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mt-2">
+                        This quest requires evidence submission. Please provide a URL to your evidence below.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Evidence URL Input Section */}
+                  {quest.with_evidence && (
+                    <div className="mt-6 p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                          <LinkIcon className="w-5 h-5" />
+                          <h3 className="font-semibold text-lg">Submit Evidence</h3>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <Label htmlFor="evidence-url-main" className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            Evidence URL *
+                          </Label>
+                          <Input
+                            id="evidence-url-main"
+                            type="url"
+                            placeholder="https://example.com/your-evidence"
+                            value={evidenceUrl}
+                            onChange={handleEvidenceUrlChange}
+                            className={cn(
+                              "w-full bg-white dark:bg-gray-800",
+                              evidenceError && "border-red-500 focus:ring-red-500"
+                            )}
+                            aria-describedby={evidenceError ? "evidence-error-main" : "evidence-help"}
+                          />
+                          {evidenceError && (
+                            <p 
+                              id="evidence-error-main" 
+                              className="text-sm text-red-600 flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-4 h-4" />
+                              {evidenceError}
+                            </p>
+                          )}
+                          {/* <div id="evidence-help" className="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                            <p className="font-medium mb-2">Acceptable evidence formats:</p>
+                            <ul className="list-disc list-inside space-y-1">
+                              <li>Screenshots of completed tasks</li>
+                              <li>Social media post links</li>
+                              <li>Document or file sharing links</li>
+                              <li>Any publicly accessible URL that proves completion</li>
+                            </ul>
+                          </div> */}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Quest Details Grid */}
@@ -656,20 +784,27 @@ export default function QuestDetailPage() {
           id="verify-dialog-description"
           className="text-base leading-relaxed"
         >
-          Please confirm that you have completed all quest requirements. This
-          action will submit your completion for verification.
+          {quest?.with_evidence 
+            ? "Please confirm that you have completed all quest requirements and provided evidence above. This action will submit your completion for verification."
+            : "Please confirm that you have completed all quest requirements. This action will submit your completion for verification."
+          }
         </AlertDialogDescription>
       </AlertDialogHeader>
+      
       <AlertDialogFooter>
-        <AlertDialogCancel className="px-6" aria-label="Cancel verification">
+        <AlertDialogCancel 
+          className="px-6" 
+          aria-label="Cancel verification"
+        >
           Cancel
         </AlertDialogCancel>
         <AlertDialogAction
           onClick={handleVerifyQuest}
           className="px-6 bg-green-600 hover:bg-green-700"
           aria-label="Confirm quest verification"
+          disabled={quest?.with_evidence && (!evidenceUrl || !!evidenceError)}
         >
-          Verify Now
+          {quest?.with_evidence ? 'Submit Evidence' : 'Verify Now'}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

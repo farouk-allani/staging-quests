@@ -43,19 +43,20 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
     handleSubmit,
     onSubmit,
     setValue,
+    watch,
   } = useCreateQuestForm(onSuccess);
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h2 className="text-2xl font-bold">Create New Quest</h2>
         <p className="text-muted-foreground">
           Fill in the details below to create a new quest
         </p>
-      </div>
+      </div> */}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <BasicInformationForm register={register} />
+        <BasicInformationForm register={register} watch={watch} setValue={setValue} />
         <QuestDetailsForm
           register={register}
           platform={platform}

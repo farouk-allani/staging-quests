@@ -90,6 +90,7 @@ export interface Quest {
   progress_to_add?: number;
   user_status?: string;
   quest_steps?: string;
+  with_evidence?: boolean;
 }
 
 export interface Submission {

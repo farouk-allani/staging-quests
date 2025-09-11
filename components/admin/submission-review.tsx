@@ -65,7 +65,8 @@ import {
   Target,
   Grid3X3,
   List,
-  Table as TableIcon
+  Table as TableIcon,
+  Shield
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -91,6 +92,7 @@ interface Submission {
   score?: number;
   questPoints: number;
   questDifficulty: 'beginner' | 'intermediate' | 'advanced';
+  evidence?: string; 
   user?: {
     name: string;
     email: string;
@@ -159,6 +161,7 @@ interface Quest {
   id: string;
   title: string;
   description: string;
+  with_evidence?: boolean; // Indicates if quest requires manual evidence submission
   completions?: Submission[];
 }
 
@@ -233,11 +236,11 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         const response = await QuestService.getQuestCompletions(session?.user?.token);
         if (response.success) {
           setQuests(response.quests || []);
-          toast({
-            title: "Data Loaded",
-            description: `Successfully loaded ${enrichedSubmissions.length} submissions and ${response.quests?.length || 0} quests.`,
-            variant: "default",
-          });
+          // toast({
+          //   title: "Data Loaded",
+          //   description: `Successfully loaded ${enrichedSubmissions.length} submissions and ${response.quests?.length || 0} quests.`,
+          //   variant: "default",
+          // });
         } else {
           throw new Error('Failed to load quests');
         }
@@ -586,6 +589,20 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
           </CardHeader>
           <CardContent>
             <p className="font-mono text-muted-foreground mb-4">{selectedQuest.description}</p>
+            
+            {/* Manual Submission Indicator */}
+            {selectedQuest.with_evidence && (
+              <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg">
+                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                  <Shield className="w-5 h-5" />
+                  <span className="font-semibold font-mono">[MANUAL_SUBMISSION_QUEST]</span>
+                </div>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 font-mono">
+                  This quest requires evidence submission. Users must provide proof URLs when completing the quest.
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono">
               <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-3 rounded border border-dashed border-primary/20">
                 <div className="text-muted-foreground">TOTAL:</div>
@@ -645,7 +662,27 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-xs">
+                        <div className="max-w-xs space-y-2">
+                          {/* Show evidence URL for manual submission quests */}
+                          {selectedQuest?.with_evidence && submission.evidence && (
+                            <div className="mb-2">
+                              <div className="flex items-center gap-1 mb-1">
+                                <Shield className="w-3 h-3 text-amber-500" />
+                                <span className="text-xs font-mono font-semibold text-amber-600 dark:text-amber-400">[EVIDENCE]</span>
+                              </div>
+                              <a 
+                                href={submission.evidence} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-cyan-500 hover:text-primary text-sm truncate block font-mono underline bg-cyan-50 dark:bg-cyan-950/20 border border-dashed border-cyan-200 dark:border-cyan-800 px-2 py-1 rounded"
+                              >
+                                <ExternalLink className="w-3 h-3 inline mr-1" />
+                                {submission.evidence}
+                              </a>
+                            </div>
+                          )}
+                          
+                          {/* Regular content display */}
                           {submission.content?.type === 'text' && (
                             <p className="text-sm truncate text-muted-foreground font-mono">{submission.content.text}</p>
                           )}
@@ -1074,6 +1111,30 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                       {selectedDetailSubmission.description || 'No description provided'}
                     </div>
                   </div>
+                  
+                  {/* Evidence URL for manual submission quests */}
+                  {selectedDetailSubmission.evidence && (
+                    <div>
+                      <label className="text-sm font-medium font-mono text-muted-foreground flex items-center gap-1">
+                        <Shield className="w-4 h-4 text-amber-500" />
+                        [EVIDENCE_URL]
+                      </label>
+                      <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded border border-dashed border-amber-200 dark:border-amber-800">
+                        <a 
+                          href={selectedDetailSubmission.evidence} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-blue-500 hover:underline font-mono text-sm flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          {selectedDetailSubmission.evidence}
+                        </a>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-mono">
+                          User-provided evidence for manual submission verification
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {selectedDetailSubmission.content && (
                     <div>

@@ -3,13 +3,18 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { UseFormRegister } from 'react-hook-form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form';
 
 interface BasicInformationFormProps {
   register: UseFormRegister<any>;
+  watch?: UseFormWatch<any>;
+  setValue?: UseFormSetValue<any>;
 }
 
-export function BasicInformationForm({ register }: BasicInformationFormProps) {
+export function BasicInformationForm({ register, watch, setValue }: BasicInformationFormProps) {
+  const withEvidence = watch?.('with_evidence') || false;
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold border-b pb-2">Basic Information</h3>
@@ -39,6 +44,24 @@ export function BasicInformationForm({ register }: BasicInformationFormProps) {
           <div className="flex justify-between items-center">
             <span className="text-xs text-muted-foreground">Required field</span>
           </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Checkbox
+            id="with_evidence"
+            checked={withEvidence}
+            onCheckedChange={(checked) => {
+              setValue?.('with_evidence', checked === true);
+            }}
+          />
+          <Label 
+            htmlFor="with_evidence" 
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Manual Submission Quest
+          </Label>
+        </div>
+        <div className="text-xs text-muted-foreground ml-6">
+          Check this box if the quest requires manual submission and evidence verification
         </div>
       </div>
     </div>
