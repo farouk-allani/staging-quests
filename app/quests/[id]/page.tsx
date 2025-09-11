@@ -223,17 +223,15 @@ export default function QuestDetailPage() {
       
       // Show success toast
       toast({
-        title: "Quest Verified Successfully! 🎉",
-        description: `Congratulations! You've completed "${quest.title}" and earned ${quest.reward || 0} points!`,
+        title: "Quest Submitted for Verification! 📋",
+        description: `Your completion of "${quest.title}" has been submitted and is pending for review.`,
         variant: "default"
       });
       
-      setVerifyMessage('Quest verification successful!');
+      setVerifyMessage('Quest submitted for verification!');
       
-      // Refresh the page to update stats and hide action buttons
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000); // Wait 2 seconds to show success message
+      // Update quest status to pending instead of reloading
+      setQuest(prev => prev ? { ...prev, user_status: "pending" } : prev);
     } catch (error: any) {
       // Dismiss loading toast
       loadingToast.dismiss();
