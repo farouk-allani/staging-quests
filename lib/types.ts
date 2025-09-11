@@ -187,6 +187,9 @@ export interface LeaderboardResponse {
   data: {
     rank: number;
     users: LeaderboardEntry[];
+    numberOfPages: number;
+    page: number;
+    limit: number;
   };
 }
 

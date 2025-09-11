@@ -375,9 +375,9 @@ export class QuestService {
   }
 
   // Leaderboard methods
-  static async getLeaderboard(token?: string): Promise<LeaderboardResponse> {
+  static async getLeaderboard(token?: string, page: number = 1, limit: number = 10): Promise<LeaderboardResponse> {
     try {
-      const response = await LeaderboardApi.getLeaderboard(token);
+      const response = await LeaderboardApi.getLeaderboard(token, page, limit);
       return response;
     } catch (error) {
       console.error("Error fetching leaderboard:", error);

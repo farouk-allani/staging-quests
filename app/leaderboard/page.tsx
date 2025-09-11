@@ -24,6 +24,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 import { 
   Trophy, 
@@ -45,6 +54,9 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardDisplayEntry[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(10); // Items per page
   const { data: session } = useSession();
 
 
@@ -52,13 +64,15 @@ export default function LeaderboardPage() {
     const loadLeaderboard = async () => {
       setIsLoading(true);
       try {
-        const response = await QuestService.getLeaderboard(session?.user?.token);
-        // Transform API response to match component expectations
-        // Sort users by total_points in descending order to ensure correct ranking
-        const sortedUsers = response.data.users.sort((a, b) => b.total_points - a.total_points);
+        const response = await QuestService.getLeaderboard(session?.user?.token, currentPage, limit);
         
-        const transformedData: LeaderboardDisplayEntry[] = sortedUsers.map((user, index) => ({
-          rank: index + 1, // This will now be consistent with the sorted order
+        // Set pagination info
+        setTotalPages(response.data.numberOfPages);
+        
+        // Transform API response to match component expectations
+        // For pagination, we don't need to sort since the backend should return sorted data
+        const transformedData: LeaderboardDisplayEntry[] = response.data.users.map((user, index) => ({
+          rank: ((currentPage - 1) * limit) + index + 1, // Calculate actual rank based on page
           user: {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
@@ -74,16 +88,8 @@ export default function LeaderboardPage() {
         }));
         setLeaderboard(transformedData);
         
-        // Calculate user rank based on the sorted data to ensure consistency
-        // Find the current user's rank in the sorted leaderboard
-        const currentUser = await QuestService.getCurrentUser(session?.user?.token);
-        if (currentUser) {
-          const userId = typeof currentUser.id === 'string' ? parseInt(currentUser.id) : currentUser.id;
-          const userRankInSortedList = sortedUsers.findIndex(user => user.id === userId) + 1;
-          setUserRank(userRankInSortedList > 0 ? userRankInSortedList : response.data.rank);
-        } else {
-          setUserRank(response.data.rank);
-        }
+        // Set user rank from API response (this is the user's overall rank, not page-specific)
+        setUserRank(response.data.rank);
       } catch (error) {
         console.error('Failed to load leaderboard:', error);
       } finally {
@@ -92,7 +98,7 @@ export default function LeaderboardPage() {
     };
 
     loadLeaderboard();
-  }, []);
+  }, [currentPage, limit, session?.user?.token]);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -121,6 +127,100 @@ export default function LeaderboardPage() {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const showEllipsis = totalPages > 7;
+    
+    if (!showEllipsis) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Show first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            onClick={() => handlePageChange(1)}
+            isActive={currentPage === 1}
+            className="cursor-pointer"
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Show ellipsis or pages around current page
+      if (currentPage > 4) {
+        items.push(
+          <PaginationItem key="ellipsis1">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Show ellipsis before last page
+      if (currentPage < totalPages - 3) {
+        items.push(
+          <PaginationItem key="ellipsis2">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Show last page
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              onClick={() => handlePageChange(totalPages)}
+              isActive={currentPage === totalPages}
+              className="cursor-pointer"
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    return items;
   };
 
   if (isLoading) {
@@ -156,8 +256,8 @@ export default function LeaderboardPage() {
 
       {/* Leaderboard Content */}
       <div className="space-y-6">
-            {/* Top 3 Podium */}
-            {leaderboard.length >= 3 && (
+            {/* Top 3 Podium - Only show on first page */}
+            {currentPage === 1 && leaderboard.length >= 3 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 {/* 1st Place */}
                 <div className="order-1 md:order-2">
@@ -298,7 +398,7 @@ export default function LeaderboardPage() {
                 <CardContent className="p-6 text-center">
                   <Users className="w-8 h-8 mx-auto mb-2" />
                   <div className="text-2xl font-bold">{leaderboard.length}</div>
-                  <div className="text-sm text-muted-foreground">Players</div>
+                  <div className="text-sm text-muted-foreground">Players on Page</div>
                 </CardContent>
               </Card>
 
@@ -306,9 +406,9 @@ export default function LeaderboardPage() {
                 <CardContent className="p-6 text-center">
                   <Star className="w-8 h-8 mx-auto mb-2" />
                   <div className="text-2xl font-bold">
-                    {Math.round(leaderboard.reduce((sum, entry) => sum + entry.totalPoints, 0) / leaderboard.length).toLocaleString()}
+                    {leaderboard.length > 0 ? Math.round(leaderboard.reduce((sum, entry) => sum + entry.totalPoints, 0) / leaderboard.length).toLocaleString() : 0}
                   </div>
-                  <div className="text-sm text-muted-foreground">Average Points</div>
+                  <div className="text-sm text-muted-foreground">Page Average Points</div>
                 </CardContent>
               </Card>
 
@@ -316,11 +416,54 @@ export default function LeaderboardPage() {
                 <CardContent className="p-6 text-center">
                   <TrendingUp className="w-8 h-8 mx-auto mb-2" />
                   <div className="text-2xl font-bold">
-                    {leaderboard.filter(entry => entry.recentPoints > 0).length}
+                    {totalPages}
                   </div>
-                  <div className="text-sm text-muted-foreground">Active Players</div>
+                  <div className="text-sm text-muted-foreground">Total Pages</div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Pagination Controls and Information */}
+            <div className="space-y-4">
+              {/* Page Information */}
+              {/* <Card className="max-w-md mx-auto">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <span>Page {currentPage} of {totalPages}</span>
+                    <span>•</span>
+                    <span>Showing {((currentPage - 1) * limit) + 1}-{Math.min(currentPage * limit, totalPages * limit)} of {totalPages * limit}</span>
+                  </div>
+                </CardContent>
+              </Card> */}
+
+              {/* Pagination Controls - Show even with 1 page for testing */}
+              <div className="flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={cn(
+                          "cursor-pointer",
+                          currentPage <= 1 && "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
+                    
+                    {renderPaginationItems()}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={cn(
+                          "cursor-pointer",
+                          currentPage >= totalPages && "pointer-events-none opacity-50"
+                        )}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
       </div>
     </div>
