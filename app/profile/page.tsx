@@ -1501,11 +1501,11 @@ export default function ProfilePage() {
                         View Profile
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2 font-mono">
+                    {/* <p className="text-xs text-muted-foreground mt-2 font-mono">
                       [INFO] Connecting your Twitter account allows you to
                       participate in social media quests and earn additional
                       rewards.
-                    </p>
+                    </p> */}
                   </div>
                 )}
               </div>
