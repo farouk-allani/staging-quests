@@ -520,7 +520,7 @@ export default function QuestDetailPage() {
                   </p>
                   
                   {/* Manual Submission Indicator */}
-                  {quest.with_evidence && (
+                  {/* {quest.with_evidence && (
                     <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
                         <Shield className="w-5 h-5" />
@@ -530,7 +530,7 @@ export default function QuestDetailPage() {
                         This quest requires evidence submission. Please provide a URL to your evidence below.
                       </p>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Evidence URL Input Section */}
                   {quest.with_evidence && (
