@@ -103,7 +103,7 @@ export default function ProgressPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${user.role === 'admin' ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-6`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${user.role === 'admin' ? 'lg:grid-cols-3' : 'lg:grid-cols-3'} gap-6`}>
         <Card className="border-2 border-dashed border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 hover:border-solid transition-all duration-200">
           <CardContent className="p-6 text-center">
             <div className="p-2 bg-yellow-500/10 rounded-lg border border-dashed border-yellow-500/30 w-fit mx-auto mb-3">
@@ -130,7 +130,7 @@ export default function ProgressPage() {
           </Card>
         )}
 
-        <Card className="border-2 border-dashed border-red-500/20 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200">
+        {/* <Card className="border-2 border-dashed border-red-500/20 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200">
           <CardContent className="p-6 text-center">
             <div className="p-2 bg-red-500/10 rounded-lg border border-dashed border-red-500/30 w-fit mx-auto mb-3">
               <Fire className="w-6 h-6 text-red-500" />
@@ -140,7 +140,7 @@ export default function ProgressPage() {
             </div>
             <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">DAY_STREAK</div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="border-2 border-dashed border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 hover:border-solid transition-all duration-200">
           <CardContent className="p-6 text-center">

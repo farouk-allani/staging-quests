@@ -289,13 +289,13 @@ export function Navbar({ className }: NavbarProps) {
                     </span>
                     <span className="font-bold">{user?.points?.toLocaleString() || 0}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
+                  {/* <div className="flex items-center justify-between text-xs">
                     <span className="flex items-center gap-1">
                       <Zap className="w-3 h-3 text-orange-500" />
                       STREAK
                     </span>
                     <span className="font-bold">{user?.streak || 0} days</span>
-                  </div>
+                  </div> */}
                 </div>
                 
                 <DropdownMenuSeparator className="border-dashed border-purple-500/30" />
