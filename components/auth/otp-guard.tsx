@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
+import { useUserNotFoundHandler } from '@/hooks/use-user-not-found';
 import { useRouter } from 'next/navigation';
 import { OtpVerification } from '@/components/auth/otp-verification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ interface OtpGuardProps {
 
 export function OtpGuard({ children, token, email }: OtpGuardProps) {
   const { data: session, status } = useSession();
+  const { handleUserNotFound, checkForUserNotFound } = useUserNotFoundHandler();
   const router = useRouter();
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,8 +44,15 @@ export function OtpGuard({ children, token, email }: OtpGuardProps) {
           },
         });
 
+        const data = await response.json();
+
+        // Check if user not found - this means account was deleted but session is still active
+        if (checkForUserNotFound(response, data)) {
+          await handleUserNotFound();
+          return;
+        }
+
         if (response.ok) {
-          const data = await response.json();
           const user = data.admin || data.user || data;
           
           // If user is verified, allow access

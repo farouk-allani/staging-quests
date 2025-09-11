@@ -44,6 +44,13 @@ export const authOptions: NextAuthOptions = {
             }
 
             const data = await response.json()
+            
+            // Check if user not found - account may have been deleted
+            if (!data.success && data.message === "user not found") {
+              console.log('NextAuth: User not found - account may have been deleted')
+              return null
+            }
+            
             console.log('NextAuth: Profile API response data:', JSON.stringify(data, null, 2))
 
             const isAdmin = data.is_admin || false

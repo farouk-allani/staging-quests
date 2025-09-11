@@ -136,6 +136,12 @@ export const AuthService = {
     const { data } = await apiWithToken.get('/profile/me');
 
     console.log('Profile response:', data);
+    
+    // Check if user not found - this means account was deleted but session is still active
+    if (!data.success && data.message === "user not found") {
+      throw new Error('User not found - account may have been deleted');
+    }
+    
     return data;
   },
 

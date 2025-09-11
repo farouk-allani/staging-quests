@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useUserNotFoundHandler } from "@/hooks/use-user-not-found";
+import { useAuthenticatedApi } from "@/hooks/use-authenticated-api";
 import { useSearchParams, useRouter } from "next/navigation";
 import { User } from "@/lib/types";
 import { QuestService } from "@/lib/services";
@@ -55,6 +57,7 @@ interface UserStats {
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  const { apiCall } = useAuthenticatedApi();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -234,20 +237,9 @@ export default function ProfilePage() {
 
     setIsLoading(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
-      const response = await fetch(`${baseUrl}/profile/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${session?.user?.token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile data");
-      }
-
-      const data = await response.json();
+      // Use the authenticated API hook for profile data
+      const { data } = await apiCall('/profile/me');
+      
       setProfileData(data);
       console.log("profileDataaaaa", data);
 
@@ -296,21 +288,8 @@ export default function ProfilePage() {
     }
 
     try {
-      // Fetch user statistics using the dedicated /user/stats endpoint
-      const baseUrl = "https://hedera-quests.com";
-      const response = await fetch(`${baseUrl}/user/stats`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${session.user.token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user stats");
-      }
-
-      const data = await response.json();
+      // Use the authenticated API hook for user stats
+      const { data } = await apiCall('/user/stats');
 
       if (data.success && data.stats) {
         setUserStats(data.stats);

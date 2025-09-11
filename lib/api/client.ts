@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import { signOut } from 'next-auth/react';
 
 export type ApiError = {
   status: number;
@@ -6,6 +7,16 @@ export type ApiError = {
   message: string;
   details?: unknown;
 };
+
+// Function to handle user not found case
+async function handleUserNotFound() {
+  console.log('API: User not found - account may have been deleted. Signing out...');
+  
+  // Only sign out if we're in the browser
+  if (typeof window !== 'undefined') {
+    await signOut({ callbackUrl: '/' });
+  }
+}
 
 function toApiError(error: AxiosError): ApiError {
   const status = error.response?.status ?? 0;
@@ -47,8 +58,21 @@ export function createApiClient(baseURL: string): AxiosInstance {
   });
 
   instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      // Check for user not found in successful responses
+      const data = response.data;
+      if (data && !data.success && data.message === "user not found") {
+        handleUserNotFound();
+        throw new Error('User not found - account may have been deleted');
+      }
+      return response;
+    },
     (error: AxiosError) => {
+      // Check for user not found in error responses
+      const data: any = error.response?.data ?? {};
+      if (!data.success && data.message === "user not found") {
+        handleUserNotFound();
+      }
       throw toApiError(error);
     }
   );

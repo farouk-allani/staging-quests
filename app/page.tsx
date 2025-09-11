@@ -245,9 +245,9 @@ export default function Dashboard() {
                   })()}!
                 </h1>
               </div>
-              <p className="text-muted-foreground font-mono text-sm">
+              {/* <p className="text-muted-foreground font-mono text-sm">
                 {'>'} Continue your quest journey • Streak: {user?.streak || 0} days
-              </p>
+              </p> */}
             </div>
             <div className="text-right bg-gradient-to-br from-primary/5 to-cyan-500/5 p-4 rounded-lg border border-dashed border-primary/20">
               <div className="text-3xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
+import { useUserNotFoundHandler } from '@/hooks/use-user-not-found';
 import { useRouter } from 'next/navigation';
 import { OtpVerification } from './otp-verification';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,7 @@ interface OtpRouteGuardProps {
 
 export function OtpRouteGuard({ children }: OtpRouteGuardProps) {
   const { data: session, status } = useSession();
+  const { handleUserNotFound, checkForUserNotFound } = useUserNotFoundHandler();
   const [needsVerification, setNeedsVerification] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [userEmail, setUserEmail] = useState<string>('');
@@ -37,8 +39,15 @@ export function OtpRouteGuard({ children }: OtpRouteGuardProps) {
           },
         });
 
+        const data = await response.json();
+
+        // Check if user not found - this means account was deleted but session is still active
+        if (checkForUserNotFound(response, data)) {
+          await handleUserNotFound();
+          return;
+        }
+
         if (response.ok) {
-          const data = await response.json();
           const emailVerified = data.user?.email_verified || false;
           
           if (!emailVerified) {
