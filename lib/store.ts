@@ -241,9 +241,8 @@ const useStore = create<AppState>((set, get) => ({
   },
 
   loadCurrentUser: async () => {
-    // This method is now handled by NextAuth session
-    // The session sync will handle user loading
-    console.log('loadCurrentUser: Using NextAuth session instead');
+
+    console.log('loadCurrentUser: Using NextAuth session');
   },
 
   setUser: (user: User) => {

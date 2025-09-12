@@ -175,18 +175,18 @@ export function UserManagement({ className }: UserManagementProps) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20 font-mono"><CheckCircle className="w-3 h-3 mr-1" />ACTIVE</Badge>;
-      case 'suspended':
-        return <Badge className="bg-red-500/10 text-red-500 border-red-500/20 font-mono"><Ban className="w-3 h-3 mr-1" />SUSPENDED</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 font-mono"><Clock className="w-3 h-3 mr-1" />PENDING</Badge>;
-      default:
-        return <Badge variant="outline" className="font-mono">{status.toUpperCase()}</Badge>;
-    }
-  };
+  // const getStatusBadge = (status: string) => {
+  //   switch (status) {
+  //     case 'active':
+  //       return <Badge className="bg-green-500/10 text-green-500 border-green-500/20 font-mono"><CheckCircle className="w-3 h-3 mr-1" />ACTIVE</Badge>;
+  //     case 'suspended':
+  //       return <Badge className="bg-red-500/10 text-red-500 border-red-500/20 font-mono"><Ban className="w-3 h-3 mr-1" />SUSPENDED</Badge>;
+  //     case 'pending':
+  //       return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 font-mono"><Clock className="w-3 h-3 mr-1" />PENDING</Badge>;
+  //     default:
+  //       return <Badge variant="outline" className="font-mono">{status.toUpperCase()}</Badge>;
+  //   }
+  // };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -199,43 +199,43 @@ export function UserManagement({ className }: UserManagementProps) {
     }
   };
 
-  const handleUserAction = async (userId: string | number, action: string) => {
-    try {
-      // Optimistically update UI
-      setUsers(prev => prev.map(user => {
-        if (String(user.id) === String(userId)) {
-          switch (action) {
-            case 'suspend':
-              return user; // Status not supported in User interface
-            case 'activate':
-              return user; // Status not supported in User interface
-            case 'promote':
-              return { ...user, role: user.role === 'user' ? 'moderator' : 'admin' };
-            case 'demote':
-              return { ...user, role: user.role === 'admin' ? 'moderator' : 'user' };
-            default:
-              return user;
-          }
-        }
-        return user;
-      }));
+  // const handleUserAction = async (userId: string | number, action: string) => {
+  //   try {
+  //     // Optimistically update UI
+  //     setUsers(prev => prev.map(user => {
+  //       if (String(user.id) === String(userId)) {
+  //         switch (action) {
+  //           case 'suspend':
+  //             return user; // Status not supported in User interface
+  //           case 'activate':
+  //             return user; // Status not supported in User interface
+  //           case 'promote':
+  //             return { ...user, role: user.role === 'user' ? 'moderator' : 'admin' };
+  //           case 'demote':
+  //             return { ...user, role: user.role === 'admin' ? 'moderator' : 'user' };
+  //           default:
+  //             return user;
+  //         }
+  //       }
+  //       return user;
+  //     }));
 
-      // TODO: Make API call to update user on server
-      // const response = await fetch(`/api/admin/users/${userId}`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ action })
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('Failed to update user');
-      // }
-    } catch (err) {
-      console.error('Error updating user:', err);
-      // Revert optimistic update on error
-      fetchUsers();
-    }
-  };
+  //     // TODO: Make API call to update user on server
+  //     // const response = await fetch(`/api/admin/users/${userId}`, {
+  //     //   method: 'PATCH',
+  //     //   headers: { 'Content-Type': 'application/json' },
+  //     //   body: JSON.stringify({ action })
+  //     // });
+  //     // 
+  //     // if (!response.ok) {
+  //     //   throw new Error('Failed to update user');
+  //     // }
+  //   } catch (err) {
+  //     console.error('Error updating user:', err);
+  //     // Revert optimistic update on error
+  //     fetchUsers();
+  //   }
+  // };
 
   return (
     <div className={className}>
@@ -260,7 +260,7 @@ export function UserManagement({ className }: UserManagementProps) {
                 className="pl-10 font-mono border-dashed border-purple-500/30 focus:border-solid"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40 font-mono border-dashed border-purple-500/30">
                 <SelectValue placeholder="[STATUS]" />
               </SelectTrigger>
@@ -281,7 +281,7 @@ export function UserManagement({ className }: UserManagementProps) {
                 <SelectItem value="moderator">[MODERATOR]</SelectItem>
                 <SelectItem value="admin">[ADMIN]</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
 
           </div>
 
@@ -313,7 +313,7 @@ export function UserManagement({ className }: UserManagementProps) {
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATUS]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATS]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[JOINED]</TableHead>
-                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead>
+                  {/* <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -354,14 +354,14 @@ export function UserManagement({ className }: UserManagementProps) {
                           <Star className="w-3.5 h-3.5 text-purple-600" />
                           <span className="font-semibold">{user.total_points?.toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded border border-dashed border-orange-300/50">
+                        {/* <div className="flex items-center gap-1.5 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded border border-dashed border-orange-300/50">
                           <Zap className="w-3.5 h-3.5 text-orange-600" />
                           <span className="font-semibold">{user.streak}d</span>
-                        </div>
+                        </div> */}
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm py-4 text-muted-foreground">{user.joinedAt}</TableCell>
-                    <TableCell className="py-4">
+                    {/* <TableCell className="py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           variant="ghost"
@@ -370,6 +370,8 @@ export function UserManagement({ className }: UserManagementProps) {
                             setSelectedUser(user);
                             setIsEditDialogOpen(true);
                           }}
+                          
+
                           className="h-8 px-3 border border-dashed border-blue-500/30 hover:border-solid hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 hover:text-blue-700 transition-all duration-200"
                         >
                           <Edit className="w-3.5 h-3.5 mr-1" />
@@ -419,7 +421,7 @@ export function UserManagement({ className }: UserManagementProps) {
                         </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

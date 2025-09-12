@@ -168,7 +168,10 @@ export default function EventManagement() {
         description: formData.description,
         reward: formData.reward,
         reward_image: formData.reward_image ? formData.reward_image : undefined,
-      });
+      },
+      session?.user?.token
+
+    );
 
       toast({ title: 'Success', description: 'Event updated successfully!' });
       setIsEditDialogOpen(false);

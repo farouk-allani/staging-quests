@@ -171,13 +171,13 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-8">
+        <Tabs defaultValue="users" className="space-y-8">
           {/* Enhanced Tab Navigation */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-muted/30 via-muted/20 to-muted/30 rounded-xl" />
             <div className="relative p-2 bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-1 sm:gap-2 bg-transparent p-0 h-auto">
-                <TabsTrigger 
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 sm:gap-2 bg-transparent p-0 h-auto">
+                {/* <TabsTrigger 
                   value="overview" 
                   className="relative font-mono text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-muted/50"
                 >
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
                     <span className="hidden sm:inline">Overview</span>
                     <span className="sm:hidden">Over</span>
                   </div>
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger 
                   value="users" 
                   className="relative font-mono text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 rounded-lg transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-muted/50"
@@ -257,8 +257,8 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-          {/* Recent Activity */}
+        {/* <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+        
           <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
             <CardHeader>
               <CardTitle className="font-mono text-xl bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
@@ -292,7 +292,7 @@ export default function AdminDashboard() {
           </Card>
 
 
-        </TabsContent>
+        </TabsContent> */}
 
         <TabsContent value="users" className="space-y-6">
           <UserManagement />

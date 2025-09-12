@@ -375,7 +375,7 @@ function QuestManagement() {
                 className="pl-10 font-mono border-dashed border-cyan-500/30 focus:border-solid"
               />
             </div>
-            <Select value="all" onValueChange={() => {}}>
+            {/* <Select value="all" onValueChange={() => {}}>
               <SelectTrigger className="w-40 font-mono border-dashed border-cyan-500/30">
                 <SelectValue placeholder="[STATUS]" />
               </SelectTrigger>
@@ -385,9 +385,9 @@ function QuestManagement() {
                 <SelectItem value="draft">[DRAFT]</SelectItem>
                 <SelectItem value="archived">[ARCHIVED]</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
 
-            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+            {/* <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
               <SelectTrigger className="w-44 font-mono border-dashed border-cyan-500/30">
                 <SelectValue placeholder="[DIFFICULTY]" />
               </SelectTrigger>
@@ -424,7 +424,7 @@ function QuestManagement() {
                   </div>
                 </SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
             <Button 
               onClick={() => setIsCreateDialogOpen(true)}
               className="font-mono border-2 border-dashed border-green-500/50 hover:border-solid bg-gradient-to-r from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20"
@@ -481,7 +481,7 @@ function QuestManagement() {
                     <TableCell className="font-mono text-sm py-4 text-muted-foreground">{quest.updatedAt ? formatDistanceToNow(new Date(quest.updatedAt), { addSuffix: true }) : 'N/A'}</TableCell>
                     <TableCell className="py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewDetails(quest)}
@@ -489,7 +489,7 @@ function QuestManagement() {
                         >
                           <Eye className="w-3.5 h-3.5 mr-1" />
                           View
-                        </Button>
+                        </Button> */}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -508,10 +508,10 @@ function QuestManagement() {
                           <DropdownMenuContent align="end" className="font-mono border-2 border-dashed border-cyan-500/30">
                             <DropdownMenuLabel>[ACTIONS]</DropdownMenuLabel>
                             <DropdownMenuSeparator className="border-dashed border-cyan-500/20" />
-                            <DropdownMenuItem>
+                            {/* <DropdownMenuItem>
                               <Eye className="mr-2 h-4 w-4" />
                               [VIEW]
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
                             <DropdownMenuItem onClick={() => handleEditQuest(quest)}>
                               <Edit className="mr-2 h-4 w-4" />
                               [EDIT]
@@ -548,23 +548,23 @@ function QuestManagement() {
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4 rounded-lg border border-dashed border-blue-500/20">
               <div className="text-2xl font-bold font-mono text-blue-500">{quests.length}</div>
               <div className="text-sm text-muted-foreground font-mono">TOTAL_QUESTS</div>
             </div>
             <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-4 rounded-lg border border-dashed border-green-500/20">
-              <div className="text-2xl font-bold font-mono text-green-500">{quests.filter(q => q.status === 'published').length}</div>
-              <div className="text-sm text-muted-foreground font-mono">PUBLISHED</div>
+              <div className="text-2xl font-bold font-mono text-green-500">{quests.filter(q => q.status === "active").length}</div>
+              <div className="text-sm text-muted-foreground font-mono">ACTIVE</div>
             </div>
             <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-4 rounded-lg border border-dashed border-yellow-500/20">
               <div className="text-2xl font-bold font-mono text-yellow-500">{quests.filter(q => q.status === 'draft').length}</div>
               <div className="text-sm text-muted-foreground font-mono">DRAFTS</div>
             </div>
-            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-4 rounded-lg border border-dashed border-purple-500/20">
+            {/* <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-4 rounded-lg border border-dashed border-purple-500/20">
               <div className="text-2xl font-bold font-mono text-purple-500">{quests.reduce((sum, q) => sum + (q.completions || 0), 0)}</div>
               <div className="text-sm text-muted-foreground font-mono">COMPLETIONS</div>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

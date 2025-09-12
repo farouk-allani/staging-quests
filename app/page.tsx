@@ -6,11 +6,9 @@ import { useSession, signOut } from 'next-auth/react';
 import { QuestService } from '@/lib/services';
 import { DashboardStats, Quest, User, Badge as BadgeType, Submission } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Users, TrendingUp, Clock, Zap, ArrowRight, Award, CheckCircle, XCircle, AlertCircle, Calendar, BookOpen, Sparkles } from 'lucide-react';
+import {  ArrowRight, BookOpen } from 'lucide-react';
 import { QuestCard } from '@/components/quests/quest-card';
 import { FeaturedQuestsSection } from '@/components/quests/featured-quests-section';
 import { TodoChecklist } from '@/components/onboarding/todo-checklist';
@@ -19,9 +17,6 @@ import { FeatureHighlights } from '@/components/landing/feature-highlights';
 import { StatsOverview } from '@/components/landing/stats-overview';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
 import useStore from '@/lib/store';
 
 export default function Dashboard() {
@@ -47,14 +42,21 @@ export default function Dashboard() {
     router.push(`/quests/${questId}`);
   };
 
+  // Redirect admin users to admin dashboard immediately when user is available
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+  }, [user, router]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
         console.log('Dashboard: Loading data, session status:', status, 'user:', user);
 
-        // Redirect admin users to admin dashboard
+        // Skip loading data if user is admin (they'll be redirected)
         if (user?.role === 'admin') {
-          router.push('/admin');
           return;
         }
 
@@ -140,6 +142,16 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Show loading spinner while redirecting admin users
+  if (user?.role === 'admin') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-4 text-sm text-muted-foreground font-mono">Redirecting to admin dashboard...</p>
       </div>
     );
   }
