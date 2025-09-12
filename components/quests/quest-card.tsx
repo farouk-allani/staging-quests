@@ -46,6 +46,32 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
   const categoryColor = quest.category ? categoryColors[quest.category] : '';
   const difficultyInfo = difficultyConfig[quest.difficulty] || { color: 'text-gray-600', stars: 1 };
 
+  const getTimeDisplay = () => {
+    if (!quest.endDate) return 'No deadline';
+    
+    const endDate = new Date(quest.endDate);
+    const now = new Date();
+    const diffTime = endDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Expires today';
+    if (diffDays === 1) return 'Expires tomorrow';
+    if (diffDays <= 7) return `${diffDays} days left`;
+    if (diffDays <= 30) return `${diffDays} days left`;
+    
+    // For longer periods, show months and weeks
+    const diffWeeks = Math.ceil(diffDays / 7);
+    const diffMonths = Math.ceil(diffDays / 30);
+    
+    if (diffDays <= 60) return `${diffWeeks} weeks left`;
+    if (diffDays <= 365) return `${diffMonths} months left`;
+    
+    // For very long periods (over a year)
+    const diffYears = Math.floor(diffDays / 365);
+    return `${diffYears} year${diffYears > 1 ? 's' : ''} left`;
+  };
+
   const handleQuestSelect = () => {
     onSelect();
   };
@@ -135,17 +161,17 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
           {quest.description}
         </p>
-        
+        <div className="flex-grow"></div>
         <div className="flex items-center justify-between text-sm bg-muted/20 p-2 rounded border border-dashed">
           <div className="flex items-center space-x-4 font-mono">
             <div className="flex items-center text-muted-foreground">
               <Clock className="w-4 h-4 mr-1" />
-              {quest.estimatedTime || 'TBD'}
+              {getTimeDisplay()}
             </div>
-            <div className="flex items-center text-muted-foreground">
-              <Users className="w-4 h-4 mr-1" />
-              {quest.completions || 0}
-            </div>
+            {/* <div className="flex items-center text-muted-foreground"> */}
+              {/* <Users className="w-4 h-4 mr-1" />
+              {quest.completions || 0} */}
+            {/* </div> */}
           </div>
           
           <Badge className={cn(
@@ -166,7 +192,7 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         </div>
 
         {/* Spacer to push progress to bottom */}
-        <div className="flex-grow"></div>
+        
 
         {progress > 0 && (
           <div className="mt-3">
