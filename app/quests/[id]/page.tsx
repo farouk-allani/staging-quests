@@ -791,8 +791,8 @@ export default function QuestDetailPage() {
       >
         {pendingQuests ? (
           <span className="flex items-center gap-2 sm:gap-3 text-yellow-600">
-            <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600 text-yellow-600" />
-            Verifying...
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+            Under Review
           </span>
         ) : completedQuests ? (
           <span className="flex items-center gap-2 sm:gap-3 text-green-600">
