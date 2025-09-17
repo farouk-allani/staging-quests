@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
           
           try {
             // Verify the user profile with the token
-            const response = await fetch('https://hedera-quests.com/profile/me', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/me`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${credentials.token}`,
@@ -117,7 +117,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log('NextAuth: Making API call to backend for login')
-          const response = await fetch('https://hedera-quests.com/auth/login', {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/auth/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

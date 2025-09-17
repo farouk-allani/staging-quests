@@ -175,7 +175,7 @@ export default function ProfilePage() {
     setEmailVerificationSuccess(false);
 
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/verify-email`, {
         method: "POST",
         headers: {
@@ -339,7 +339,7 @@ export default function ProfilePage() {
 
     setIsConnectingTwitter(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/twitter/url`, {
         method: "GET",
         headers: {
@@ -405,7 +405,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/hederadid/verify-user`, {
         method: "POST",
         headers: {
@@ -484,7 +484,7 @@ export default function ProfilePage() {
         return;
       }
 
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(
         `${baseUrl}/profile/hederadid/verify-email`,
         {
@@ -565,7 +565,7 @@ export default function ProfilePage() {
 
     setIsConnectingFacebook(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/facebook/url`, {
         method: "GET",
         headers: {
@@ -622,7 +622,7 @@ export default function ProfilePage() {
     if (!session?.user?.token) return;
 
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/twitter/profile`, {
         method: "DELETE",
         headers: {
@@ -663,7 +663,7 @@ export default function ProfilePage() {
     if (!session?.user?.token) return;
 
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/facebook/profile`, {
         method: "DELETE",
         headers: {
@@ -712,7 +712,7 @@ export default function ProfilePage() {
 
     setIsConnectingDiscord(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/discord/url`, {
         method: "GET",
         headers: {
@@ -769,7 +769,7 @@ export default function ProfilePage() {
     if (!session?.user?.token) return;
 
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/discord/profile`, {
         method: "DELETE",
         headers: {
@@ -818,7 +818,7 @@ export default function ProfilePage() {
 
     setIsConnectingLinkedIn(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/linked-in/url`, {
         method: "GET",
         headers: {
@@ -875,7 +875,7 @@ export default function ProfilePage() {
     if (!session?.user?.token) return;
 
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/linkedin/profile`, {
         method: "DELETE",
         headers: {
@@ -924,7 +924,7 @@ export default function ProfilePage() {
 
     setIsValidatingHedera(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/profile/hederadid/validate-user`, {
         method: "POST",
         headers: {
@@ -997,7 +997,7 @@ export default function ProfilePage() {
 
     setIsDeletingAccount(true);
     try {
-      const baseUrl = "https://hedera-quests.com";
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
       const response = await fetch(`${baseUrl}/user/remove-account`, {
         method: "DELETE",
         headers: {
@@ -1772,7 +1772,10 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-3 p-3 bg-purple-600/10 rounded-lg border border-dashed border-purple-600/30">
                         <Avatar className="w-10 h-10 border border-dashed border-purple-600/50">
                           <AvatarImage
-                            src={profileData.user.discordProfile.discord_avatar}
+                            src={profileData.user.discordProfile.discord_picture 
+      ? `https://cdn.discordapp.com/avatars/${profileData.user.discordProfile.discord_id}/${profileData.user.discordProfile.discord_picture}.png`
+      : undefined
+    }
                           />
                           <AvatarFallback className="font-mono">
                             DC

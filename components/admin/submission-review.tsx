@@ -14,14 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuLabel,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger,
+// } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -30,19 +30,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
+// import {
+//   Tabs,
+//   TabsContent,
+//   TabsList,
+//   TabsTrigger,
+// } from '@/components/ui/tabs';
 import {
   FileText,
   Search,
@@ -198,6 +198,11 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const [view, setView] = useState<'overview' | 'quest-detail'>('overview');
 
   const [viewMode, setViewMode] = useState<'card' | 'table' | 'list'>('card');
+
+ useEffect(()=>{
+  console.log('submissions',submissions)
+  console.log('quests',quests)
+ },[submissions,quests])
 
   // Load submissions and quests on component mount
   useEffect(() => {
@@ -1456,7 +1461,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
               )}
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4 rounded-lg border border-dashed border-blue-500/20">
               <div className="text-2xl font-bold font-mono text-blue-500">{submissions.length}</div>
               <div className="text-sm text-muted-foreground font-mono">TOTAL_SUBMISSIONS</div>
@@ -1469,7 +1474,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
               <div className="text-2xl font-bold font-mono text-green-500">{submissions.filter(s => s.status === 'approved').length}</div>
               <div className="text-sm text-muted-foreground font-mono">APPROVED</div>
             </div>
-            <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-4 rounded-lg border border-dashed border-primary/20">
+            {/* <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-4 rounded-lg border border-dashed border-primary/20">
               <div className="text-2xl font-bold font-mono text-primary">
                 {submissions.filter(s => s.score !== undefined).length > 0 
                   ? Math.round(submissions.filter(s => s.score !== undefined).reduce((sum, s) => sum + (s.score || 0), 0) / submissions.filter(s => s.score !== undefined).length)
@@ -1477,7 +1482,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                 }
               </div>
               <div className="text-sm text-muted-foreground font-mono">AVG_SCORE</div>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

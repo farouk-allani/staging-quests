@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    NEXT_PUBLIC_API_URL: 'https://hedera-quests.com',
-  },
+  // env: {
+  //   NEXT_PUBLIC_API_URL: 'https://hedera-quests.com',
+  // },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -20,20 +20,20 @@ const nextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 5,
   },
-  async rewrites() {
-    return [
-      // Exclude NextAuth routes from being rewritten to external API
-      {
-        source: '/api/auth/:path*',
-        destination: '/api/auth/:path*',
-      },
-      // Rewrite other API routes to external API
-      {
-        source: '/api/:path*',
-        destination: 'https://hedera-quests.com/:path*',
-      },
-    ];
-  },
+  // async rewrites() {
+  //   return [
+
+  //     {
+  //       source: '/api/auth/:path*',
+  //       destination: '/api/auth/:path*',
+  //     },
+
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'https://hedera-quests.com/:path*',
+  //     },
+  //   ];
+  // },
 };
 
 module.exports = nextConfig;

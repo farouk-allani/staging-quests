@@ -32,7 +32,7 @@ export function OtpRouteGuard({ children }: OtpRouteGuardProps) {
 
       try {
         // Check user profile to see if email is verified
-        const response = await fetch('https://hedera-quests.com/profile/me', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/me`, {
           headers: {
             'Authorization': `Bearer ${session.user.token}`,
             'Content-Type': 'application/json',

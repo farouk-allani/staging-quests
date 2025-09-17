@@ -25,7 +25,7 @@ export default function ValidateUserPage() {
         throw new Error('No authentication token found. Please log in again.');
       }
 
-      const baseUrl = 'https://hedera-quests.com';
+      const baseUrl =process.env.NEXT_PUBLIC_API_URL || 'https://hedera-quests.com';
       const response = await fetch(`${baseUrl}/profile/hederadid/validate-user`, {
         method: 'POST',
         headers: {

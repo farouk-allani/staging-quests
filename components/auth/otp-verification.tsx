@@ -114,7 +114,7 @@ export function OtpVerification({ email, token, onBack, onVerificationComplete }
 
     try {
       // First verify the OTP
-      const response = await fetch('https://hedera-quests.com/profile/verify-token', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/verify-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -12,7 +12,7 @@ export const AuthService = {
 
     try {
       // Direct API call to avoid NextAuth issues
-      const response = await fetch('https://hedera-quests.com/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +158,7 @@ export const AuthService = {
     console.log('Verifying OTP token:', otpCode);
 
     try {
-      const response = await fetch('https://hedera-quests.com/profile/verify-token', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/verify-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ export const AuthService = {
     console.log('Resending verification email');
 
     try {
-      const response = await fetch('https://hedera-quests.com/profile/verify-email', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

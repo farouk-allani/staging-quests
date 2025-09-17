@@ -36,7 +36,7 @@ export function OtpGuard({ children, token, email }: OtpGuardProps) {
 
       try {
         // Check if user's email is already verified
-        const response = await fetch('https://hedera-quests.com/profile/me', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/profile/me`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${session.user.token}`,

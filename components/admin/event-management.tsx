@@ -35,7 +35,7 @@ const initialFormData: EventFormData = {
 const getImageUrl = (path: string | null) => {
   if (!path) return null;
   if (path.startsWith('http')) return path; // URL déjà complète
-  return `https://hedera-quests.com/${path}`; // ajoute ton domaine ici
+  return `${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/${path}`; // ajoute ton domaine ici
 };
 
 export default function EventManagement() {
@@ -116,7 +116,7 @@ export default function EventManagement() {
 
       const token = session?.user?.token; 
 
-      const response = await fetch('https://hedera-quests.com/events/create', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/events/create`, {
         method: 'POST',
         body: data,
         headers: {
