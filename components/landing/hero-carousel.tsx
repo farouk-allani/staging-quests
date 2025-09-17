@@ -98,15 +98,15 @@ export function HeroCarousel() {
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-    setIsAutoPlaying(false);
-  };
+  // const nextSlide = () => {
+  //   setCurrentSlide((prev) => (prev + 1) % slides.length);
+  //   setIsAutoPlaying(false);
+  // };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-    setIsAutoPlaying(false);
-  };
+  // const prevSlide = () => {
+  //   setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  //   setIsAutoPlaying(false);
+  // };
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -202,23 +202,23 @@ export function HeroCarousel() {
         </div>
 
         {/* Navigation Arrows */}
-        <Button
+        {/* <Button
           variant="outline"
           size="icon"
           className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-background/80 backdrop-blur-sm border-dashed hover:border-solid"
           onClick={prevSlide}
         >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
+        </Button> */}
         
-        <Button
+        {/* <Button
           variant="outline"
           size="icon"
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-background/80 backdrop-blur-sm border-dashed hover:border-solid"
           onClick={nextSlide}
         >
           <ChevronRight className="h-4 w-4" />
-        </Button>
+        </Button> */}
       </div>
 
       {/* Slide Indicators */}
