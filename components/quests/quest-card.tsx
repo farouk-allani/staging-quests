@@ -99,74 +99,74 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
       )}
       onClick={handleCardClick}
     >
-      <div className="relative p-4">
+      <div className="relative p-3 sm:p-4">
         {isCompleted && (
-          <div className="absolute top-2 right-2 w-8 h-8 bg-green-500 border-2 border-green-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] flex items-center justify-center animate-pulse z-10">
-            <Trophy className="w-4 h-4 text-white" />
+          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 border-2 border-green-300 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] flex items-center justify-center animate-pulse z-10 rounded">
+            <Trophy className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
           </div>
         )}
         {isRejected && (
-          <div className="absolute top-2 left-2 px-2 py-1 bg-red-600 text-white text-xs rounded shadow z-10 animate-pulse">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-red-600 text-white text-xs rounded shadow z-10 animate-pulse">
             Rejected
           </div>
         )}
         {isPending && (
-          <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-400 text-yellow-900 text-xs rounded shadow z-10 animate-pulse">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-yellow-400 text-yellow-900 text-xs rounded shadow z-10 animate-pulse">
             Pending
           </div>
         )}
         {isExpired && (
-          <div className="absolute top-2 left-2 px-2 py-1 bg-gray-600 text-white text-xs rounded shadow z-10 animate-pulse">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-600 text-white text-xs rounded shadow z-10 animate-pulse">
             Expired
           </div>
         )}
       </div>
       
-      <CardContent className="p-4 relative bg-gradient-to-b from-transparent to-primary/5 flex-grow flex flex-col">
+      <CardContent className="p-3 sm:p-4 relative bg-gradient-to-b from-transparent to-primary/5 flex-grow flex flex-col">
         
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start justify-between mb-2 gap-2">
            {isCompleted && 
-          <h3 className="font-semibold text-lg leading-tight group-hover:text-green-500 transition-colors font-mono">
+          <h3 className="font-semibold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-green-500 transition-colors font-mono flex-1 min-w-0">
             {quest.title}
           </h3>
           }
           {isRejected && (
-            <h3 className="font-semibold text-lg leading-tight group-hover:text-red-500 transition-colors font-mono">
+            <h3 className="font-semibold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-red-500 transition-colors font-mono flex-1 min-w-0">
               {quest.title}
             </h3>
           )}
           {isPending && (
-            <h3 className="font-semibold text-lg leading-tight group-hover:text-yellow-500 transition-colors font-mono">
+            <h3 className="font-semibold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-yellow-500 transition-colors font-mono flex-1 min-w-0">
               {quest.title}
             </h3>
           )}
 
           {!isCompleted && !isRejected && !isPending && !isExpired && (
-            <h3 className="font-semibold text-lg leading-tight group-hover:text-blue-500 transition-colors font-mono">
+            <h3 className="font-semibold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-blue-500 transition-colors font-mono flex-1 min-w-0">
               {quest.title}
             </h3>
           )}
           {isExpired && (
-            <h3 className="font-semibold text-lg leading-tight group-hover:text-gray-500 transition-colors font-mono">
+            <h3 className="font-semibold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-gray-500 transition-colors font-mono flex-1 min-w-0">
               {quest.title}
             </h3>
           )}
 
-          <div className="flex items-center text-sm text-muted-foreground ml-2 bg-muted/30 px-2 py-1 rounded border border-dashed font-mono">
-            <Trophy className="w-4 h-4 mr-1" />
-{quest.reward || quest.points || (quest as any).points || 'TBD'} pts
+          <div className="flex items-center text-xs sm:text-sm text-muted-foreground bg-muted/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border border-dashed font-mono flex-shrink-0">
+            <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+            <span className="text-xs">{quest.reward || quest.points || (quest as any).points || 'TBD'} pts</span>
           </div>
         </div>
         
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2 leading-relaxed">
           {quest.description}
         </p>
         <div className="flex-grow"></div>
-        <div className="flex items-center justify-between text-sm bg-muted/20 p-2 rounded border border-dashed">
-          <div className="flex items-center space-x-4 font-mono">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm bg-muted/20 p-2 rounded border border-dashed">
+          <div className="flex items-center space-x-2 sm:space-x-4 font-mono">
             <div className="flex items-center text-muted-foreground">
-              <Clock className="w-4 h-4 mr-1" />
-              {getTimeDisplay()}
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="truncate">{getTimeDisplay()}</span>
             </div>
             {/* <div className="flex items-center text-muted-foreground"> */}
               {/* <Users className="w-4 h-4 mr-1" />
@@ -175,15 +175,15 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
           </div>
           
           <Badge className={cn(
-            'font-mono font-semibold shadow-sm border',
+            'font-mono font-semibold shadow-sm border text-xs sm:text-sm flex-shrink-0',
             difficultyInfo.bgColor,
             difficultyInfo.color,
             difficultyInfo.borderColor,
             'dark:bg-opacity-20 dark:border-opacity-50'
           )}>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <div className={cn(
-                'w-2 h-2 rounded-full animate-pulse',
+                'w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse',
                 difficultyInfo.color.replace('text-', 'bg-')
               )}></div>
               {quest.difficulty.toUpperCase()}
@@ -195,21 +195,21 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         
 
         {progress > 0 && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-sm mb-1">
+          <div className="mt-2 sm:mt-3">
+            <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
               <span className="text-muted-foreground">Progress</span>
               <span className="font-medium">{progress}%</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-1.5 sm:h-2" />
           </div>
         )}
       </CardContent>
       
-      <CardFooter className="p-4 pt-0 mt-auto">
+      <CardFooter className="p-3 sm:p-4 pt-0 mt-auto">
         {(isCompleted || isRejected || isPending || isExpired) ? (
           <Button 
             className={cn(
-              "w-full font-mono border-2 border-dashed hover:border-solid transition-all duration-200",
+              "w-full font-mono border-2 border-dashed hover:border-solid transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9",
               "hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-1px] hover:translate-y-[-1px]",
               isCompleted && "bg-gradient-to-r from-green-500/10 to-green-600/10 hover:from-green-500/20 hover:to-green-600/20",
               isRejected && "bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20",
@@ -224,7 +224,7 @@ export function QuestCard({ quest, isCompleted = false, isRejected = false, isPe
         ) : (
           <Button 
             className={cn(
-              "w-full font-mono border-2 border-dashed hover:border-solid transition-all duration-200",
+              "w-full font-mono border-2 border-dashed hover:border-solid transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9",
               "hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-1px] hover:translate-y-[-1px]"
             )}
             variant="default"

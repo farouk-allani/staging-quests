@@ -79,22 +79,22 @@ export function TodoChecklist({ user }: TodoChecklistProps) {
 
   return (
     <Card className="border-2 border-dashed border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 hover:border-solid transition-all duration-200">
-      <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
-        <CardTitle className="flex items-center justify-between font-mono">
+      <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-3 sm:p-4 lg:p-6">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 font-mono">
           <div className="flex items-center gap-2">
             <div className="p-1 bg-cyan-500/20 rounded border border-dashed border-cyan-500/40">
               <CheckCircle className="w-4 h-4 text-cyan-500" />
             </div>
-            SETUP_PROGRESS
+            <span className="text-sm sm:text-base">SETUP_PROGRESS</span>
           </div>
-          <Badge variant="outline" className="font-mono text-xs">
+          <Badge variant="outline" className="font-mono text-xs self-start sm:self-auto">
             {completedSteps}/{totalSteps} COMPLETE
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 mt-2">
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm font-mono mb-2">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 lg:p-6">
+        <div className="space-y-2 sm:space-y-3">
+          <div className="flex justify-between text-xs sm:text-sm font-mono mb-2">
             <span className="text-muted-foreground">COMPLETION_RATE</span>
             <span className="bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent font-bold">
               {Math.round(progressPercentage)}%
@@ -108,47 +108,47 @@ export function TodoChecklist({ user }: TodoChecklistProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
               <div
                 key={step.id}
                 className={cn(
-                  "relative p-4 rounded-lg border-2 border-dashed transition-all duration-200 group",
+                  "relative p-3 sm:p-4 rounded-lg border-2 border-dashed transition-all duration-200 group",
                   step.isCompleted
                     ? "border-green-500/20 bg-green-500/5 hover:border-green-500/40"
                     : "border-muted-foreground/20 bg-muted/30 hover:border-primary/40"
                 )}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <div className={cn(
-                    "flex-shrink-0 p-2 rounded-full border border-dashed transition-all duration-200",
+                    "flex-shrink-0 p-1.5 sm:p-2 rounded-full border border-dashed transition-all duration-200",
                     step.isCompleted
                       ? "border-green-500/40 bg-green-500/10 text-green-500"
                       : "border-muted-foreground/40 bg-muted text-muted-foreground"
                   )}>
                     {step.isCompleted ? (
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     ) : (
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                       <h4 className={cn(
-                        "font-mono text-sm font-semibold truncate",
+                        "font-mono text-xs sm:text-sm font-semibold leading-tight",
                         step.isCompleted ? "text-green-500" : "text-foreground"
                       )}>
                         {step.title}
                       </h4>
                       {step.progress && (
-                        <Badge variant="secondary" className="font-mono text-xs">
+                        <Badge variant="secondary" className="font-mono text-xs self-start sm:self-auto w-fit">
                           {step.progress}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                    <p className="text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2 leading-relaxed">
                       {step.description}
                     </p>
                     {!step.isCompleted && step.actionLink && (
@@ -156,10 +156,10 @@ export function TodoChecklist({ user }: TodoChecklistProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs font-mono border-dashed hover:border-solid transition-all duration-200 group-hover:bg-primary/10"
+                          className="text-xs font-mono border-dashed hover:border-solid transition-all duration-200 group-hover:bg-primary/10 h-7 sm:h-8 px-2 sm:px-3"
                         >
                           {step.actionText}
-                          <ExternalLink className="ml-1 h-3 w-3" />
+                          <ExternalLink className="ml-1 h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         </Button>
                       </Link>
                     )}
@@ -177,7 +177,7 @@ export function TodoChecklist({ user }: TodoChecklistProps) {
 
         {completedSteps < totalSteps && (
           <div className="text-center pt-2">
-            <p className="text-xs font-mono text-muted-foreground">
+            <p className="text-xs font-mono text-muted-foreground px-2">
               {'>'} Complete these steps to unlock all platform features
             </p>
           </div>

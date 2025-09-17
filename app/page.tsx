@@ -165,9 +165,11 @@ export default function Dashboard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="space-y-12">
+      <div className="space-y-6 sm:space-y-8 lg:space-y-12">
         {/* Hero Carousel for Non-Authenticated Users */}
-        <HeroCarousel />
+        <div className="w-full">
+          <HeroCarousel />
+        </div>
         
         {/* Platform Statistics */}
         <StatsOverview />
@@ -176,24 +178,24 @@ export default function Dashboard() {
         <FeatureHighlights />
         
         {/* Call to Action */}
-        <div className="text-center py-12 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-2xl border-2 border-dashed border-primary/20">
-          <div className="space-y-6">
-            <div className="text-6xl mb-4">ROCKET</div>
-            <h2 className="text-3xl font-bold font-mono bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+        <div className="text-center py-8 sm:py-10 lg:py-12 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-xl sm:rounded-2xl border-2 border-dashed border-primary/20 mx-2 sm:mx-0">
+          <div className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+            <div className="text-4xl sm:text-5xl lg:text-6xl mb-2 sm:mb-4">ROCKET</div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent leading-tight">
               Ready to Start Your Journey?
             </h2>
-            <p className="text-lg text-muted-foreground font-mono max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground font-mono max-w-2xl mx-auto px-2">
               {'>'} Join thousands of developers mastering Hedera blockchain development through interactive quests.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth/register">
-                <Button size="lg" className="font-mono border-dashed hover:border-solid transition-all duration-200 group">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center max-w-md sm:max-w-none mx-auto">
+              <Link href="/auth/register" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto font-mono border-dashed hover:border-solid transition-all duration-200 group text-sm sm:text-base">
                   Get Started Free
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link href="/auth/login">
-                <Button variant="outline" size="lg" className="font-mono border-dashed hover:border-solid transition-all duration-200">
+              <Link href="/auth/login" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto font-mono border-dashed hover:border-solid transition-all duration-200 text-sm sm:text-base">
                   Sign In
                 </Button>
               </Link>
@@ -201,7 +203,7 @@ export default function Dashboard() {
                 variant="outline"
                 size="lg"
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="font-mono border-dashed hover:border-solid transition-all duration-200"
+                className="w-full sm:w-auto font-mono border-dashed hover:border-solid transition-all duration-200 text-sm sm:text-base"
               >
                 Logout
               </Button>
@@ -235,25 +237,25 @@ export default function Dashboard() {
   const difficulties = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Hero Carousel for All Users */}
-      <HeroCarousel />
+      <div className="w-full">
+        <HeroCarousel />
+      </div>
       
       {/* Personalized Welcome Section */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-blue-500/10 rounded-lg" />
-        <div className="relative bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary/20 rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
+        <div className="relative bg-background/80 backdrop-blur-sm border-2 border-dashed border-primary/20 rounded-lg p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent font-mono">
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary via-purple-500 to-cyan-500 bg-clip-text text-transparent font-mono leading-tight">
                   Welcome back, {(() => {
-                    console.log('Rendering name - user:', user);
-                    console.log('firstName:', user?.firstName, 'lastName:', user?.lastName);
                     if (user?.firstName && user?.lastName) {
                       return `${user.firstName} ${user.lastName}`;
                     }
-                    return user?.username || user?.name || 'User';
+                    return user?.username || user?.name || '';
                   })()}!
                 </h1>
               </div>
@@ -261,11 +263,11 @@ export default function Dashboard() {
                 {'>'} Continue your quest journey • Streak: {user?.streak || 0} days
               </p> */}
             </div>
-            <div className="text-right bg-gradient-to-br from-primary/5 to-cyan-500/5 p-4 rounded-lg border border-dashed border-primary/20">
-              <div className="text-3xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+            <div className="flex-shrink-0 text-center sm:text-right bg-gradient-to-br from-primary/5 to-cyan-500/5 p-3 sm:p-4 rounded-lg border border-dashed border-primary/20">
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                 {(user?.total_points || user?.points || 0).toLocaleString()}
               </div>
-              <div className="text-muted-foreground text-sm font-mono">TOTAL_POINTS</div>
+              <div className="text-muted-foreground text-xs sm:text-sm font-mono">TOTAL_POINTS</div>
             </div>
           </div>
         </div>
@@ -277,30 +279,29 @@ export default function Dashboard() {
 
 
       {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-muted/50 rounded-lg p-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-3 bg-muted/50 rounded-lg p-1 h-auto">
           <TabsTrigger 
             value="overview" 
-            className="text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary"
+            className="text-xs sm:text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary py-2 px-1 sm:px-3"
           >
             TOP QUESTS
           </TabsTrigger>
           <TabsTrigger 
             value="quests" 
-            className="text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary"
+            className="text-xs sm:text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary py-2 px-1 sm:px-3"
           >
             QUESTS ({filteredQuests.length})
           </TabsTrigger>
           <TabsTrigger 
             value="progress" 
-            className="text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary"
+            className="text-xs sm:text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary py-2 px-1 sm:px-3"
           >
             PROGRESS
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Level Progress - Commented out */}
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">{/* Level Progress - Commented out */}
           {/* <Card className="border-2 border-dashed border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 hover:border-solid transition-all duration-200">
             <CardHeader className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10">
               <CardTitle className="flex items-center gap-2 font-mono">
@@ -345,24 +346,24 @@ export default function Dashboard() {
 
         </TabsContent>
 
-        <TabsContent value="quests" className="space-y-6">
+        <TabsContent value="quests" className="space-y-4 sm:space-y-6">
           {/* Quest Filters */}
           <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5 hover:border-solid transition-all duration-200">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-blue-500/10">
-              <CardTitle className="flex items-center gap-2 font-mono">
-                <BookOpen className="w-5 h-5 text-primary" />
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-3 sm:p-4 lg:p-6">
+              <CardTitle className="flex items-center gap-2 font-mono text-sm sm:text-base">
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 QUEST_EXPLORER
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-mono text-muted-foreground uppercase tracking-wider">SEARCH</label>
+                  <label className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">SEARCH</label>
                   <Input
                     placeholder="Search quests..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="font-mono border-dashed"
+                    className="font-mono border-dashed text-sm"
                   />
                 </div>
                 {/* <div className="space-y-2">
@@ -403,7 +404,7 @@ export default function Dashboard() {
 
           {/* Quest Grid */}
           {filteredQuests.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredQuests.map((quest) => (
                 <QuestCard 
                   key={quest.id} 
@@ -415,10 +416,10 @@ export default function Dashboard() {
             </div>
           ) : (
             <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5">
-              <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">TARGET</div>
-                <h3 className="text-lg font-semibold mb-2 font-mono text-primary">NO_QUESTS_FOUND</h3>
-                <p className="text-muted-foreground font-mono text-sm">
+              <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
+                <div className="text-4xl sm:text-6xl mb-4">TARGET</div>
+                <h3 className="text-base sm:text-lg font-semibold mb-2 font-mono text-primary">NO_QUESTS_FOUND</h3>
+                <p className="text-muted-foreground font-mono text-xs sm:text-sm">
                   {'>'} Try adjusting your filters or check back later for new quests.
                 </p>
               </CardContent>
@@ -426,15 +427,15 @@ export default function Dashboard() {
           )}
         </TabsContent>
 
-        <TabsContent value="progress" className="space-y-6">
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">CHART</div>
-            <h3 className="text-lg font-semibold mb-2 font-mono text-primary">PROGRESS_TRACKING</h3>
-            <p className="text-muted-foreground font-mono text-sm">
+        <TabsContent value="progress" className="space-y-4 sm:space-y-6">
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-4xl sm:text-6xl mb-4">CHART</div>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 font-mono text-primary">PROGRESS_TRACKING</h3>
+            <p className="text-muted-foreground font-mono text-xs sm:text-sm px-4">
               {'>'} Detailed progress analytics coming soon.
             </p>
             <Link href="/progress">
-              <Button className="mt-4 font-mono border-dashed hover:border-solid transition-all duration-200">
+              <Button className="mt-4 font-mono border-dashed hover:border-solid transition-all duration-200 text-sm">
                 View Full Progress <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

@@ -417,53 +417,53 @@ export default function QuestDetailPage() {
 
   return (
     <TooltipProvider>
-      <main className="max-w-6xl mx-auto space-y-6" role="main" aria-label="Quest Details">
+      <main className="max-w-6xl mx-auto  sm:px-6 space-y-4 sm:space-y-6" role="main" aria-label="Quest Details">
       {/* Back Button */}
       <Link href="/quests">
         <Button
           variant="ghost"
           size="sm"
-          className="border-2 border-dashed border-gray-400 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 font-mono text-sm transition-all duration-200 shadow-sm hover:shadow-md gap-2"
+          className="border-2 border-dashed border-gray-400 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 font-mono text-xs sm:text-sm transition-all duration-200 shadow-sm hover:shadow-md gap-2 h-8 sm:h-9"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
            Back to Quests
         </Button>
       </Link>
 
       {/* Quest Header */}
       <header aria-label="Quest Information">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
-          <div className="xl:col-span-2 space-y-6 lg:space-y-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
             <Card className="overflow-hidden border-4 border-dashed border-gray-400 dark:border-gray-600 shadow-lg bg-gradient-to-br from-gray-50 to-purple-50 dark:from-gray-950/30 dark:to-purple-950/30">
-              <CardHeader className="bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 p-8">
+              <CardHeader className="bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
                   {/* Quest Title and Category */}
-                  <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6">
+                  <div className="mb-6 sm:mb-8">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl shadow-lg flex-shrink-0">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl lg:text-2xl shadow-lg flex-shrink-0">
                           {getCategoryIcon(quest.category as any)}
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h1
-                          className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight"
+                          className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 leading-tight break-words"
                           id="quest-title"
                         >
                           {quest.title}
                         </h1>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                             {(quest.category || 'general')
                               .replace('-', ' ')
                               .replace(/^./, (c) => c.toUpperCase())}
                           </Badge>
-                          <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 px-4 py-2 rounded-full shadow-sm">
+                          <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 px-2 sm:px-4 py-1 sm:py-2 rounded-full shadow-sm">
                             {Array.from({ length: 4 }, (_, i) => (
                               <span
                                 key={i}
                                 className={cn(
-                                  'text-lg',
+                                  'text-sm sm:text-lg',
                                   i < (difficultyStars[quest.difficulty as any] || 0)
                                     ? 'text-yellow-500'
                                     : 'text-gray-300 dark:text-gray-600'
@@ -472,49 +472,50 @@ export default function QuestDetailPage() {
                                 {i < (difficultyStars[quest.difficulty as any] || 0) ? '★' : '☆'}
                               </span>
                             ))}
-                            <span className="ml-2 text-sm font-semibold text-yellow-700 dark:text-yellow-300 capitalize">
+                            <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-semibold text-yellow-700 dark:text-yellow-300 capitalize">
                               {quest.difficulty || 'unknown'}
                             </span>
                           </div>
                           {completedQuests && (
-                            <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex items-center gap-2">
-                              <Trophy className="w-4 h-4" />
+                            <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex items-center gap-1 sm:gap-2">
+                              <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
                               Completed
                             </Badge>
                           )}
                           {isExpired && (
-                            <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
+                            <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 flex items-center gap-1 sm:gap-2">
+                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                               Expired
                             </Badge>
                           )}
                           {rejectedQuests && (
-                            <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 flex items-center gap-2">
-                              <XCircle className="w-4 h-4" />
+                            <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 flex items-center gap-1 sm:gap-2">
+                              <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                               Rejected
                             </Badge>
                           )}
 
                           {pendingQuests && (
-                            <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
+                            <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 flex items-center gap-1 sm:gap-2">
+                              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                               Pending
                             </Badge>
                           )}
                           {availableQuests && (
-                            <Badge className="px-4 py-2 text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4" />
+                            <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 flex items-center gap-1 sm:gap-2">
+                              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                               Available
-                            </Badge>)}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Quest Points/Rewards Section */}
-                  <div className="flex items-center justify-center mt-6">
-                    <div className="flex items-center text-sm text-muted-foreground ml-2 bg-muted/30 px-2 py-1 rounded border border-dashed font-mono">
-                      <Trophy className="w-4 h-4 mr-1" />
+                  <div className="flex items-center justify-center mt-4 sm:mt-6">
+                    <div className="flex items-center text-xs sm:text-sm text-muted-foreground ml-2 bg-muted/30 px-2 py-1 rounded border border-dashed font-mono">
+                      <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                       {(() => {
                         const reward = quest.reward;
                         const points = quest.points || (quest as any).points;
@@ -539,12 +540,12 @@ export default function QuestDetailPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-8 space-y-8">
+              <CardContent className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
                 {/* Quest Description */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                       Description
                     </h2>
                     {hasRequirements && (
@@ -553,10 +554,10 @@ export default function QuestDetailPage() {
                           <TooltipTrigger asChild>
                             <button
                               onClick={scrollToRequirements}
-                              className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                               aria-label="View quest requirements"
                             >
-                              <Info className="w-4 h-4" />
+                              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -566,7 +567,7 @@ export default function QuestDetailPage() {
                       </TooltipProvider>
                     )}
                   </div>
-                  <p className="text-base leading-relaxed text-gray-700 dark:text-gray-300" aria-describedby="quest-title">
+                  <p className="text-sm sm:text-base leading-relaxed text-gray-700 dark:text-gray-300" aria-describedby="quest-title">
                     {quest.description}
                   </p>
                   
@@ -585,15 +586,15 @@ export default function QuestDetailPage() {
 
                   {/* Evidence URL Input Section */}
                   {quest.with_evidence && (
-                    <div className="mt-6 p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                      <div className="space-y-4">
+                    <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="space-y-3 sm:space-y-4">
                         <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
-                          <LinkIcon className="w-5 h-5" />
-                          <h3 className="font-semibold text-lg">Submit Evidence</h3>
+                          <LinkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <h3 className="font-semibold text-base sm:text-lg">Submit Evidence</h3>
                         </div>
                         
-                        <div className="space-y-3">
-                          <Label htmlFor="evidence-url-main" className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                        <div className="space-y-2 sm:space-y-3">
+                          <Label htmlFor="evidence-url-main" className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">
                             Evidence URL *
                           </Label>
                           <Input
@@ -603,7 +604,7 @@ export default function QuestDetailPage() {
                             value={evidenceUrl}
                             onChange={handleEvidenceUrlChange}
                             className={cn(
-                              "w-full bg-white dark:bg-gray-800",
+                              "w-full bg-white dark:bg-gray-800 text-xs sm:text-sm h-8 sm:h-10",
                               evidenceError && "border-red-500 focus:ring-red-500"
                             )}
                             aria-describedby={evidenceError ? "evidence-error-main" : "evidence-help"}
@@ -611,9 +612,9 @@ export default function QuestDetailPage() {
                           {evidenceError && (
                             <p 
                               id="evidence-error-main" 
-                              className="text-sm text-red-600 flex items-center gap-1"
+                              className="text-xs sm:text-sm text-red-600 flex items-center gap-1"
                             >
-                              <AlertCircle className="w-4 h-4" />
+                              <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                               {evidenceError}
                             </p>
                           )}
@@ -634,72 +635,72 @@ export default function QuestDetailPage() {
 
                 {/* Quest Details Grid */}
                 { !(quest.quest_type === "hedera_profile_completion") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         {quest.platform_type === 'facebook' ? (
-                          <Facebook className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <Facebook className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                         ) : quest.platform_type === 'twitter' ? (
-                          <Twitter className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <Twitter className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                         ) : quest.platform_type === 'instagram' ? (
-                          <Instagram className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <Instagram className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                         ) : (
-                          <LinkIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <LinkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-white capitalize text-sm sm:text-base break-words">
                           {quest.platform_type || 'Web Platform'}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Platform</p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Platform</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
                         {(quest as any).action_type === 'like' ? (
-                          <Heart className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                          <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
                         ) : (quest as any).action_type === 'comment' ? (
-                          <MessageCircle className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
                         ) : (quest as any).action_type === 'share' ? (
-                          <Share className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                          <Share className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
                         ) : (
-                          <Eye className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                          <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-white capitalize text-sm sm:text-base break-words">
                           {(quest as any).action_type || 'View Content'}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Required action</p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Required action</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                        <UserCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                        <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base break-words">
                           {questStats?.all || (quest as any).currentParticipants || 0} / {(quest as any).maxParticipants || '∞'}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Participants</p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Participants</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                        <Calendar className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="p-2 sm:p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                        <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base break-words">
                           {quest.startDate
                             ? formatDistanceToNow(new Date(quest.startDate), { addSuffix: true })
                             : 'Available now'}
@@ -930,14 +931,14 @@ export default function QuestDetailPage() {
 
                 <TabsContent value="requirements" role="tabpanel" id="requirements-panel" aria-labelledby="requirements-tab">
                   <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-b border-gray-200 dark:border-gray-700 p-6">
-                      <CardTitle id="status-card-title" className="flex items-center gap-3 text-gray-900 dark:text-white">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                          <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                      <CardTitle id="status-card-title" className="flex items-center gap-2 sm:gap-3 text-gray-900 dark:text-white">
+                        <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold">Quest Requirements</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Follow these step-by-step instructions to complete the quest</p>
+                          <h3 className="text-base sm:text-lg font-semibold">Quest Requirements</h3>
+                          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Follow these step-by-step instructions to complete the quest</p>
                         </div>
                       </CardTitle>
                     </CardHeader>
@@ -948,12 +949,12 @@ export default function QuestDetailPage() {
                           (quest as any).quest_steps.split('#quest_ending#').filter((step: string) => step.trim()).map((step: string, index: number) => (
                             <div
                               key={index}
-                              className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                              className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
                             >
-                              <div className="flex-shrink-0 w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-semibold mt-0.5">
+                              <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold mt-0.5">
                                 {index + 1}
                               </div>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{step.trim()}</p>
+                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base break-words">{step.trim()}</p>
                             </div>
                           ))
                         ) : (
@@ -961,20 +962,20 @@ export default function QuestDetailPage() {
                           (quest.requirements || []).map((requirement: string, index: number) => (
                             <div
                               key={index}
-                              className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                              className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
                             >
-                              <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full mt-0.5 flex-shrink-0">
-                                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              <div className="p-1 sm:p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full mt-0.5 flex-shrink-0">
+                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
                               </div>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{requirement}</p>
+                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm sm:text-base break-words">{requirement}</p>
                             </div>
                           ))
                         )}
                         
                         {/* Show message if no steps or requirements */}
                         {!(quest as any).quest_steps && (!quest.requirements || quest.requirements.length === 0) && (
-                          <div className="text-center py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
-                            <div className="text-muted-foreground">
+                          <div className="text-center py-6 sm:py-8 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                            <div className="text-muted-foreground text-sm sm:text-base">
                               No specific instructions provided. Complete the quest as described.
                             </div>
                           </div>
@@ -1060,42 +1061,42 @@ export default function QuestDetailPage() {
 
                 <TabsContent value="badges" role="tabpanel" id="badges-panel" aria-labelledby="badges-tab">
                   <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl overflow-hidden">
-                    <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-b border-gray-200 dark:border-gray-700 p-6">
-                      <CardTitle id="progress-stats-title" className="flex items-center gap-3 text-gray-900 dark:text-white">
-                        <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                          <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                    <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                      <CardTitle id="progress-stats-title" className="flex items-center gap-2 sm:gap-3 text-gray-900 dark:text-white">
+                        <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                          <Award className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold">Quest Badges</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Achievements you can earn</p>
+                          <h3 className="text-base sm:text-lg font-semibold">Quest Badges</h3>
+                          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Achievements you can earn</p>
                         </div>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="grid grid-cols-1 gap-3 sm:gap-4">
                         {(quest.badges || []).map((badge: any, index: number) => (
                           <div
                             key={badge.id || index}
-                            className="flex items-start gap-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
+                            className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
                           >
-                            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex-shrink-0">
-                              <Award className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                            <div className="p-2 sm:p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex-shrink-0">
+                              <Award className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
                             </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm sm:text-base break-words">
                                 {badge.name}
                               </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 break-words">
                                 {badge.description}
                               </p>
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Star className="w-4 h-4 text-yellow-500" />
-                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                  <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
+                                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                                     {badge.points || 0} points
                                   </span>
                                 </div>
-                                <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs">
+                                <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1">
                                   {badge.rarity || 'common'}
                                 </Badge>
                               </div>
@@ -1104,14 +1105,14 @@ export default function QuestDetailPage() {
                         ))}
 
                         {(!quest.badges || quest.badges.length === 0) && (
-                          <div className="col-span-full text-center py-12">
-                            <div className="p-4 bg-gray-100 dark:bg-gray-700/50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                              <Award className="w-8 h-8 text-gray-400" />
+                          <div className="text-center py-8 sm:py-12">
+                            <div className="p-3 sm:p-4 bg-gray-100 dark:bg-gray-700/50 rounded-full w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 flex items-center justify-center">
+                              <Award className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                             </div>
-                            <p className="text-gray-500 dark:text-gray-400 font-medium">
+                            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base">
                               No badges available for this quest
                             </p>
-                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                            <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
                               Complete the quest to see if any badges are earned
                             </p>
                           </div>
@@ -1132,28 +1133,28 @@ export default function QuestDetailPage() {
               role="region"
               aria-labelledby="status-card-title"
             >
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700 p-6">
-                <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 sm:gap-3 text-gray-900 dark:text-white">
                   {isCompleted ? (
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                      <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
                     </div>
                   ) : (
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                      <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                     </div>
                   )}
                   <div>
-                    <h3 className="text-lg font-semibold">
+                    <h3 className="text-base sm:text-lg font-semibold">
                       {isCompleted ? 'Quest Completed' : 'Quest Status'}
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       {isCompleted ? 'Well done!' : 'Ready to start'}
                     </p>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 {isCompleted ? (
                   <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
@@ -1195,28 +1196,28 @@ export default function QuestDetailPage() {
                 role="region"
                 aria-labelledby="prerequisites-card-title"
               >
-                <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-b border-gray-200 dark:border-gray-700 p-6">
-                  <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
-                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <Shield className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 sm:gap-3 text-gray-900 dark:text-white">
+                    <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                      <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold">Prerequisites</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Required quests</p>
+                      <h3 className="text-base sm:text-lg font-semibold">Prerequisites</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Required quests</p>
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-3">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="space-y-2 sm:space-y-3">
                     {(quest.prerequisites || []).map((prereqId: string | number) => (
                       <div
                         key={prereqId}
-                        className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                        className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
                       >
-                        <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
-                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <div className="p-1 sm:p-1.5 bg-green-100 dark:bg-green-900/30 rounded-full">
+                          <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
                         </div>
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Quest #{prereqId}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 text-sm sm:text-base">Quest #{prereqId}</span>
                       </div>
                     ))}
                   </div>
@@ -1230,18 +1231,18 @@ export default function QuestDetailPage() {
               role="region"
               aria-labelledby="progress-stats-title"
             >
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-700 p-6">
-                <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 sm:gap-3 text-gray-900 dark:text-white">
+                  <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Progress Stats</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Community metrics</p>
+                    <h3 className="text-base sm:text-lg font-semibold">Progress Stats</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Community metrics</p>
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-3">

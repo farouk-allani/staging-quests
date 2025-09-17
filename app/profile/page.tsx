@@ -1074,16 +1074,16 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8 px-2 sm:px-4 lg:px-0">
       {/* Header */}
       <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5 hover:border-solid transition-all duration-200">
-        <CardContent className="p-8">
-          <div className="text-center space-y-4">
-            <div className="relative mx-auto w-24 h-24">
+        <CardContent className="p-4 sm:p-6 lg:p-8">
+          <div className="text-center space-y-3 sm:space-y-4">
+            <div className="relative mx-auto w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full border-2 border-dashed border-primary/30" />
-              <Avatar className="relative w-24 h-24 border-2 border-solid border-background shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+              <Avatar className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border-2 border-solid border-background shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                 <AvatarImage src={profileData?.user?.profilePicture || ""} />
-                <AvatarFallback className="text-2xl font-mono bg-gradient-to-r from-primary/10 to-purple-500/10">
+                <AvatarFallback className="text-lg sm:text-xl lg:text-2xl font-mono bg-gradient-to-r from-primary/10 to-purple-500/10">
                   {getInitials(
                     profileData?.user?.firstName && profileData?.user?.lastName
                       ? `${profileData.user.firstName} ${profileData.user.lastName}`
@@ -1093,12 +1093,12 @@ export default function ProfilePage() {
               </Avatar>
             </div>
             <div>
-              <h1 className="text-3xl font-bold font-mono bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent leading-tight">
                 {profileData?.user?.firstName && profileData?.user?.lastName
                   ? `${profileData.user.firstName} ${profileData.user.lastName}`
                   : profileData?.user?.username || "User"}
               </h1>
-              <p className="text-muted-foreground font-mono text-sm">
+              <p className="text-muted-foreground font-mono text-xs sm:text-sm px-2">
                 {">"} Member since{" "}
                 {profileData?.user?.userLevel?.created_at
                   ? formatDistanceToNow(new Date(profileData.user.userLevel.created_at), {
@@ -1111,41 +1111,41 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 h-auto">
           <TabsTrigger
             value="profile"
-            className="font-mono text-sm data-[state=active]:bg-primary/20 data-[state=active]:border data-[state=active]:border-dashed data-[state=active]:border-primary/30 data-[state=active]:text-primary transition-all duration-200"
+            className="font-mono text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:border data-[state=active]:border-dashed data-[state=active]:border-primary/30 data-[state=active]:text-primary transition-all duration-200 py-2 px-2 sm:px-4"
           >
             PROFILE
           </TabsTrigger>
           <TabsTrigger
             value="account"
-            className="font-mono text-sm data-[state=active]:bg-primary/20 data-[state=active]:border data-[state=active]:border-dashed data-[state=active]:border-primary/30 data-[state=active]:text-primary transition-all duration-200"
+            className="font-mono text-xs sm:text-sm data-[state=active]:bg-primary/20 data-[state=active]:border data-[state=active]:border-dashed data-[state=active]:border-primary/30 data-[state=active]:text-primary transition-all duration-200 py-2 px-2 sm:px-4"
           >
             ACCOUNT
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="space-y-6">
+        <TabsContent value="profile" className="space-y-4 sm:space-y-6">{/* Profile content continues... */}
           <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5 hover:border-solid transition-all duration-200">
-            <CardHeader className="border-b border-dashed border-primary/20">
-              <CardTitle className="flex items-center gap-2 font-mono text-lg">
+            <CardHeader className="border-b border-dashed border-primary/20 p-3 sm:p-4 lg:p-6">
+              <CardTitle className="flex items-center gap-2 font-mono text-sm sm:text-base lg:text-lg">
                 <div className="p-1 bg-primary/10 rounded border border-dashed border-primary/30">
-                  <UserIcon className="w-4 h-4 text-primary" />
+                  <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 </div>
                 {">"} PROFILE_INFORMATION
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
-                    <Label className="font-mono text-sm text-primary">
+                    <Label className="font-mono text-xs sm:text-sm text-primary">
                       FULL_NAME
                     </Label>
-                    <div className="p-3 border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-md">
-                      <p className="font-mono text-sm">
+                    <div className="p-2 sm:p-3 border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-md">
+                      <p className="font-mono text-xs sm:text-sm">
                         {profileData?.user?.firstName &&
                         profileData?.user?.lastName
                           ? `${profileData.user.firstName} ${profileData.user.lastName}`
@@ -1155,16 +1155,16 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="font-mono text-sm text-primary">
+                    <Label className="font-mono text-xs sm:text-sm text-primary">
                       EMAIL_ADDRESS
                     </Label>
-                    <div className="p-3 border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-md">
-                      <div className="flex items-center justify-between flex-wrap">
-                        <p className="font-mono text-sm">
+                    <div className="p-2 sm:p-3 border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-md">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <p className="font-mono text-xs sm:text-sm break-all sm:break-normal flex-1 min-w-0">
                           {profileData?.user?.email || "Not provided"}
                         </p>
                         {profileData?.user?.email && (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             {profileData?.user?.email_verified ? (
                               <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono text-xs">
                                 <CheckCircle className="w-3 h-3 mr-1" />
@@ -1179,7 +1179,7 @@ export default function ProfilePage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-6 px-2 text-xs font-mono border-dashed border-primary/50 hover:border-solid"
+                                  className="h-6 sm:h-7 px-2 text-xs font-mono border-dashed border-primary/50 hover:border-solid"
                                   onClick={handleVerifyEmail}
                                   disabled={isVerifyingEmail}
                                 >
@@ -1195,7 +1195,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Additional Profile Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label className="font-mono text-sm text-primary">
                       USERNAME
@@ -1249,19 +1249,17 @@ export default function ProfilePage() {
           </Card>
 
           {/* Stats Overview */}
-          <div
-            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6`}
-          >
+          <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6`}>
             {/* Badges */}
             <Card className="border-2 border-dashed border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 hover:border-solid transition-all duration-200">
-              <CardContent className="p-6 text-center">
-                <div className="p-2 bg-yellow-500/10 rounded-lg border border-dashed border-yellow-500/30 w-fit mx-auto mb-2">
-                  <Award className="w-4 h-4 text-yellow-500" />
+              <CardContent className="p-3 sm:p-4 lg:p-6 text-center">
+                <div className="p-1.5 sm:p-2 bg-yellow-500/10 rounded-lg border border-dashed border-yellow-500/30 w-fit mx-auto mb-2">
+                  <Award className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />
                 </div>
-                <div className="text-2xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold font-mono bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                   {userStats?.numberOfBadges ?? "0"}
                 </div>
-                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider leading-tight">
                   BADGES_EARNED
                 </div>
               </CardContent>
@@ -1269,14 +1267,14 @@ export default function ProfilePage() {
 
             {/* Completed Quests */}
             <Card className="border-2 border-dashed border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5 hover:border-solid transition-all duration-200">
-              <CardContent className="p-6 text-center">
-                <div className="p-2 bg-green-500/10 rounded-lg border border-dashed border-green-500/30 w-fit mx-auto mb-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+              <CardContent className="p-3 sm:p-4 lg:p-6 text-center">
+                <div className="p-1.5 sm:p-2 bg-green-500/10 rounded-lg border border-dashed border-green-500/30 w-fit mx-auto mb-2">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold font-mono bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold font-mono bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">
                   {userStats?.numberOfquestCompleted ?? "0"}
                 </div>
-                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider leading-tight">
                   QUESTS_COMPLETED
                 </div>
               </CardContent>
@@ -1284,14 +1282,14 @@ export default function ProfilePage() {
 
             {/* Pending Quests */}
             <Card className="border-2 border-dashed border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200">
-              <CardContent className="p-6 text-center">
-                <div className="p-2 bg-blue-500/10 rounded-lg border border-dashed border-blue-500/30 w-fit mx-auto mb-2">
-                  <Clock className="w-4 h-4 text-blue-500" />
+              <CardContent className="p-3 sm:p-4 lg:p-6 text-center">
+                <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg border border-dashed border-blue-500/30 w-fit mx-auto mb-2">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
                 </div>
-                <div className="text-2xl font-bold font-mono bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold font-mono bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">
                   {userStats?.numberOfquestPending ?? "0"}
                 </div>
-                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider leading-tight">
                   QUESTS_PENDING
                 </div>
               </CardContent>
@@ -1299,14 +1297,14 @@ export default function ProfilePage() {
 
             {/* Rejected Quests */}
             <Card className="border-2 border-dashed border-red-500/20 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200">
-              <CardContent className="p-6 text-center">
-                <div className="p-2 bg-red-500/10 rounded-lg border border-dashed border-red-500/30 w-fit mx-auto mb-2">
-                  <XCircle className="w-4 h-4 text-red-500" />
+              <CardContent className="p-3 sm:p-4 lg:p-6 text-center">
+                <div className="p-1.5 sm:p-2 bg-red-500/10 rounded-lg border border-dashed border-red-500/30 w-fit mx-auto mb-2">
+                  <XCircle className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
                 </div>
-                <div className="text-2xl font-bold font-mono bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold font-mono bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
                   {userStats?.numberOfquestRejected ?? "0"}
                 </div>
-                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+                <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider leading-tight">
                   QUESTS_REJECTED
                 </div>
               </CardContent>
@@ -1314,35 +1312,35 @@ export default function ProfilePage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="account" className="space-y-6">
+        <TabsContent value="account" className="space-y-4 sm:space-y-6">
           <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5 hover:border-solid transition-all duration-200">
-            <CardHeader className="border-b border-dashed border-primary/20">
-              <CardTitle className="flex items-center gap-2 font-mono text-lg">
+            <CardHeader className="border-b border-dashed border-primary/20 p-3 sm:p-4 lg:p-6">
+              <CardTitle className="flex items-center gap-2 font-mono text-sm sm:text-base lg:text-lg">
                 <div className="p-1 bg-primary/10 rounded border border-dashed border-primary/30">
-                  <Settings className="w-4 h-4 text-primary" />
+                  <Settings className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 </div>
                 {">"} ACCOUNT_SETTINGS
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
               {/* hedera Integration */}
 
               <div 
                 id="social-hedera"
-                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4"
               >
-                <div className="flex items-center justify-between mb-3 flex-wrap">
-                  <div>
-                    <h3 className="font-mono font-semibold text-pink-600 dark:text-purple-400 uppercase tracking-wider">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-mono font-semibold text-pink-600 dark:text-purple-400 uppercase tracking-wider text-sm">
                       {">"} IDTrust_Verification
                     </h3>
                     {profileData?.user?.hederaProfile ? (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                         [CONNECTED] @{profileData.user.firstName}
                         {profileData.user.lastName}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                         [DISCONNECTED] Link your Hedera account to verify social
                         media quests
                       </p>
@@ -1513,32 +1511,32 @@ export default function ProfilePage() {
               {/* Social Media Integration */}
               <div 
                 id="social-twitter"
-                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+                className="border-2 border-dashed border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-mono font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-mono font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider text-xs sm:text-sm break-words">
                       {">"} TWITTER_INTEGRATION
                     </h3>
                     {profileData?.user?.twitterProfile ? (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                         [CONNECTED] @
                         {profileData.user.twitterProfile.twitter_username}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                         [DISCONNECTED] Link your Twitter account to verify
                         social media quests
                       </p>
                     )}
                   </div>
                   {profileData?.user?.twitterProfile ? (
-                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono">
+                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono text-xs shrink-0">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       CONNECTED
                     </Badge>
                   ) : (
-                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono">
+                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono text-xs shrink-0">
                       <AlertCircle className="w-3 h-3 mr-1" />
                       NOT_CONNECTED
                     </Badge>
@@ -1547,30 +1545,32 @@ export default function ProfilePage() {
 
                 {profileData?.user?.twitterProfile ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg border border-dashed border-blue-500/30">
-                      <Avatar className="w-10 h-10 border border-dashed border-blue-500/50">
-                        <AvatarImage
-                          src={
-                            profileData.user.twitterProfile
-                              .twitter_profile_picture
-                          }
-                        />
-                        <AvatarFallback className="font-mono">@</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium font-mono">
-                          @{profileData.user.twitterProfile.twitter_username}
-                        </p>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          ID: {profileData.user.twitterProfile.twitter_id}
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-blue-500/10 rounded-lg border border-dashed border-blue-500/30">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="w-10 h-10 shrink-0 border border-dashed border-blue-500/50">
+                          <AvatarImage
+                            src={
+                              profileData.user.twitterProfile
+                                .twitter_profile_picture
+                            }
+                          />
+                          <AvatarFallback className="font-mono">@</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium font-mono text-sm break-all">
+                            @{profileData.user.twitterProfile.twitter_username}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
+                            ID: {profileData.user.twitterProfile.twitter_id}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-blue-500/50 hover:border-solid font-mono"
+                        className="border-dashed border-blue-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={() =>
                           window.open(
                             `https://twitter.com/${profileData.user.twitterProfile.twitter_username}`,
@@ -1578,31 +1578,31 @@ export default function ProfilePage() {
                           )
                         }
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono"
+                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleDisconnectTwitter}
                       >
-                        <Link className="w-4 h-4 mr-1" />
+                        <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         Disconnect
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="default"
                         size="sm"
-                        className="bg-blue-500 hover:bg-blue-600 text-white border-dashed border-blue-600/50 hover:border-solid font-mono"
+                        className="bg-blue-500 hover:bg-blue-600 text-white border-dashed border-blue-600/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleConnectTwitter}
                         disabled={isConnectingTwitter}
                       >
-                        <Twitter className="w-4 h-4 mr-1" />
+                        <Twitter className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         {isConnectingTwitter
                           ? "CONNECTING..."
                           : "CONNECT_TWITTER"}
@@ -1610,10 +1610,10 @@ export default function ProfilePage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-gray-500/50 font-mono"
+                        className="border-dashed border-gray-500/50 font-mono text-xs sm:text-sm h-8 sm:h-9"
                         disabled
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                     </div>
@@ -1629,32 +1629,32 @@ export default function ProfilePage() {
               {/* Facebook Integration */}
               <div 
                 id="social-facebook"
-                className="border-2 border-dashed border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+                className="border-2 border-dashed border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-mono font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider text-xs sm:text-sm break-words">
                       {">"} FACEBOOK_INTEGRATION
                     </h3>
                     {profileData?.user?.facebookProfile ? (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                         [CONNECTED]{" "}
                         {profileData.user.facebookProfile.facebook_name}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                         [DISCONNECTED] Link your Facebook account to verify
                         social media quests
                       </p>
                     )}
                   </div>
                   {profileData?.user?.facebookProfile ? (
-                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono">
+                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono text-xs shrink-0">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       CONNECTED
                     </Badge>
                   ) : (
-                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono">
+                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono text-xs shrink-0">
                       <AlertCircle className="w-3 h-3 mr-1" />
                       NOT_CONNECTED
                     </Badge>
@@ -1663,33 +1663,35 @@ export default function ProfilePage() {
 
                 {profileData?.user?.facebookProfile ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-indigo-500/10 rounded-lg border border-dashed border-indigo-500/30">
-                      <Avatar className="w-10 h-10 border border-dashed border-indigo-500/50">
-                        <AvatarImage
-                          src={
-                            profileData.user.facebookProfile
-                              .facebook_profile_picture
-                          }
-                        />
-                        <AvatarFallback className="font-mono">
-                          FB
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium font-mono">
-                          {profileData.user.facebookProfile.firstname}{" "}
-                          {profileData.user.facebookProfile.lastname}
-                        </p>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          ID: {profileData.user.facebookProfile.facebook_id}
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-indigo-500/10 rounded-lg border border-dashed border-indigo-500/30">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="w-10 h-10 shrink-0 border border-dashed border-indigo-500/50">
+                          <AvatarImage
+                            src={
+                              profileData.user.facebookProfile
+                                .facebook_profile_picture
+                            }
+                          />
+                          <AvatarFallback className="font-mono">
+                            FB
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium font-mono text-sm break-all">
+                            {profileData.user.facebookProfile.firstname}{" "}
+                            {profileData.user.facebookProfile.lastname}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
+                            ID: {profileData.user.facebookProfile.facebook_id}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-indigo-500/50 hover:border-solid font-mono"
+                        className="border-dashed border-indigo-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={() =>
                           window.open(
                             `https://facebook.com/${profileData.user.facebookProfile.facebook_id}`,
@@ -1697,31 +1699,31 @@ export default function ProfilePage() {
                           )
                         }
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono"
+                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleDisconnectFacebook}
                       >
-                        <Link className="w-4 h-4 mr-1" />
+                        <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         Disconnect
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="default"
                         size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white border-dashed border-blue-700/50 hover:border-solid font-mono"
+                        className="bg-blue-600 hover:bg-blue-700 text-white border-dashed border-blue-700/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleConnectFacebook}
                         disabled={isConnectingFacebook}
                       >
-                        <Facebook className="w-4 h-4 mr-1" />
+                        <Facebook className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         {isConnectingFacebook
                           ? "CONNECTING..."
                           : "CONNECT_FACEBOOK"}
@@ -1729,10 +1731,10 @@ export default function ProfilePage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-gray-500/50 font-mono"
+                        className="border-dashed border-gray-500/50 font-mono text-xs sm:text-sm h-8 sm:h-9"
                         disabled
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                     </div>
@@ -1750,15 +1752,15 @@ export default function ProfilePage() {
                 id="social-discord"
                 className="border-2 border-dashed border-[#5865F2]/30 bg-gradient-to-br from-[#5865F2]/5 to-indigo-600/5 hover:border-solid transition-all duration-200"
               >
-                <CardHeader className="border-b border-dashed border-[#5865F2]/30 bg-gradient-to-r from-[#5865F2]/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2 font-mono flex-wrap">
-                    <span className="flex items-center gap-2">
-                    <SiDiscord className="w-5 h-5 text-[#5865F2]" />
-                    [DISCORD_INTEGRATION]
+                <CardHeader className="border-b border-dashed border-[#5865F2]/30 bg-gradient-to-r from-[#5865F2]/5 to-transparent p-3 sm:p-6">
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 font-mono">
+                    <span className="flex items-center gap-2 flex-1 min-w-0">
+                      <SiDiscord className="w-4 h-4 sm:w-5 sm:h-5 text-[#5865F2] shrink-0" />
+                      <span className="text-xs sm:text-sm break-words">[DISCORD_INTEGRATION]</span>
                     </span>
                     <Badge
                       variant="secondary"
-                      className="ml-auto border border-dashed border-[#5865F2]/50 bg-[#5865F2]/10 text-[#5865F2] font-mono"
+                      className="border border-dashed border-[#5865F2]/50 bg-[#5865F2]/10 text-[#5865F2] font-mono text-xs shrink-0"
                     >
                       {profileData?.user?.discordProfile
                         ? "[CONNECTED]"
@@ -1766,35 +1768,37 @@ export default function ProfilePage() {
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-3 sm:pt-6 p-3 sm:p-6">
                   {profileData?.user?.discordProfile ? (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-purple-600/10 rounded-lg border border-dashed border-purple-600/30">
-                        <Avatar className="w-10 h-10 border border-dashed border-purple-600/50">
-                          <AvatarImage
-                            src={profileData.user.discordProfile.discord_picture 
-      ? `https://cdn.discordapp.com/avatars/${profileData.user.discordProfile.discord_id}/${profileData.user.discordProfile.discord_picture}.png`
-      : undefined
-    }
-                          />
-                          <AvatarFallback className="font-mono">
-                            DC
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-medium font-mono">
-                            {profileData.user.discordProfile.discord_username}
-                          </p>
-                          <p className="text-sm text-muted-foreground font-mono">
-                            ID: {profileData.user.discordProfile.discord_id}
-                          </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-purple-600/10 rounded-lg border border-dashed border-purple-600/30">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Avatar className="w-10 h-10 shrink-0 border border-dashed border-purple-600/50">
+                            <AvatarImage
+                              src={profileData.user.discordProfile.discord_picture 
+        ? `https://cdn.discordapp.com/avatars/${profileData.user.discordProfile.discord_id}/${profileData.user.discordProfile.discord_picture}.png`
+        : undefined
+      }
+                            />
+                            <AvatarFallback className="font-mono">
+                              DC
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium font-mono text-sm break-all">
+                              {profileData.user.discordProfile.discord_username}
+                            </p>
+                            <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
+                              ID: {profileData.user.discordProfile.discord_id}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-dashed border-purple-600/50 hover:border-solid font-mono"
+                          className="border-dashed border-purple-600/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() =>
                             window.open(
                               `https://discord.com/users/${profileData.user.discordProfile.discord_id}`,
@@ -1802,31 +1806,31 @@ export default function ProfilePage() {
                             )
                           }
                         >
-                          <ExternalLink className="w-4 h-4 mr-1" />
+                          <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           View Profile
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono"
+                          className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                           onClick={handleDisconnectDiscord}
                         >
-                          <Link className="w-4 h-4 mr-1" />
+                          <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           Disconnect
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                           variant="default"
                           size="sm"
-                          className="bg-purple-600 hover:bg-purple-700 text-white border-dashed border-purple-700/50 hover:border-solid font-mono"
+                          className="bg-purple-600 hover:bg-purple-700 text-white border-dashed border-purple-700/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                           onClick={handleConnectDiscord}
                           disabled={isConnectingDiscord}
                         >
-                          <MessageSquare className="w-4 h-4 mr-1" />
+                          <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           {isConnectingDiscord
                             ? "CONNECTING..."
                             : "CONNECT_DISCORD"}
@@ -1834,10 +1838,10 @@ export default function ProfilePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-dashed border-gray-500/50 font-mono"
+                          className="border-dashed border-gray-500/50 font-mono text-xs sm:text-sm h-8 sm:h-9"
                           disabled
                         >
-                          <ExternalLink className="w-4 h-4 mr-1" />
+                          <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           View Profile
                         </Button>
                       </div>
@@ -1854,31 +1858,31 @@ export default function ProfilePage() {
               {/* LinkedIn Integration */}
               <div 
                 id="social-linkedin"
-                className="border-2 border-dashed border-[#0077B5]/30 bg-gradient-to-br from-[#0077B5]/5 to-blue-600/5 hover:border-solid transition-all duration-200 rounded-lg p-4"
+                className="border-2 border-dashed border-[#0077B5]/30 bg-gradient-to-br from-[#0077B5]/5 to-blue-600/5 hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-mono font-semibold text-[#0077B5] dark:text-[#0077B5] uppercase tracking-wider">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-mono font-semibold text-[#0077B5] dark:text-[#0077B5] uppercase tracking-wider text-xs sm:text-sm break-words">
                       {">"} LINKEDIN_INTEGRATION
                     </h3>
                     {profileData?.user?.linkedInProfile ? (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                         [CONNECTED] {profileData.user.linkedInProfile.linked_in_username}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                         [DISCONNECTED] Link your LinkedIn account to verify
                         professional quests
                       </p>
                     )}
                   </div>
                   {profileData?.user?.linkedInProfile ? (
-                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono">
+                    <Badge className="bg-green-500/20 text-green-700 dark:text-green-300 border border-dashed border-green-500/50 font-mono text-xs shrink-0">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       CONNECTED
                     </Badge>
                   ) : (
-                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono">
+                    <Badge className="bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-dashed border-gray-500/50 font-mono text-xs shrink-0">
                       <AlertCircle className="w-3 h-3 mr-1" />
                       NOT_CONNECTED
                     </Badge>
@@ -1887,30 +1891,32 @@ export default function ProfilePage() {
 
                 {profileData?.user?.linkedInProfile ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-[#0077B5]/10 rounded-lg border border-dashed border-[#0077B5]/30">
-                      <Avatar className="w-10 h-10 border border-dashed border-[#0077B5]/50">
-                        <AvatarImage
-                          src={
-                            profileData.user.linkedInProfile
-                              .linked_in_profile_picture
-                          }
-                        />
-                        <AvatarFallback className="font-mono">LI</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium font-mono">
-                          {profileData.user.linkedInProfile.linked_in_username}
-                        </p>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          ID: {profileData.user.linkedInProfile.linked_in_id || 'N/A'}
-                        </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-[#0077B5]/10 rounded-lg border border-dashed border-[#0077B5]/30">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="w-10 h-10 shrink-0 border border-dashed border-[#0077B5]/50">
+                          <AvatarImage
+                            src={
+                              profileData.user.linkedInProfile
+                                .linked_in_profile_picture
+                            }
+                          />
+                          <AvatarFallback className="font-mono">LI</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium font-mono text-sm break-all">
+                            {profileData.user.linkedInProfile.linked_in_username}
+                          </p>
+                          <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
+                            ID: {profileData.user.linkedInProfile.linked_in_id || 'N/A'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-[#0077B5]/50 hover:border-solid font-mono"
+                        className="border-dashed border-[#0077B5]/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={() => {
                           if (profileData.user.linkedInProfile.linked_in_id) {
                             window.open(
@@ -1923,31 +1929,31 @@ export default function ProfilePage() {
                         }}
                         disabled={!profileData.user.linkedInProfile.linked_in_id}
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono"
+                        className="text-red-600 hover:text-red-700 border-dashed border-red-500/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleDisconnectLinkedIn}
                       >
-                        <Link className="w-4 h-4 mr-1" />
+                        <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         Disconnect
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         variant="default"
                         size="sm"
-                        className="bg-[#0077B5] hover:bg-[#0077B5]/90 text-white border-dashed border-[#0077B5]/50 hover:border-solid font-mono"
+                        className="bg-[#0077B5] hover:bg-[#0077B5]/90 text-white border-dashed border-[#0077B5]/50 hover:border-solid font-mono text-xs sm:text-sm h-8 sm:h-9"
                         onClick={handleConnectLinkedIn}
                         disabled={isConnectingLinkedIn}
                       >
-                        <Linkedin className="w-4 h-4 mr-1" />
+                        <Linkedin className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         {isConnectingLinkedIn
                           ? "CONNECTING..."
                           : "CONNECT_LINKEDIN"}
@@ -1955,10 +1961,10 @@ export default function ProfilePage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-dashed border-gray-500/50 font-mono"
+                        className="border-dashed border-gray-500/50 font-mono text-xs sm:text-sm h-8 sm:h-9"
                         disabled
                       >
-                        <ExternalLink className="w-4 h-4 mr-1" />
+                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         View Profile
                       </Button>
                     </div>
@@ -1969,20 +1975,18 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 )}
-              </div>
-
-              {/* Email Verification */}
+              </div>              {/* Email Verification */}
               <div
-                className={`border-2 border-dashed hover:border-solid transition-all duration-200 rounded-lg p-4 ${
+                className={`border-2 border-dashed hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4 ${
                   profileData?.user?.email_verified
                     ? "border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5"
                     : "border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-yellow-500/5"
                 }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
                     <h3
-                      className={`font-mono font-semibold uppercase tracking-wider ${
+                      className={`font-mono font-semibold uppercase tracking-wider text-xs sm:text-sm break-words ${
                         profileData?.user?.email_verified
                           ? "text-green-600 dark:text-green-400"
                           : "text-orange-600 dark:text-orange-400"
@@ -1990,12 +1994,12 @@ export default function ProfilePage() {
                     >
                       {">"} EMAIL_VERIFICATION
                     </h3>
-                    <p className="text-sm text-muted-foreground font-mono">
+                    <p className="text-xs sm:text-sm text-muted-foreground font-mono break-all">
                       [EMAIL] {profileData?.user?.email || "No email set"}
                     </p>
                   </div>
                   <Badge
-                    className={`border border-dashed font-mono ${
+                    className={`border border-dashed font-mono text-xs shrink-0 ${
                       profileData?.user?.email_verified
                         ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/50"
                         : "bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/50"
@@ -2017,14 +2021,14 @@ export default function ProfilePage() {
                 <div className="space-y-3">
                   {!profileData?.user?.email_verified && (
                     <>
-                      <div className="flex gap-2">
+                      <div className="flex">
                         <Button
                           type="button"
                           onClick={handleVerifyEmail}
                           disabled={
                             isVerifyingEmail || !profileData?.user?.email
                           }
-                          className="font-mono border-2 border-dashed border-orange-500/50 hover:border-solid hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200 bg-orange-500 hover:bg-orange-600 text-white"
+                          className="font-mono border-2 border-dashed border-orange-500/50 hover:border-solid hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200 bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm h-8 sm:h-9"
                         >
                           {isVerifyingEmail
                             ? "SENDING..."
@@ -2032,9 +2036,9 @@ export default function ProfilePage() {
                         </Button>
                       </div>
                       {emailVerificationSuccess && (
-                        <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded border border-dashed border-green-500/30">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <p className="text-sm text-green-600 dark:text-green-400 font-mono">
+                        <div className="flex items-start gap-2 p-2 bg-green-500/10 rounded border border-dashed border-green-500/30">
+                          <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                          <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-mono">
                             {">"} Email sent successfully! Check your inbox.
                           </p>
                         </div>
@@ -2046,9 +2050,9 @@ export default function ProfilePage() {
                     </>
                   )}
                   {profileData?.user?.email_verified && (
-                    <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded border border-dashed border-green-500/30">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <p className="text-sm text-green-600 dark:text-green-400 font-mono">
+                    <div className="flex items-start gap-2 p-2 bg-green-500/10 rounded border border-dashed border-green-500/30">
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-mono">
                         {">"} Your email address has been verified successfully!
                       </p>
                     </div>
@@ -2057,25 +2061,25 @@ export default function ProfilePage() {
               </div>
 
               {/* Delete Account Section */}
-              <div className="border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-mono font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">
+              <div className="border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-500/5 to-pink-500/5 hover:border-solid transition-all duration-200 rounded-lg p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-mono font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider text-xs sm:text-sm break-words">
                       {">"} DANGER_ZONE
                     </h3>
-                    <p className="text-sm text-muted-foreground font-mono">
+                    <p className="text-xs sm:text-sm text-muted-foreground font-mono">
                       [WARNING] Permanently delete your account and all data
                     </p>
                   </div>
-                  <Badge className="bg-red-500/20 text-red-700 dark:text-red-300 border border-dashed border-red-500/50 font-mono">
+                  <Badge className="bg-red-500/20 text-red-700 dark:text-red-300 border border-dashed border-red-500/50 font-mono text-xs shrink-0">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     DESTRUCTIVE
                   </Badge>
                 </div>
                 <div className="space-y-3">
                   <div className="p-3 border border-dashed border-red-500/30 bg-red-500/10 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
-                      <Trash2 className="w-4 h-4" />
+                    <div className="flex items-start gap-2 text-red-600 dark:text-red-400 mb-2">
+                      <Trash2 className="w-4 h-4 shrink-0 mt-0.5" />
                       <span className="font-semibold text-xs uppercase tracking-wider">
                         Account Deletion
                       </span>
@@ -2088,25 +2092,25 @@ export default function ProfilePage() {
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="destructive"
-                        className="font-mono border-2 border-dashed border-red-500/50  transition-all duration-200 bg-red-500 hover:bg-red-600 text-white"
+                        className="font-mono border-2 border-dashed border-red-500/50 transition-all duration-200 bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm h-8 sm:h-9"
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
+                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                         DELETE_ACCOUNT
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="sm:max-w-md font-mono border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-50/50 to-pink-50/50 dark:from-red-950/20 dark:to-pink-950/20">
+                    <AlertDialogContent className="max-w-sm sm:max-w-md font-mono border-2 border-dashed border-red-500/30 bg-gradient-to-br from-red-50/50 to-pink-50/50 dark:from-red-950/20 dark:to-pink-950/20 mx-4">
                       <AlertDialogHeader className="text-center space-y-4">
-                        <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center border border-dashed border-red-500/30">
-                          <Trash2 className="w-6 h-6 text-red-500" />
+                        <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-red-500/10 rounded-full flex items-center justify-center border border-dashed border-red-500/30">
+                          <Trash2 className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
                         </div>
-                        <AlertDialogTitle className="text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
+                        <AlertDialogTitle className="text-lg sm:text-xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent break-words">
                           [DELETE_ACCOUNT_CONFIRMATION]
                         </AlertDialogTitle>
                         <AlertDialogDescription asChild>
-                          <div className="text-sm text-muted-foreground space-y-3">
+                          <div className="text-xs sm:text-sm text-muted-foreground space-y-3">
                             <div className="p-3 border border-dashed border-red-500/30 bg-gradient-to-r from-red-500/5 to-pink-500/5 rounded-lg">
-                              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-2">
-                                <AlertCircle className="w-4 h-4" />
+                              <div className="flex items-start gap-2 text-red-600 dark:text-red-400 mb-2">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                                 <span className="font-semibold text-xs uppercase tracking-wider">
                                   PERMANENT ACTION
                                 </span>
@@ -2120,7 +2124,7 @@ export default function ProfilePage() {
                       </AlertDialogHeader>
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="delete-confirmation" className="font-mono text-sm text-red-600 dark:text-red-400">
+                          <Label htmlFor="delete-confirmation" className="font-mono text-xs sm:text-sm text-red-600 dark:text-red-400">
                             TYPE_TO_CONFIRM
                           </Label>
                           <Input
@@ -2128,7 +2132,7 @@ export default function ProfilePage() {
                             placeholder="delete my account"
                             value={deleteConfirmText}
                             onChange={(e) => setDeleteConfirmText(e.target.value)}
-                            className="font-mono border-dashed border-red-500/50 focus:border-solid focus:border-red-500"
+                            className="font-mono border-dashed border-red-500/50 focus:border-solid focus:border-red-500 text-xs sm:text-sm h-8 sm:h-9"
                           />
                           <p className="text-xs text-muted-foreground font-mono">
                             [INPUT] Type "delete my account" to confirm
@@ -2136,7 +2140,7 @@ export default function ProfilePage() {
                         </div>
                         <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                           <AlertDialogCancel 
-                            className="font-mono border-dashed border-gray-500/50 hover:border-solid transition-all duration-200"
+                            className="font-mono border-dashed border-gray-500/50 hover:border-solid transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 order-2 sm:order-1"
                             onClick={() => {
                               setDeleteConfirmText("");
                               setIsDeleteDialogOpen(false);
@@ -2147,9 +2151,9 @@ export default function ProfilePage() {
                           <AlertDialogAction
                             onClick={handleDeleteAccount}
                             disabled={isDeletingAccount || deleteConfirmText.toLowerCase() !== "delete my account"}
-                            className="font-mono bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                            className="font-mono bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm h-8 sm:h-9 order-1 sm:order-2"
                           >
-                            <Trash2 className="w-4 h-4 mr-2" />
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                             {isDeletingAccount ? "DELETING..." : "DELETE_FOREVER"}
                           </AlertDialogAction>
                         </AlertDialogFooter>
