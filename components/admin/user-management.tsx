@@ -74,7 +74,7 @@ interface User {
   avatar?: string;
   level?: number;
   streak?: number;
-  joinedAt?: string;
+  created_at?: string;
 }
 
 interface ApiResponse {
@@ -95,7 +95,7 @@ const transformUser = (apiUser: User): User & { id: string; name: string; points
   role: apiUser.role || 'user',
   level: apiUser.level || 1,
   streak: apiUser.streak || 0,
-  joinedAt: apiUser.joinedAt || new Date().toISOString().split('T')[0]
+  created_at: apiUser.created_at?.toString().split('T')[0] || new Date().toISOString().split('T')[0]
 });
 
 export function UserManagement({ className }: UserManagementProps) {
@@ -360,7 +360,7 @@ export function UserManagement({ className }: UserManagementProps) {
                         </div> */}
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-sm py-4 text-muted-foreground">{user.joinedAt}</TableCell>
+                    <TableCell className="font-mono text-sm py-4 text-muted-foreground">{user.created_at}</TableCell>
                     {/* <TableCell className="py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
