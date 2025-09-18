@@ -58,7 +58,9 @@ const editQuestSchema = z.object({
   createdBy: z.number().optional(),
   added_by: z.number().optional(),
   steps: z.array(z.string()).optional(),
+  manual_submission: z.boolean().optional(),
   with_evidence: z.boolean().optional(),
+  requires_attachment: z.boolean().optional(),
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
@@ -162,7 +164,9 @@ export function EditQuestForm({
           progress_to_add: questData.progress_to_add,
           createdBy: questData.createdBy,
           added_by: questData.added_by,
+          manual_submission: questData.manual_submission || false,
           with_evidence: questData.with_evidence || false,
+          requires_attachment: questData.requires_attachment || false,
         });
         
         // Initialize state variables
@@ -365,9 +369,19 @@ export function EditQuestForm({
         updateData.quest_link = data.quest_link;
       }
 
+      // Handle manual_submission update
+      if (data.manual_submission !== (quest.manual_submission || false)) {
+        updateData.manual_submission = data.manual_submission || false;
+      }
+
       // Handle with_evidence update
       if (data.with_evidence !== (quest.with_evidence || false)) {
         updateData.with_evidence = data.with_evidence || false;
+      }
+
+      // Handle requires_attachment update
+      if (data.requires_attachment !== (quest.requires_attachment || false)) {
+        updateData.requires_attachment = data.requires_attachment || false;
       }
 
       // Handle steps update
@@ -598,22 +612,76 @@ export function EditQuestForm({
 
             <div className="flex items-center space-x-3">
               <Checkbox
-                id="with_evidence"
-                checked={watch("with_evidence") || false}
+                id="manual_submission"
+                checked={watch("manual_submission") || false}
                 onCheckedChange={(checked: boolean) => {
-                  setValue("with_evidence", checked === true);
+                  setValue("manual_submission", checked === true);
+                  // Reset both checkboxes when manual submission is unchecked
+                  if (!checked) {
+                    setValue("with_evidence", false);
+                    setValue("requires_attachment", false);
+                  }
                 }}
               />
               <Label 
-                htmlFor="with_evidence" 
+                htmlFor="manual_submission" 
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Manual Submission Quest
               </Label>
             </div>
             <div className="text-xs text-muted-foreground ml-6">
-              Check this box if the quest requires manual submission and evidence verification
+              Check this box if the quest requires manual submission and verification
             </div>
+
+            {/* URL and Attachment options - only visible when manual_submission is checked */}
+            {watch("manual_submission") && (
+              <div className="ml-6 space-y-4 border-l-2 border-gray-200 pl-4">
+                {/* URL Submission checkbox */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="with_evidence"
+                      checked={watch("with_evidence") || false}
+                      onCheckedChange={(checked: boolean) => {
+                        setValue("with_evidence", checked === true);
+                      }}
+                    />
+                    <Label 
+                      htmlFor="with_evidence" 
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      URL Submission Required
+                    </Label>
+                  </div>
+                  <div className="text-xs text-muted-foreground ml-6">
+                    Check if users need to provide a URL as evidence (e.g., social media post link)
+                  </div>
+                </div>
+
+                {/* Attachment Requirement checkbox */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      id="requires_attachment"
+                      checked={watch("requires_attachment") || false}
+                      onCheckedChange={(checked: boolean) => {
+                        setValue("requires_attachment", checked === true);
+                      }}
+                    />
+                    <Label 
+                      htmlFor="requires_attachment" 
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Attachment Required
+                    </Label>
+                  </div>
+                  <div className="text-xs text-muted-foreground ml-6">
+                    Check if users must provide an attachment (image, document, etc.) as evidence
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

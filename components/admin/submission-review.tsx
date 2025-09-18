@@ -66,7 +66,9 @@ import {
   Grid3X3,
   List,
   Table as TableIcon,
-  Shield
+  Shield,
+  Download,
+  Paperclip
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -93,6 +95,7 @@ interface Submission {
   questPoints: number;
   questDifficulty: 'beginner' | 'intermediate' | 'advanced';
   evidence?: string; 
+  attachment?: string; // Path to attached file (e.g., "attachment/1758208791024.png")
   user?: {
     name: string;
     email: string;
@@ -201,10 +204,48 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
 
   const [viewMode, setViewMode] = useState<'card' | 'table' | 'list'>('card');
 
- useEffect(()=>{
-  console.log('submissions',submissions)
-  console.log('quests',quests)
- },[submissions,quests])
+  const handleDownloadAttachment = async (attachment: string) => {
+    try {
+
+      const filename = attachment.replace('attachment/', '');
+
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://hedera-quests.com';
+
+      const downloadUrl = `${baseUrl}/uploads/attachment/${filename}`;
+      
+      console.log('download URL:', downloadUrl);
+      
+      const response = await fetch(downloadUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Error downloading attachment:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download attachment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   // Load submissions and quests on component mount
   useEffect(() => {
@@ -695,6 +736,19 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                       </TableCell>
                       <TableCell>
                         <div className="max-w-xs space-y-2">
+                          {/* Show attachment indicator if present */}
+                          {submission.attachment && (
+                            <div className="mb-2">
+                              <div className="flex items-center gap-1 mb-1">
+                                <Paperclip className="w-3 h-3 text-purple-500" />
+                                <span className="text-xs font-mono font-semibold text-purple-600 dark:text-purple-400">[ATTACHMENT]</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground font-mono bg-purple-50 dark:bg-purple-950/20 border border-dashed border-purple-200 dark:border-purple-800 px-2 py-1 rounded">
+                                {submission.attachment.replace('attachment/', '')}
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Show evidence URL for manual submission quests */}
                           {selectedQuest?.with_evidence && submission.evidence && (
                             <div className="mb-2">
@@ -798,6 +852,18 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                             <Eye className="w-3 h-3 mr-1" />
                             [DETAILS]
                           </Button>
+                          {/* Download button for attachments */}
+                          {submission.attachment && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadAttachment(submission.attachment!)}
+                              className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-dashed border-purple-500/30 text-purple-500 hover:bg-purple-500/20 font-mono text-xs"
+                            >
+                              <Download className="w-3 h-3 mr-1" />
+                              [DOWNLOAD]
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

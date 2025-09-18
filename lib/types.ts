@@ -90,7 +90,9 @@ export interface Quest {
   progress_to_add?: number;
   user_status?: string;
   quest_steps?: string;
+  manual_submission?: boolean;
   with_evidence?: boolean;
+  requires_attachment?: boolean;
 }
 
 export interface Submission {
@@ -269,6 +271,9 @@ export interface UpdateQuestRequest {
   endDate?: string;
   maxParticipants?: number;
   badgeIds?: number[];
+  manual_submission?: boolean;
+  with_evidence?: boolean;
+  requires_attachment?: boolean;
 }
 
 export interface UpdateQuestResponse {

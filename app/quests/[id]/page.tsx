@@ -64,6 +64,10 @@ import {
   Share,
   XCircle,
   Info,
+  Upload,
+  X,
+  FileText,
+  Image,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -96,6 +100,9 @@ export default function QuestDetailPage() {
   const [modalPlatform, setModalPlatform] = useState<string>('');
   const [evidenceUrl, setEvidenceUrl] = useState<string>('');
   const [evidenceError, setEvidenceError] = useState<string | null>(null);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [questStats, setQuestStats] = useState<{
     validated: number;
     all: number;
@@ -200,6 +207,71 @@ export default function QuestDetailPage() {
     }
   };
 
+  // File validation constants
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+  const ALLOWED_FILE_TYPES = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/svg+xml',
+    'application/pdf'
+  ];
+
+  const validateAttachmentFile = (file: File): boolean => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setAttachmentError('File size must be less than 10MB');
+      return false;
+    }
+
+    // Check file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      setAttachmentError('Only images (JPEG, PNG, GIF, WebP, BMP, SVG) and PDF files are allowed');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setAttachmentError(null);
+    
+    if (!file) {
+      setAttachmentFile(null);
+      return;
+    }
+
+    if (validateAttachmentFile(file)) {
+      setAttachmentFile(file);
+    } else {
+      // Clear the input
+      e.target.value = '';
+      setAttachmentFile(null);
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachmentFile(null);
+    setAttachmentError(null);
+    // Clear file input
+    const fileInput = document.getElementById('attachment-file') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const handleStartQuest = (e: React.MouseEvent) => {
     if (quest?.platform_type && ['twitter', 'facebook', 'discord', 'linkedin'].includes(quest.platform_type.toLowerCase())) {
       if (!isAccountLinked(quest.platform_type)) {
@@ -283,6 +355,14 @@ export default function QuestDetailPage() {
       }
     }
 
+    // Validate attachment for quests that require it
+    if (quest.requires_attachment) {
+      if (!attachmentFile) {
+        setAttachmentError('Please upload an attachment file');
+        return;
+      }
+    }
+
     setVerifying(true);
     setVerifyMessage(null);
     setShowVerifyDialog(false);
@@ -297,13 +377,34 @@ export default function QuestDetailPage() {
     try {
       const apiWithToken = createApiClientWithToken(session.user.token);
       
-      // Prepare payload
-      const payload: any = {};
-      if (quest.with_evidence && evidenceUrl) {
-        payload.evidence = sanitizeUrl(evidenceUrl);
-      }
+      // Check if we need to use FormData (for file uploads)
+      if (quest.requires_attachment && attachmentFile) {
+        // Use FormData for file uploads
+        const formData = new FormData();
+        
+        // Add evidence URL if provided
+        if (quest.with_evidence && evidenceUrl) {
+          formData.append('evidence', sanitizeUrl(evidenceUrl));
+        }
+        
+        // Add attachment file
+        formData.append('attachment', attachmentFile);
 
-      await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`, payload);
+        // Send FormData request
+        await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } else {
+        // Use regular JSON payload for non-file requests
+        const payload: any = {};
+        if (quest.with_evidence && evidenceUrl) {
+          payload.evidence = sanitizeUrl(evidenceUrl);
+        }
+
+        await apiWithToken.post(`/quest-completions/quests/${quest.id}/verify`, payload);
+      }
       
       // Dismiss loading toast
       loadingToast.dismiss();
@@ -320,9 +421,17 @@ export default function QuestDetailPage() {
       // Update quest status to pending instead of reloading
       setQuest(prev => prev ? { ...prev, user_status: "pending" } : prev);
       
-      // Reset evidence URL
+      // Reset form data
       setEvidenceUrl('');
       setEvidenceError(null);
+      setAttachmentFile(null);
+      setAttachmentError(null);
+      
+      // Clear file input
+      const fileInput = document.getElementById('attachment-file') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
     } catch (error: any) {
       // Dismiss loading toast
       loadingToast.dismiss();
@@ -379,6 +488,9 @@ export default function QuestDetailPage() {
     // Reset evidence URL and error when opening dialog
     setEvidenceUrl('');
     setEvidenceError(null);
+    // Reset attachment state
+    setAttachmentFile(null);
+    setAttachmentError(null);
     setShowVerifyDialog(true);
   };
 
@@ -631,6 +743,105 @@ export default function QuestDetailPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Attachment Upload Section */}
+                  {quest.requires_attachment && (
+                    <div className="mt-4 sm:mt-6 p-4 sm:p-6 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                          <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <h3 className="font-semibold text-base sm:text-lg">Upload Attachment</h3>
+                        </div>
+                        
+                        <div className="space-y-2 sm:space-y-3">
+                          <Label htmlFor="attachment-file" className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-100">
+                            Attachment File *
+                          </Label>
+                          
+                          {!attachmentFile ? (
+                            <div className="relative">
+                              <input
+                                id="attachment-file"
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={handleAttachmentChange}
+                                className="hidden"
+                                aria-describedby={attachmentError ? "attachment-error" : "attachment-help"}
+                              />
+                              <label
+                                htmlFor="attachment-file"
+                                className={cn(
+                                  "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors",
+                                  attachmentError 
+                                    ? "border-red-300 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30" 
+                                    : "border-green-300 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/30"
+                                )}
+                              >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                  <Upload className="w-8 h-8 mb-4 text-green-500 dark:text-green-400" />
+                                  <p className="mb-2 text-sm text-green-700 dark:text-green-300">
+                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-green-600 dark:text-green-400">
+                                    Images or PDF (MAX. 10MB)
+                                  </p>
+                                </div>
+                              </label>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border border-green-200 dark:border-green-800 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                  {attachmentFile.type.startsWith('image/') ? (
+                                    <Image className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                  ) : (
+                                    <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                    {attachmentFile.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatFileSize(attachmentFile.size)}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={removeAttachment}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                aria-label="Remove attachment"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
+
+                          {attachmentError && (
+                            <p 
+                              id="attachment-error" 
+                              className="text-xs sm:text-sm text-red-600 flex items-center gap-1"
+                            >
+                              <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                              {attachmentError}
+                            </p>
+                          )}
+
+                          {/* <div id="attachment-help" className="text-xs text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                            <p className="font-medium mb-2">Supported file formats:</p>
+                            <ul className="list-disc list-inside space-y-1">
+                              <li>Images: JPEG, PNG, GIF, WebP, BMP, SVG</li>
+                              <li>Documents: PDF</li>
+                              <li>Maximum file size: 10MB</li>
+                            </ul>
+                          </div> */}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Quest Details Grid */}
@@ -836,8 +1047,8 @@ export default function QuestDetailPage() {
           id="verify-dialog-description"
           className="text-base leading-relaxed"
         >
-          {quest?.with_evidence 
-            ? "Please confirm that you have completed all quest requirements and provided evidence above. This action will submit your completion for verification."
+          {quest?.with_evidence || quest?.requires_attachment
+            ? `Please confirm that you have completed all quest requirements${quest?.with_evidence ? ' and provided evidence' : ''}${quest?.requires_attachment ? ' and uploaded the required attachment' : ''} above. This action will submit your completion for verification.`
             : "Please confirm that you have completed all quest requirements. This action will submit your completion for verification."
           }
         </AlertDialogDescription>
@@ -854,9 +1065,12 @@ export default function QuestDetailPage() {
           onClick={handleVerifyQuest}
           className="px-6 bg-green-600 hover:bg-green-700"
           aria-label="Confirm quest verification"
-          disabled={quest?.with_evidence && (!evidenceUrl || !!evidenceError)}
+          disabled={
+            (quest?.with_evidence && (!evidenceUrl || !!evidenceError)) ||
+            (quest?.requires_attachment && (!attachmentFile || !!attachmentError))
+          }
         >
-          {quest?.with_evidence ? 'Submit Evidence' : 'Verify Now'}
+          {quest?.with_evidence || quest?.requires_attachment ? 'Submit Evidence' : 'Verify Now'}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

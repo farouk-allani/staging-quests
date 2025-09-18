@@ -26,7 +26,9 @@ interface CreateQuestFormData {
   createdBy?: number;
   added_by?: number;
   steps?: string[];
+  manual_submission?: boolean;
   with_evidence?: boolean;
+  requires_attachment?: boolean;
 }
 
 // Input sanitization helper
@@ -161,7 +163,9 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         createdBy: session?.user?.id ? Number(session.user.id) : undefined,
         added_by: session?.user?.id ? Number(session.user.id) : undefined,
         steps: steps.filter(step => step.trim() !== ''), // Only include non-empty steps
-        with_evidence: data.with_evidence || false, // Include the manual submission flag
+        manual_submission: data.manual_submission || false, // Include the manual submission flag
+        with_evidence: data.with_evidence || false, // Include the URL submission flag
+        requires_attachment: data.requires_attachment || false, // Include the attachment requirement flag
       };
 
       await QuestService.createQuest(questData, session?.user?.token);

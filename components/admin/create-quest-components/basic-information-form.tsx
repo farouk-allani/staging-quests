@@ -13,7 +13,9 @@ interface BasicInformationFormProps {
 }
 
 export function BasicInformationForm({ register, watch, setValue }: BasicInformationFormProps) {
+  const manualSubmission = watch?.('manual_submission') || false;
   const withEvidence = watch?.('with_evidence') || false;
+  const requiresAttachment = watch?.('requires_attachment') || false;
 
   return (
     <div className="space-y-6">
@@ -47,22 +49,76 @@ export function BasicInformationForm({ register, watch, setValue }: BasicInforma
         </div>
         <div className="flex items-center space-x-3">
           <Checkbox
-            id="with_evidence"
-            checked={withEvidence}
+            id="manual_submission"
+            checked={manualSubmission}
             onCheckedChange={(checked) => {
-              setValue?.('with_evidence', checked === true);
+              setValue?.('manual_submission', checked === true);
+              // Reset both checkboxes when manual submission is unchecked
+              if (!checked) {
+                setValue?.('with_evidence', false);
+                setValue?.('requires_attachment', false);
+              }
             }}
           />
           <Label 
-            htmlFor="with_evidence" 
+            htmlFor="manual_submission" 
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             Manual Submission Quest
           </Label>
         </div>
         <div className="text-xs text-muted-foreground ml-6">
-          Check this box if the quest requires manual submission and evidence verification
+          Check this box if the quest requires manual submission and verification
         </div>
+        
+        {/* URL and Attachment options - only visible when manual_submission is checked */}
+        {manualSubmission && (
+          <div className="ml-6 space-y-4 border-l-2 border-gray-200 pl-4">
+            {/* URL Submission checkbox */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="with_evidence"
+                  checked={withEvidence}
+                  onCheckedChange={(checked) => {
+                    setValue?.('with_evidence', checked === true);
+                  }}
+                />
+                <Label 
+                  htmlFor="with_evidence" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  URL Submission Required
+                </Label>
+              </div>
+              <div className="text-xs text-muted-foreground ml-6">
+                Check if users need to provide a URL as evidence (e.g., social media post link)
+              </div>
+            </div>
+
+            {/* Attachment Requirement checkbox */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="requires_attachment"
+                  checked={requiresAttachment}
+                  onCheckedChange={(checked) => {
+                    setValue?.('requires_attachment', checked === true);
+                  }}
+                />
+                <Label 
+                  htmlFor="requires_attachment" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Attachment Required
+                </Label>
+              </div>
+              <div className="text-xs text-muted-foreground ml-6">
+                Check if users must provide an attachment (image, document, etc.) as evidence
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
