@@ -34,17 +34,20 @@ export function AuthPage() {
     setCurrentFlow('otp-verification');
   };
 
-  const renderAuthForm = () => {
+  const renderAuthForm = (isMobile = false) => {
+    const formProps = { isMobile };
+    
     switch (currentFlow) {
       case 'login':
         return (
-          <LoginForm onSwitchToRegister={handleSwitchToRegister} />
+          <LoginForm onSwitchToRegister={handleSwitchToRegister} {...formProps} />
         );
       case 'register':
         return (
           <RegisterForm 
             onSwitchToLogin={handleSwitchToLogin}
             onRegistrationSuccess={handleRegistrationSuccess}
+            {...formProps}
           />
         );
       case 'otp-verification':
@@ -53,10 +56,11 @@ export function AuthPage() {
             email={registrationData.email}
             token={registrationData.token}
             onBack={handleSwitchToLogin}
+            {...formProps}
           />
         ) : null;
       default:
-        return <LoginForm onSwitchToRegister={handleSwitchToRegister} />;
+        return <LoginForm onSwitchToRegister={handleSwitchToRegister} {...formProps} />;
     }
   };
 
@@ -78,61 +82,113 @@ export function AuthPage() {
               , backgroundSize: '12px 12px'
             }}
           />
-      <div className="relative w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        {/* Left Side - Branding */}
-        <div className="text-white space-y-8 text-center lg:text-left">
-          <div className="space-y-4">
-            <div className="flex items-center justify-center lg:justify-start gap-3">
-              <h1 className={`font-pixel text-4xl font-bold tracking-wider`}>Hedera Quest</h1>
-            </div>
-            <p className="text-xl text-purple-200">
-              Master the Hedera ecosystem through gamified learning
-            </p>
+      <div className="relative w-full max-w-6xl">
+        {/* Mobile Layout - Auth Form First */}
+        <div className="lg:hidden flex flex-col">
+          {/* Auth Form - Full Width Mobile */}
+          <div className="w-full">
+            {renderAuthForm(true)}
           </div>
+          
+          {/* Branding - Mobile */}
+          <div className="text-white space-y-6 text-center p-4 mt-8">
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                <h1 className={`font-pixel text-3xl font-bold tracking-wider`}>Hedera Quest</h1>
+              </div>
+              <p className="text-lg text-purple-200">
+                Master the Hedera ecosystem through gamified learning
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-black/30 border-2 border-cyan-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
-              <Users className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
-              <h3 className={`font-pixel mb-2`}>Join the Community</h3>
-              <p className="text-sm text-purple-200">
-                Connect with developers and learners worldwide
-              </p>
-            </div>
-            
-            <div className="bg-black/30 border-2 border-green-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
-              <Target className="w-8 h-8 text-green-400 mx-auto mb-3" />
-              <h3 className={`font-pixel mb-2`}>Complete Quests</h3>
-              <p className="text-sm text-purple-200">
-                Learn by doing with hands-on challenges
-              </p>
-            </div>
-            
-            <div className="bg-black/30 border-2 border-yellow-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
-              <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-              <h3 className={`font-pixel mb-2`}>Earn Rewards</h3>
-              <p className="text-sm text-purple-200">
-                Collect badges and climb the leaderboard
-              </p>
-            </div>
-            
-            <div className="bg-black/30 border-2 border-purple-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
-              <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-              <h3 className={`font-pixel mb-2`}>Level Up</h3>
-              <p className="text-sm text-purple-200">
-                Track your progress and showcase skills
-              </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-black/30 border-2 border-cyan-400 rounded-none p-4 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Users className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                <h3 className={`font-pixel text-sm mb-1`}>Join Community</h3>
+                <p className="text-xs text-purple-200">
+                  Connect with developers
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-green-400 rounded-none p-4 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Target className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                <h3 className={`font-pixel text-sm mb-1`}>Complete Quests</h3>
+                <p className="text-xs text-purple-200">
+                  Learn by doing
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-yellow-400 rounded-none p-4 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Star className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                <h3 className={`font-pixel text-sm mb-1`}>Earn Rewards</h3>
+                <p className="text-xs text-purple-200">
+                  Collect badges
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-purple-400 rounded-none p-4 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Trophy className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                <h3 className={`font-pixel text-sm mb-1`}>Level Up</h3>
+                <p className="text-xs text-purple-200">
+                  Track progress
+                </p>
+              </div>
             </div>
           </div>
-
-
-
-
-
         </div>
 
-        {/* Right Side - Auth Form */}
-        <div className="flex justify-center lg:justify-end">
-          {renderAuthForm()}
+        {/* Desktop Layout - Side by Side */}
+        <div className="hidden lg:grid grid-cols-2 gap-8 items-center">
+          {/* Left Side - Branding */}
+          <div className="text-white space-y-8 text-left">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <h1 className={`font-pixel text-4xl font-bold tracking-wider`}>Hedera Quest</h1>
+              </div>
+              <p className="text-xl text-purple-200">
+                Master the Hedera ecosystem through gamified learning
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-black/30 border-2 border-cyan-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Users className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
+                <h3 className={`font-pixel mb-2`}>Join the Community</h3>
+                <p className="text-sm text-purple-200">
+                  Connect with developers and learners worldwide
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-green-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Target className="w-8 h-8 text-green-400 mx-auto mb-3" />
+                <h3 className={`font-pixel mb-2`}>Complete Quests</h3>
+                <p className="text-sm text-purple-200">
+                  Learn by doing with hands-on challenges
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-yellow-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+                <h3 className={`font-pixel mb-2`}>Earn Rewards</h3>
+                <p className="text-sm text-purple-200">
+                  Collect badges and climb the leaderboard
+                </p>
+              </div>
+              
+              <div className="bg-black/30 border-2 border-purple-400 rounded-none p-6 text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <Trophy className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                <h3 className={`font-pixel mb-2`}>Level Up</h3>
+                <p className="text-sm text-purple-200">
+                  Track your progress and showcase skills
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Auth Form */}
+          <div className="flex justify-end">
+            {renderAuthForm(false)}
+          </div>
         </div>
       </div>
     </div>

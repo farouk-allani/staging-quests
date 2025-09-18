@@ -18,9 +18,10 @@ interface OtpVerificationProps {
   token: string;
   onBack: () => void;
   onVerificationComplete?: () => void;
+  isMobile?: boolean;
 }
 
-export function OtpVerification({ email, token, onBack, onVerificationComplete }: OtpVerificationProps) {
+export function OtpVerification({ email, token, onBack, onVerificationComplete, isMobile = false }: OtpVerificationProps) {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -234,19 +235,19 @@ export function OtpVerification({ email, token, onBack, onVerificationComplete }
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       }>
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center p-4">
+        <Card className={`w-full ${isMobile ? 'max-w-none border-0 shadow-none bg-transparent' : 'max-w-md'}`}>
+          <CardHeader className={`text-center ${isMobile ? 'p-6 pb-4' : 'p-4'}`}>
             <div className="mx-auto mb-6 w-24 h-24 relative">
               <Image src="/logo.png" alt="Hedera Quest" fill className="object-contain scale-[2.5]" />
             </div>
-            <CardTitle className="text-2xl">Verify Your Email</CardTitle>
-            <p className="text-muted-foreground">
+            <CardTitle className={`text-2xl ${isMobile ? 'text-white' : ''}`}>Verify Your Email</CardTitle>
+            <p className={`${isMobile ? 'text-purple-200' : 'text-muted-foreground'}`}>
               We've sent a 6-digit verification code to
             </p>
             <p className="text-sm font-medium text-primary">{email}</p>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className={`space-y-6 ${isMobile ? 'p-6 pt-2' : ''}`}>
             {/* OTP Input */}
             <div className="space-y-4">
               <div className="flex justify-center gap-2">

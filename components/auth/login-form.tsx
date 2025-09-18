@@ -28,9 +28,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
+  isMobile?: boolean;
 }
 
-export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
+export function LoginForm({ onSwitchToRegister, isMobile = false }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -166,19 +167,19 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       }>
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center p-4">
+        <Card className={`w-full ${isMobile ? 'max-w-none border-0 shadow-none bg-transparent' : 'max-w-md'}`}>
+          <CardHeader className={`text-center ${isMobile ? 'p-6 pb-4' : 'p-4'}`}>
             <div className="mx-auto mb-6 w-24 h-24 relative">
               <Image src="/logo.png" alt="Hedera Quest" fill className="object-contain scale-[2.5]" />
             </div>
-            <CardTitle className="text-2xl">Welcome Back</CardTitle>
-            <p className="text-muted-foreground">Sign in to continue your Hedera journey</p>
+            <CardTitle className={`text-2xl ${isMobile ? 'text-white' : ''}`}>Welcome Back</CardTitle>
+            <p className={`${isMobile ? 'text-purple-200' : 'text-muted-foreground'}`}>Sign in to continue your Hedera journey</p>
           </CardHeader>
           
-          <CardContent>
+          <CardContent className={`${isMobile ? 'p-6 pt-2' : ''}`}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className={`${isMobile ? 'text-white' : ''}`}>Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -195,7 +196,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className={`${isMobile ? 'text-white' : ''}`}>Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
