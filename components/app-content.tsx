@@ -46,6 +46,10 @@ export function AppContent({ children }: { children: React.ReactNode }) {
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const hideFooter = pathname === '/validate-user';
+  
+  // Public routes that don't require authentication
+  const publicRoutes = ['/update-password'];
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
   // Reset check flags when session changes (new login)
   useEffect(() => {
@@ -159,13 +163,24 @@ export function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isPublicRoute) {
     console.log('AppContent: Not authenticated, showing AuthPage');
     return <AuthPage />;
   }
 
-  if (!user) {
+  if (!user && !isPublicRoute) {
     console.log('AppContent: Session exists but no userData, showing AuthPage');
+    return <AuthPage />;
+  }
+
+  // If it's a public route, render the children directly
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
+  // At this point, user should be defined for authenticated routes
+  if (!user) {
+    console.log('AppContent: Unexpected null user for authenticated route');
     return <AuthPage />;
   }
 

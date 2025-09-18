@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { LoginForm } from './login-form';
 import { RegisterForm } from './register-form';
 import { OtpVerification } from './otp-verification';
+import { ForgotPasswordForm } from './forgot-password-form';
 import { Trophy, Star, Users, Target } from 'lucide-react';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
 
 import { User } from '@/lib/types';
 
-type AuthFlow = 'login' | 'register' | 'otp-verification';
+type AuthFlow = 'login' | 'register' | 'otp-verification' | 'forgot-password';
 
 export function AuthPage() {
   const [currentFlow, setCurrentFlow] = useState<AuthFlow>('login');
@@ -29,6 +30,11 @@ export function AuthPage() {
     setRegistrationData(null);
   };
 
+  const handleSwitchToForgotPassword = () => {
+    setCurrentFlow('forgot-password');
+    setRegistrationData(null);
+  };
+
   const handleRegistrationSuccess = (email: string, token: string) => {
     setRegistrationData({ email, token });
     setCurrentFlow('otp-verification');
@@ -40,13 +46,24 @@ export function AuthPage() {
     switch (currentFlow) {
       case 'login':
         return (
-          <LoginForm onSwitchToRegister={handleSwitchToRegister} {...formProps} />
+          <LoginForm 
+            onSwitchToRegister={handleSwitchToRegister}
+            onSwitchToForgotPassword={handleSwitchToForgotPassword}
+            {...formProps} 
+          />
         );
       case 'register':
         return (
           <RegisterForm 
             onSwitchToLogin={handleSwitchToLogin}
             onRegistrationSuccess={handleRegistrationSuccess}
+            {...formProps}
+          />
+        );
+      case 'forgot-password':
+        return (
+          <ForgotPasswordForm
+            onBack={handleSwitchToLogin}
             {...formProps}
           />
         );
@@ -60,7 +77,13 @@ export function AuthPage() {
           />
         ) : null;
       default:
-        return <LoginForm onSwitchToRegister={handleSwitchToRegister} {...formProps} />;
+        return (
+          <LoginForm 
+            onSwitchToRegister={handleSwitchToRegister}
+            onSwitchToForgotPassword={handleSwitchToForgotPassword}
+            {...formProps} 
+          />
+        );
     }
   };
 

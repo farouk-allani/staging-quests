@@ -213,6 +213,66 @@ export const AuthService = {
       console.error('Resend email error:', error);
       throw error;
     }
+  },
+
+  async forgotPassword(payload: { email: string; recaptchaToken?: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
+      
+      const response = await fetch(`${apiUrl}/profile/forget-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to send reset email' }));
+        throw new Error(errorData.message || 'Failed to send reset email');
+      }
+
+      const data = await response.json();
+      console.log('Forgot password response:', data);
+      
+      return { 
+        success: true, 
+        message: data.message || 'Password reset link sent to your email' 
+      };
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  },
+
+  async updatePassword(payload: { newPassword: string; token: string; recaptchaToken?: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com";
+      
+      const response = await fetch(`${apiUrl}/profile/update-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to update password' }));
+        throw new Error(errorData.message || 'Failed to update password');
+      }
+
+      const data = await response.json();
+      console.log('Update password response:', data);
+      
+      return { 
+        success: true, 
+        message: data.message || 'Password updated successfully' 
+      };
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      throw error;
+    }
   }
 };
 

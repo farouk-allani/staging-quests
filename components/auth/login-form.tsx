@@ -28,10 +28,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
+  onSwitchToForgotPassword: () => void;
   isMobile?: boolean;
 }
 
-export function LoginForm({ onSwitchToRegister, isMobile = false }: LoginFormProps) {
+export function LoginForm({ onSwitchToRegister, onSwitchToForgotPassword, isMobile = false }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -238,6 +239,15 @@ export function LoginForm({ onSwitchToRegister, isMobile = false }: LoginFormPro
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={onSwitchToForgotPassword}
+            className="text-sm text-primary hover:underline font-medium"
+          >
+            Forgot your password?
+          </button>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">

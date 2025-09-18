@@ -29,6 +29,22 @@ export class QuestService {
     }
   }
 
+  static async forgotPassword(email: string, recaptchaToken?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      return await ApiAuth.forgotPassword({ email, recaptchaToken });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updatePassword(newPassword: string, token: string, recaptchaToken?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      return await ApiAuth.updatePassword({ newPassword, token, recaptchaToken });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async getCurrentUser(token?: string): Promise<User | null> {
     try {
       if (!token) {
