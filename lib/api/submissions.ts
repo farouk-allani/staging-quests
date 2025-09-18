@@ -47,6 +47,12 @@ export const SubmissionsApi = {
     }
 
     return response.data;
+  },
+
+  async getStats(token?: string): Promise<{ success: boolean; data: { completed: number; pending: number; total: number; rejected: number } }> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/admin/stats/completion');
+    return data;
   }
 };
 

@@ -196,6 +196,8 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const [questSubmissions, setQuestSubmissions] = useState<ExtendedSubmission[]>([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'overview' | 'quest-detail'>('overview');
+  const [stats, setStats] = useState<{ completed: number; pending: number; total: number; rejected: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const [viewMode, setViewMode] = useState<'card' | 'table' | 'list'>('card');
 
@@ -241,14 +243,27 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         const response = await QuestService.getQuestCompletions(session?.user?.token);
         if (response.success) {
           setQuests(response.quests || []);
-          // toast({
-          //   title: "Data Loaded",
-          //   description: `Successfully loaded ${enrichedSubmissions.length} submissions and ${response.quests?.length || 0} quests.`,
-          //   variant: "default",
-          // });
         } else {
           throw new Error('Failed to load quests');
         }
+
+        // Load completion stats
+        try {
+          setStatsLoading(true);
+          const statsData = await QuestService.getCompletionStats(session?.user?.token);
+          setStats(statsData);
+        } catch (statsError) {
+          console.error('Error loading stats:', statsError);
+          // Don't fail the entire load if stats fail, just log it
+          // toast({
+          //   title: "Stats Loading Failed",
+          //   description: "Could not load completion statistics, but other data loaded successfully.",
+          //   variant: "default",
+          // });
+        } finally {
+          setStatsLoading(false);
+        }
+
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -472,6 +487,18 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         description: toastDescription,
         variant: "default",
       });
+
+      // Refresh stats after successful review
+      try {
+        setStatsLoading(true);
+        const updatedStats = await QuestService.getCompletionStats(session?.user?.token);
+        setStats(updatedStats);
+      } catch (statsError) {
+        console.error('Error refreshing stats:', statsError);
+        // Don't show error toast for stats refresh failure
+      } finally {
+        setStatsLoading(false);
+      }
       
     } catch (error: any) {
       // Dismiss loading toast if it exists
@@ -1461,28 +1488,47 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
               )}
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4 rounded-lg border border-dashed border-blue-500/20">
-              <div className="text-2xl font-bold font-mono text-blue-500">{submissions.length}</div>
+              <div className="text-2xl font-bold font-mono text-blue-500 flex items-center">
+                {statsLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  stats?.total
+                )}
+              </div>
               <div className="text-sm text-muted-foreground font-mono">TOTAL_SUBMISSIONS</div>
             </div>
             <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-4 rounded-lg border border-dashed border-yellow-500/20">
-              <div className="text-2xl font-bold font-mono text-yellow-500">{submissions.filter(s => s.status === 'pending').length}</div>
+              <div className="text-2xl font-bold font-mono text-yellow-500 flex items-center">
+                {statsLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  stats?.pending 
+                )}
+              </div>
               <div className="text-sm text-muted-foreground font-mono">PENDING_REVIEW</div>
             </div>
             <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-4 rounded-lg border border-dashed border-green-500/20">
-              <div className="text-2xl font-bold font-mono text-green-500">{submissions.filter(s => s.status === 'approved').length}</div>
-              <div className="text-sm text-muted-foreground font-mono">APPROVED</div>
-            </div>
-            {/* <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-4 rounded-lg border border-dashed border-primary/20">
-              <div className="text-2xl font-bold font-mono text-primary">
-                {submissions.filter(s => s.score !== undefined).length > 0 
-                  ? Math.round(submissions.filter(s => s.score !== undefined).reduce((sum, s) => sum + (s.score || 0), 0) / submissions.filter(s => s.score !== undefined).length)
-                  : 0
-                }
+              <div className="text-2xl font-bold font-mono text-green-500 flex items-center">
+                {statsLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  stats?.completed 
+                )}
               </div>
-              <div className="text-sm text-muted-foreground font-mono">AVG_SCORE</div>
-            </div> */}
+              <div className="text-sm text-muted-foreground font-mono">COMPLETED</div>
+            </div>
+            <div className="bg-gradient-to-r from-red-500/10 to-pink-500/10 p-4 rounded-lg border border-dashed border-red-500/20">
+              <div className="text-2xl font-bold font-mono text-red-500 flex items-center">
+                {statsLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  stats?.rejected 
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground font-mono">REJECTED</div>
+            </div>
           </div>
         </CardContent>
       </Card>

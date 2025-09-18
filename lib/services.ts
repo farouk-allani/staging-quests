@@ -317,6 +317,20 @@ export class QuestService {
     }
   }
 
+  static async getCompletionStats(token?: string): Promise<{ completed: number; pending: number; total: number; rejected: number }> {
+    try {
+      const response = await SubmissionsApi.getStats(token);
+      if (response.success) {
+        return response.data;
+      } else {
+        throw new Error('Failed to fetch completion stats');
+      }
+    } catch (error) {
+      console.error("Error fetching completion stats:", error);
+      throw error;
+    }
+  }
+
   // Badge methods
   static async getUserBadges(userId?: string, token?: string): Promise<Badge[]> {
     try {
