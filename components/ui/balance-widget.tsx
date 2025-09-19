@@ -29,22 +29,22 @@ export function BalanceWidget({
   showClaimButton = true,
   enableAnimations = true 
 }: BalanceWidgetProps) {
-  const { user } = useStore();
+  const { user, refreshUserProfile } = useStore();
   const [isMinimized, setIsMinimized] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Enhanced balance calculations
-  const pointsBalance = user?.total_points || user?.points || 0;
+  // Use total_points as the primary source with fallback for backward compatibility
+  const pointsBalance = user?.total_points ?? user?.points ?? 0;
   const dollarBalance = (pointsBalance * conversionRate).toFixed(3);
   const isPositiveBalance = pointsBalance > 0;
 
   // Debug logging
   console.log('BalanceWidget - User object:', user);
-  console.log('BalanceWidget - Points balance:', pointsBalance);
-  console.log('BalanceWidget - total_points:', user?.total_points);
-  console.log('BalanceWidget - points:', user?.points);
+  console.log('BalanceWidget - Points balance (total_points):', user?.total_points);
+  console.log('BalanceWidget - Points balance (points):', user?.points);
+  console.log('BalanceWidget - Final balance used:', pointsBalance);
 
   // Load saved configuration
   useEffect(() => {
@@ -82,6 +82,41 @@ export function BalanceWidget({
     const timeoutId = setTimeout(saveConfig, 500); // Debounce saves
     return () => clearTimeout(timeoutId);
   }, [saveConfig]);
+
+  // Refresh user data on component mount and when user changes
+  useEffect(() => {
+    if (user) {
+      console.log('BalanceWidget - Refreshing user profile data on mount/user change');
+      refreshUserProfile();
+    }
+  }, [user?.id, refreshUserProfile]);
+
+  // Refresh user data when tab becomes visible (user returns to app)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        console.log('BalanceWidget - Tab became visible, refreshing user data');
+        refreshUserProfile();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, refreshUserProfile]);
+
+  // Periodic refresh every 2 minutes when component is visible and user is logged in
+  useEffect(() => {
+    if (!user) return;
+
+    const refreshInterval = setInterval(() => {
+      if (!document.hidden) {
+        console.log('BalanceWidget - Periodic refresh');
+        refreshUserProfile();
+      }
+    }, 120000); // 2 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [user, refreshUserProfile]);
 
 
 

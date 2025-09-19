@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,12 +8,33 @@ import { DollarSign, Star, Gift, Clock, Sparkles } from 'lucide-react';
 import useStore from '@/lib/store';
 
 export default function RewardsPage() {
-  const { user } = useStore();
+  const { user, refreshUserProfile } = useStore();
   
-  // Points conversion rate should be configurable
-  const pointsBalance = user?.total_points || user?.points || 0;
+  // Use total_points as the primary source with fallback for backward compatibility
+  const pointsBalance = user?.total_points ?? user?.points ?? 0;
   const conversionRate = 0.001; // $0.001 per point (same as balance widget)
   const dollarBalance = (pointsBalance * conversionRate).toFixed(2);
+
+  // Refresh user data on component mount and when user changes
+  useEffect(() => {
+    if (user) {
+      console.log('RewardsPage - Refreshing user profile data on mount/user change');
+      refreshUserProfile();
+    }
+  }, [user?.id, refreshUserProfile]);
+
+  // Refresh user data when tab becomes visible (user returns to app)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        console.log('RewardsPage - Tab became visible, refreshing user data');
+        refreshUserProfile();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user, refreshUserProfile]);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">

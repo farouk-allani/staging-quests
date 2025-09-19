@@ -122,6 +122,7 @@ interface AppState {
   register: (userData: any) => Promise<void>;
   logout: () => void;
   loadCurrentUser: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
   setUser: (user: User) => void;
   loadQuests: () => Promise<void>;
   setSelectedQuest: (quest: Quest | null) => void;
@@ -142,7 +143,7 @@ interface AppState {
 type Theme = 'light' | 'dark';
 
 const useStore = create<AppState>((set, get) => ({
-  // Initial state - don't set authenticated until user data is loaded
+ 
   user: null,
   isAuthenticated: false,
   isLoading: false,
@@ -162,7 +163,7 @@ const useStore = create<AppState>((set, get) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      // Use NextAuth signIn instead of direct API call
+
       const result = await signIn('credentials', {
         email,
         password,
@@ -174,7 +175,7 @@ const useStore = create<AppState>((set, get) => ({
       }
 
       if (result?.ok) {
-        // NextAuth will handle the session, we'll get user data from session
+ 
         set({ isLoading: false });
       } else {
         throw new Error('Login failed');
@@ -243,6 +244,66 @@ const useStore = create<AppState>((set, get) => ({
   loadCurrentUser: async () => {
 
     console.log('loadCurrentUser: Using NextAuth session');
+  },
+
+  refreshUserProfile: async () => {
+    const { user } = get();
+    if (!user) {
+      console.log('refreshUserProfile: No user logged in');
+      return;
+    }
+
+    try {
+      // Get session to get token for API call
+      const { getSession } = await import('next-auth/react');
+      const session = await getSession();
+      
+      if (!session?.user?.token) {
+        console.log('refreshUserProfile: No token available');
+        return;
+      }
+
+      console.log('refreshUserProfile: Fetching latest user data from /profile/me');
+      const profileData = await AuthService.me(session.user.token) as any;
+      
+      if (profileData.user || profileData.admin) {
+        const latestUserData = profileData.admin || profileData.user;
+        const isAdmin = profileData.is_admin || false;
+
+        // Update the user with the latest data, preserving existing structure
+        const updatedUser: User = {
+          ...user,
+          id: String(latestUserData.id || user.id),
+          firstName: latestUserData.firstName || user.firstName,
+          lastName: latestUserData.lastName || user.lastName,
+          username: latestUserData.username || user.username,
+          email: latestUserData.email || user.email,
+          bio: latestUserData.bio || user.bio || '',
+          total_points: latestUserData.total_points || 0,
+          points: latestUserData.total_points || 0, // Keep both for compatibility
+          level: latestUserData.userLevel?.level || user.level || 1,
+          email_verified: latestUserData.email_verified || user.email_verified,
+          role: isAdmin ? 'admin' : 'user',
+          userLevel: latestUserData.userLevel || user.userLevel,
+          facebookProfile: latestUserData.facebookProfile || user.facebookProfile,
+          twitterProfile: latestUserData.twitterProfile || user.twitterProfile,
+          discordProfile: latestUserData.discordProfile || user.discordProfile,
+          linkedInProfile: latestUserData.linkedInProfile || user.linkedInProfile,
+          hederaProfile: latestUserData.hederaProfile || user.hederaProfile
+        };
+
+        console.log('refreshUserProfile: Updated user data', {
+          oldPoints: user.total_points || user.points,
+          newPoints: updatedUser.total_points,
+          userId: updatedUser.id
+        });
+
+        set({ user: updatedUser });
+      }
+    } catch (error) {
+      console.error('refreshUserProfile: Failed to refresh user data:', error);
+      // Don't throw - just log the error so UI doesn't break
+    }
   },
 
   setUser: (user: User) => {
