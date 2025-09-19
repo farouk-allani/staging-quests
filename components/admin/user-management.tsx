@@ -8,6 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
   Table,
   TableBody,
   TableCell,
@@ -60,6 +69,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { createApiClientWithToken } from '@/lib/api/client';
+import { cn } from '@/lib/utils';
 
 interface User {
   id?: string;
@@ -80,6 +90,9 @@ interface User {
 interface ApiResponse {
   succes: boolean;
   users: User[];
+  numberOfPages?: number;
+  page?: number;
+  limit?: number;
 }
 
 interface UserManagementProps {
@@ -109,6 +122,10 @@ export function UserManagement({ className }: UserManagementProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  // Removed pageInput in favor of leaderboard-style pagination
 
   // Fetch users from API
   const fetchUsers = async () => {
@@ -117,13 +134,15 @@ export function UserManagement({ className }: UserManagementProps) {
       setError(null);
       const token = session?.user?.token;
       const apiClient = token ? createApiClientWithToken(token) : require('@/lib/api/client').api;
-      const response = await apiClient.get('/user/admin/all');
+      const response = await apiClient.get('/user/admin/all', { params: { page, limit } });
 
       const data: ApiResponse = response.data;
 
       if (data.succes) {
         const transformedUsers = data.users.map(transformUser);
         setUsers(transformedUsers);
+        if (typeof data.numberOfPages === 'number') setTotalPages(data.numberOfPages);
+        if (typeof data.page === 'number' && data.page !== page) setPage(data.page);
       } else {
         throw new Error('Failed to fetch users');
       }
@@ -139,7 +158,9 @@ export function UserManagement({ className }: UserManagementProps) {
   // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page, limit, session?.user?.token]);
+
+  // Removed pageInput sync effect (not needed with numbered pagination)
 
   useEffect(() => {
     let filtered = users;
@@ -170,6 +191,99 @@ export function UserManagement({ className }: UserManagementProps) {
 
     setFilteredUsers(filtered);
   }, [users, searchTerm, statusFilter, roleFilter]);
+
+  // Pagination helpers (match leaderboard UX)
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
+      setPage(newPage);
+    }
+  };
+
+  const renderPaginationItems = () => {
+    const items: JSX.Element[] = [];
+    const showEllipsis = totalPages > 7;
+
+    if (!showEllipsis) {
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={page === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // First page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            onClick={() => handlePageChange(1)}
+            isActive={page === 1}
+            className="cursor-pointer"
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Left ellipsis
+      if (page > 4) {
+        items.push(
+          <PaginationItem key="ellipsis-left">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Pages around current
+      const start = Math.max(2, page - 1);
+      const end = Math.min(totalPages - 1, page + 1);
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={page === i}
+              className="cursor-pointer"
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Right ellipsis
+      if (page < totalPages - 3) {
+        items.push(
+          <PaginationItem key="ellipsis-right">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+
+      // Last page
+      if (totalPages > 1) {
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              onClick={() => handlePageChange(totalPages)}
+              isActive={page === totalPages}
+              className="cursor-pointer"
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    return items;
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -427,6 +541,51 @@ export function UserManagement({ className }: UserManagementProps) {
               </TableBody>
             </Table>
             )}
+          </div>
+
+          {/* Pagination Controls (Leaderboard-style) */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground font-mono">[ROWS_PER_PAGE]</span>
+              <Select value={String(limit)} onValueChange={(val) => { setLimit(Number(val)); setPage(1); }}>
+                <SelectTrigger className="w-24 font-mono border-dashed border-purple-500/30">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="font-mono">
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(page - 1)}
+                      className={cn(
+                        'cursor-pointer',
+                        (loading || page <= 1) && 'pointer-events-none opacity-50'
+                      )}
+                    />
+                  </PaginationItem>
+
+                  {renderPaginationItems()}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(page + 1)}
+                      className={cn(
+                        'cursor-pointer',
+                        (loading || page >= totalPages) && 'pointer-events-none opacity-50'
+                      )}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </div>
 
           {/* Stats Summary */}
