@@ -322,9 +322,9 @@ export class QuestService {
   }
 
   // New method to get paginated submissions for a specific quest
-  static async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, token?: string): Promise<any> {
+  static async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, status?: string, token?: string): Promise<any> {
     try {
-      const response = await SubmissionsApi.getSubmissionsByQuest(questId, page, limit, token);
+      const response = await SubmissionsApi.getSubmissionsByQuest(questId, page, limit, status, token);
       return response;
     } catch (error) {
       console.error("Error fetching submissions by quest:", error);

@@ -28,10 +28,14 @@ export const SubmissionsApi = {
   },
   
   // New endpoint to get paginated submissions by quest
-  async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, token?: string): Promise<any> {
+  async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, status?: string, token?: string): Promise<any> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const params: any = { page, limit };
+    if (status && status !== 'all') {
+      params.status = status;
+    }
     const { data } = await apiClient.get(`/quest-completions/submissions2/${questId}`, {
-      params: { page, limit }
+      params
     });
     return data;
   },

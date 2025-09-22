@@ -30,13 +30,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 // import {
 //   Tabs,
 //   TabsContent,
@@ -210,6 +210,9 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const [statsLoading, setStatsLoading] = useState(false);
 
   const [viewMode, setViewMode] = useState<'card' | 'table' | 'list'>('card');
+  
+  // State for quest submissions status filter
+  const [questStatusFilter, setQuestStatusFilter] = useState('all');
 
   const handleDownloadAttachment = async (attachment: string) => {
     try {
@@ -300,7 +303,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   }, [toast, session?.user?.token]);
 
   // Load submissions for a specific quest with pagination (optimized)
-  const loadQuestSubmissions = async (questId: string, page: number = 1) => {
+  const loadQuestSubmissions = async (questId: string, page: number = 1, statusFilter?: string) => {
     try {
       setLoading(true);
       
@@ -308,6 +311,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         questId,
         page,
         submissionsPerPage,
+        statusFilter || questStatusFilter,
         session?.user?.token
       );
       
@@ -381,6 +385,13 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
 
     setFilteredSubmissions(filtered);
   }, [submissions, searchTerm, statusFilter, difficultyFilter]);
+
+  // Reset quest status filter when switching quests
+  useEffect(() => {
+    if (selectedQuest) {
+      setQuestStatusFilter('all');
+    }
+  }, [selectedQuest]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -480,14 +491,15 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const handleQuestSelect = async (quest: Quest) => {
     setSelectedQuest(quest);
     setView('quest-detail');
+    setQuestStatusFilter('all'); // Reset status filter when selecting a new quest
     // Load submissions for the selected quest
-    await loadQuestSubmissions(quest.id);
+    await loadQuestSubmissions(quest.id, 1, 'all');
   };
 
   // Function to handle page change
   const handlePageChange = (newPage: number) => {
     if (selectedQuest) {
-      loadQuestSubmissions(selectedQuest.id, newPage);
+      loadQuestSubmissions(selectedQuest.id, newPage, questStatusFilter);
     }
   };
 
@@ -777,10 +789,40 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
               <div className="p-1 bg-purple-500/20 rounded border border-dashed border-purple-500/40">
                 <FileText className="w-4 h-4 text-purple-500" />
               </div>
-              SUBMISSIONS_TABLE ({questSubmissions.length})
+              <div className='flex justify-between w-full items-center'>
+              <span>
+              SUBMISSIONS_TABLE
+              </span>
+               {/* Status Filter */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-mono text-muted-foreground">[STATUS_FILTER]:</span>
+                <Select 
+                  value={questStatusFilter} 
+                  onValueChange={(value) => {
+                    setQuestStatusFilter(value);
+                    if (selectedQuest) {
+                      loadQuestSubmissions(selectedQuest.id, 1, value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[180px] bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-dashed border-purple-500/30 font-mono">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="validated">Validated</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
+           
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -1628,7 +1670,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                               <h3 className="font-mono font-medium text-primary">{quest.title}</h3>
                               <p className="text-muted-foreground text-sm font-mono line-clamp-2">{quest.description}</p>
                               <div className="flex justify-between text-sm font-mono">
-                                <span className="text-muted-foreground">Pending: <span className="text-yellow-500 font-bold">{quest.pendingCompletionsCount || 0}</span></span>
+                                <span className="text-muted-foreground">Total: <span className="text-primary font-bold">{quest.pendingCompletionsCount || 0}</span></span>
                               </div>
                             </div>
                           </CardContent>
@@ -1645,7 +1687,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           <TableRow className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-dashed border-primary/20">
                             <TableHead className="font-mono text-primary font-bold">[QUEST_TITLE]</TableHead>
                             <TableHead className="font-mono text-primary font-bold">[DESCRIPTION]</TableHead>
-                            <TableHead className="font-mono text-primary font-bold text-center">[PENDING]</TableHead>
+                            <TableHead className="font-mono text-primary font-bold text-center">[TOTAL]</TableHead>
                             <TableHead className="font-mono text-primary font-bold text-center">[ACTIONS]</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -1709,8 +1751,8 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           </div>
                           <div className="flex items-center gap-4 ml-4">
                             <div className="text-center">
-                              <div className="font-mono text-sm font-bold text-yellow-500">{quest.pendingCompletionsCount || 0}</div>
-                              <div className="font-mono text-xs text-muted-foreground">PENDING</div>
+                              <div className="font-mono text-sm font-bold text-primary">{quest.pendingCompletionsCount || 0}</div>
+                              <div className="font-mono text-xs text-muted-foreground">TOTAL</div>
                             </div>
                             <Button 
                               size="sm" 
