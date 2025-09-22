@@ -69,6 +69,7 @@ import {
   FileText,
   Image,
   UserPlus,
+  RotateCcw,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -412,12 +413,14 @@ export default function QuestDetailPage() {
       
       // Show success toast
       toast({
-        title: "Quest Submitted for Verification! 📋",
-        description: `Your completion of "${quest.title}" has been submitted and is pending for review.`,
+        title: rejectedQuests ? "Quest Resubmitted! 🔄" : "Quest Submitted for Verification! 📋",
+        description: rejectedQuests 
+          ? `Your resubmission of "${quest.title}" has been submitted and is pending for review.`
+          : `Your completion of "${quest.title}" has been submitted and is pending for review.`,
         variant: "default"
       });
       
-      setVerifyMessage('Quest submitted for verification!');
+      setVerifyMessage(rejectedQuests ? 'Quest resubmitted for verification!' : 'Quest submitted for verification!');
       
       // Update quest status to pending instead of reloading
       setQuest(prev => prev ? { ...prev, user_status: "pending" } : prev);
@@ -682,6 +685,33 @@ export default function QuestDetailPage() {
                   <p className="text-sm sm:text-base leading-relaxed text-gray-700 dark:text-gray-300" aria-describedby="quest-title">
                     {quest.description}
                   </p>
+
+                  {/* Rejection Reason Display */}
+                  {rejectedQuests && (quest as any).userSubmission?.rejectionReason && (
+                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-red-800 dark:text-red-200 mb-2">
+                            Quest Submission Rejected
+                          </h3>
+                          <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                            Your quest submission was rejected for the following reason:
+                          </p>
+                          <div className="bg-white dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded p-3">
+                            <p className="text-sm text-red-800 dark:text-red-200 font-medium">
+                              {(quest as any).userSubmission.rejectionReason}
+                            </p>
+                          </div>
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                            Please review the feedback and resubmit your quest when ready.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Manual Submission Indicator */}
                   {/* {quest.with_evidence && (
@@ -987,7 +1017,7 @@ export default function QuestDetailPage() {
           completedQuests
             ? "border-green-500"
             : rejectedQuests
-            ? "border-red-500"
+            ? "border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/20"
             : pendingQuests
             ? "border-yellow-500"
             : isExpired
@@ -995,13 +1025,15 @@ export default function QuestDetailPage() {
             : "border-green-500"
         )}
         disabled={
-          !!isExpired || !!pendingQuests || !!rejectedQuests || !!completedQuests
+          !!isExpired || !!pendingQuests || !!completedQuests
         }
         aria-label={
           verifying
             ? "Verifying quest completion"
             : completedQuests
             ? "Quest already completed"
+            : rejectedQuests
+            ? "Resubmit rejected quest"
             : "Verify quest completion"
         }
       >
@@ -1016,9 +1048,9 @@ export default function QuestDetailPage() {
             Completed
           </span>
         ) : rejectedQuests ? (
-          <span className="flex items-center gap-3 text-red-600">
-            <XCircle className="w-5 h-5 text-red-600" />
-            Rejected
+          <span className="flex items-center gap-2 sm:gap-3 text-orange-600">
+            <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+            Resubmit Quest
           </span>
         ) : isExpired ? (
           <span className="flex items-center gap-3 text-purple-600">
@@ -1044,16 +1076,28 @@ export default function QuestDetailPage() {
           id="verify-dialog-title"
           className="flex items-center gap-2"
         >
-          <CheckSquare className="w-5 h-5 text-green-600" />
-          Verify Quest Completion
+          {rejectedQuests ? (
+            <>
+              <RotateCcw className="w-5 h-5 text-orange-600" />
+              Resubmit Quest
+            </>
+          ) : (
+            <>
+              <CheckSquare className="w-5 h-5 text-green-600" />
+              Verify Quest Completion
+            </>
+          )}
         </AlertDialogTitle>
         <AlertDialogDescription
           id="verify-dialog-description"
           className="text-base leading-relaxed"
         >
-          {quest?.with_evidence || quest?.requires_attachment
-            ? `Please confirm that you have completed all quest requirements${quest?.with_evidence ? ' and provided evidence' : ''}${quest?.requires_attachment ? ' and uploaded the required attachment' : ''} above. This action will submit your completion for verification.`
-            : "Please confirm that you have completed all quest requirements. This action will submit your completion for verification."
+          {rejectedQuests 
+            ? "Please review the rejection feedback above, make the necessary changes, and resubmit your quest completion for review."
+            : (quest?.with_evidence || quest?.requires_attachment
+              ? `Please confirm that you have completed all quest requirements${quest?.with_evidence ? ' and provided evidence' : ''}${quest?.requires_attachment ? ' and uploaded the required attachment' : ''} above. This action will submit your completion for verification.`
+              : "Please confirm that you have completed all quest requirements. This action will submit your completion for verification."
+            )
           }
         </AlertDialogDescription>
       </AlertDialogHeader>
@@ -1067,14 +1111,22 @@ export default function QuestDetailPage() {
         </AlertDialogCancel>
         <AlertDialogAction
           onClick={handleVerifyQuest}
-          className="px-6 bg-green-600 hover:bg-green-700"
-          aria-label="Confirm quest verification"
+          className={cn(
+            "px-6",
+            rejectedQuests
+              ? "bg-orange-600 hover:bg-orange-700"
+              : "bg-green-600 hover:bg-green-700"
+          )}
+          aria-label={rejectedQuests ? "Confirm quest resubmission" : "Confirm quest verification"}
           disabled={
             (quest?.with_evidence && (!evidenceUrl || !!evidenceError)) ||
             (quest?.requires_attachment && (!attachmentFile || !!attachmentError))
           }
         >
-          {quest?.with_evidence || quest?.requires_attachment ? 'Submit Evidence' : 'Verify Now'}
+          {rejectedQuests 
+            ? "Resubmit"
+            : (quest?.with_evidence || quest?.requires_attachment ? 'Submit Evidence' : 'Verify Now')
+          }
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
@@ -1357,6 +1409,14 @@ export default function QuestDetailPage() {
                     <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                       <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
                     </div>
+                  ) : rejectedQuests ? (
+                    <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                      <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                  ) : pendingQuests ? (
+                    <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                      <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
+                    </div>
                   ) : (
                     <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                       <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
@@ -1364,10 +1424,24 @@ export default function QuestDetailPage() {
                   )}
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold">
-                      {isCompleted ? 'Quest Completed' : 'Quest Status'}
+                      {isCompleted 
+                        ? 'Quest Completed' 
+                        : rejectedQuests 
+                        ? 'Quest Rejected' 
+                        : pendingQuests 
+                        ? 'Under Review' 
+                        : 'Quest Status'
+                      }
                     </h3>
                     <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                      {isCompleted ? 'Well done!' : 'Ready to start'}
+                      {isCompleted 
+                        ? 'Well done!' 
+                        : rejectedQuests 
+                        ? 'Needs resubmission' 
+                        : pendingQuests 
+                        ? 'Awaiting validation' 
+                        : 'Ready to start'
+                      }
                     </p>
                   </div>
                 </CardTitle>
@@ -1386,6 +1460,32 @@ export default function QuestDetailPage() {
                     </div>
                     <div className="flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                       <span className="text-sm text-gray-600 dark:text-gray-400">Completion verified ✓</span>
+                    </div>
+                  </div>
+                ) : rejectedQuests ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-3">
+                        <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <span className="font-medium text-red-700 dark:text-red-300">Status</span>
+                      </div>
+                      <span className="text-lg font-bold text-red-600 dark:text-red-400">Rejected</span>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                      <span className="text-sm text-orange-700 dark:text-orange-300">Review feedback and resubmit</span>
+                    </div>
+                  </div>
+                ) : pendingQuests ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                        <span className="font-medium text-yellow-700 dark:text-yellow-300">Status</span>
+                      </div>
+                      <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">Pending</span>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Awaiting admin review</span>
                     </div>
                   </div>
                 ) : (
