@@ -170,6 +170,13 @@ interface Quest {
   totalSubmissions?: number; // Total submissions count
 }
 
+interface QuestStats {
+  validated: number;
+  all: number;
+  approvedRate: number;
+  rejected: number;
+}
+
 interface ExtendedSubmission extends Submission {
   user?: any;
   completedAt?: string;
@@ -208,6 +215,8 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const [view, setView] = useState<'overview' | 'quest-detail'>('overview');
   const [stats, setStats] = useState<{ completed: number; pending: number; total: number; rejected: number } | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [questStats, setQuestStats] = useState<QuestStats | null>(null);
+  const [questStatsLoading, setQuestStatsLoading] = useState(false);
 
   const [viewMode, setViewMode] = useState<'card' | 'table' | 'list'>('card');
   
@@ -361,6 +370,43 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
     }
   };
 
+  // Load quest statistics from API
+  const loadQuestStats = async (questId: string) => {
+    try {
+      setQuestStatsLoading(true);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://hedera-quests.com"}/quest-completions/quest/stats/${questId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setQuestStats(result.data);
+      } else {
+        console.error('Failed to load quest stats:', result);
+        toast({
+          title: "Loading Failed",
+          description: "Failed to load quest statistics. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading quest stats:', error);
+      toast({
+        title: "Loading Failed",
+        description: "Failed to load quest statistics. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setQuestStatsLoading(false);
+    }
+  };
+
   useEffect(() => {
     let filtered = submissions;
 
@@ -494,6 +540,8 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
     setQuestStatusFilter('all'); // Reset status filter when selecting a new quest
     // Load submissions for the selected quest
     await loadQuestSubmissions(quest.id, 1, 'all');
+    // Load quest statistics
+    await loadQuestStats(quest.id);
   };
 
   // Function to handle page change
@@ -764,19 +812,27 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono">
               <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-3 rounded border border-dashed border-primary/20">
                 <div className="text-muted-foreground">TOTAL:</div>
-                <div className="text-primary font-bold text-lg">{selectedQuest.totalSubmissions || questSubmissions.length}</div>
+                <div className="text-primary font-bold text-lg">
+                  {questStatsLoading ? '...' : (questStats?.all ?? questSubmissions.length)}
+                </div>
               </div>
               <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-3 rounded border border-dashed border-yellow-500/20">
                 <div className="text-muted-foreground">PENDING:</div>
-                <div className="text-yellow-500 font-bold text-lg">{selectedQuest.pendingCompletionsCount || questSubmissions.filter(s => s.status === 'pending').length}</div>
+                <div className="text-yellow-500 font-bold text-lg">
+                  {questStatsLoading ? '...' : (questStats ? (questStats.all - questStats.validated - questStats.rejected) : questSubmissions.filter(s => s.status === 'pending').length)}
+                </div>
               </div>
               <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-3 rounded border border-dashed border-green-500/20">
                 <div className="text-muted-foreground">APPROVED:</div>
-                <div className="text-green-500 font-bold text-lg">{questSubmissions.filter(s => s.status === 'approved').length}</div>
+                <div className="text-green-500 font-bold text-lg">
+                  {questStatsLoading ? '...' : (questStats?.validated ?? questSubmissions.filter(s => s.status === 'approved').length)}
+                </div>
               </div>
               <div className="bg-gradient-to-r from-red-500/10 to-rose-500/10 p-3 rounded border border-dashed border-red-500/20">
                 <div className="text-muted-foreground">REJECTED:</div>
-                <div className="text-red-500 font-bold text-lg">{questSubmissions.filter(s => s.status === 'rejected').length}</div>
+                <div className="text-red-500 font-bold text-lg">
+                  {questStatsLoading ? '...' : (questStats?.rejected ?? questSubmissions.filter(s => s.status === 'rejected').length)}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -832,7 +888,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                     <TableHead className="text-muted-foreground font-mono">[SUBMITTED]</TableHead>
                     <TableHead className="text-muted-foreground font-mono">[STATUS]</TableHead>
                     <TableHead className="text-muted-foreground font-mono">[VALIDATION]</TableHead>
-                    <TableHead className="text-muted-foreground font-mono">[ACTIONS]</TableHead>
+                    {/* <TableHead className="text-muted-foreground font-mono">[ACTIONS]</TableHead> */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -981,9 +1037,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-
-                      </TableCell>
+                     
                     </TableRow>
                   ))}
                 </TableBody>
