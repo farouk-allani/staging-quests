@@ -13,11 +13,29 @@ export const SubmissionsApi = {
     const { data } = await apiClient.get('/quest-completions/user/completions');
     return data;
   },
+  
   async getQuestCompletions(token?: string): Promise<any> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const { data } = await apiClient.get('/quest-completions/submissions');
     return data;
   },
+  
+  // New endpoint to get quests with submission counts
+  async getQuestsWithSubmissionCounts(token?: string): Promise<any> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get('/quest-completions/quest/submission-count');
+    return data;
+  },
+  
+  // New endpoint to get paginated submissions by quest
+  async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, token?: string): Promise<any> {
+    const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
+    const { data } = await apiClient.get(`/quest-completions/submissions2/${questId}`, {
+      params: { page, limit }
+    });
+    return data;
+  },
+  
   async submit(questId: string, content: SubmissionContent, token?: string): Promise<Submission> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
     const { data } = await apiClient.post(`/quests/${questId}/submissions`, { content });
@@ -25,7 +43,7 @@ export const SubmissionsApi = {
   },
   async review(
     submissionId: string,
-    payload: { status: 'approved' | 'rejected' | 'needs-revision'; feedback?: string; points?: number },
+    payload: { status: 'approved' | 'rejected' | 'needs-revision'; rejectionReason?: string; points?: number },
     token?: string
   ): Promise<Submission> {
     const apiClient = token ? createApiClientWithToken(token) : require('./client').api;
@@ -34,16 +52,33 @@ export const SubmissionsApi = {
     let endpoint: string;
     let response: any;
 
+    // Prepare the payload with the correct field names for each endpoint
+    let requestPayload: any;
+
     if (payload.status === 'approved') {
       endpoint = `/quest-completions/completions/${submissionId}/validate`;
-      response = await apiClient.put(endpoint, payload);
+      requestPayload = {
+        status: payload.status,
+        points: payload.points
+      };
+      response = await apiClient.put(endpoint, requestPayload);
     } else if (payload.status === 'rejected') {
       endpoint = `/quest-completions/completions/${submissionId}/reject`;
-      response = await apiClient.put(endpoint, payload);
+      requestPayload = {
+        status: payload.status,
+        rejectionReason: payload.rejectionReason, // Ensure we're sending rejectionReason not feedback
+        points: payload.points
+      };
+      response = await apiClient.put(endpoint, requestPayload);
     } else {
       // For needs-revision, use the original review endpoint
       endpoint = `/submissions/${submissionId}/review`;
-      response = await apiClient.post(endpoint, payload);
+      requestPayload = {
+        status: payload.status,
+        feedback: payload.rejectionReason, // This endpoint might expect 'feedback' field
+        points: payload.points
+      };
+      response = await apiClient.post(endpoint, requestPayload);
     }
 
     return response.data;

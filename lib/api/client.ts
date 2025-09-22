@@ -39,7 +39,7 @@ function toApiError(error: AxiosError): ApiError {
 export function createApiClient(baseURL: string): AxiosInstance {
   const instance = axios.create({
     baseURL,
-    timeout: 10000,
+    timeout: 1000000,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

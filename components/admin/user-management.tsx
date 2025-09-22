@@ -589,23 +589,23 @@ export function UserManagement({ className }: UserManagementProps) {
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4 rounded-lg border border-dashed border-blue-500/20">
               <div className="text-2xl font-bold font-mono text-blue-500">{users.length}</div>
               <div className="text-sm text-muted-foreground font-mono">TOTAL_USERS</div>
             </div>
-            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-4 rounded-lg border border-dashed border-green-500/20">
+            {/* <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-4 rounded-lg border border-dashed border-green-500/20">
               <div className="text-2xl font-bold font-mono text-green-500">{users.filter(u => u.email_verified).length}</div>
               <div className="text-sm text-muted-foreground font-mono">VERIFIED_USERS</div>
-            </div>
-            <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 p-4 rounded-lg border border-dashed border-purple-500/20">
+            </div> */}
+            {/* <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 p-4 rounded-lg border border-dashed border-purple-500/20">
               <div className="text-2xl font-bold font-mono text-purple-500">{users.filter(u => u.role === 'admin' || u.role === 'moderator').length}</div>
               <div className="text-sm text-muted-foreground font-mono">STAFF_MEMBERS</div>
-            </div>
-            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-4 rounded-lg border border-dashed border-yellow-500/20">
+            </div> */}
+            {/* <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-4 rounded-lg border border-dashed border-yellow-500/20">
               <div className="text-2xl font-bold font-mono text-yellow-500">{users.filter(u => !u.email_verified).length}</div>
               <div className="text-sm text-muted-foreground font-mono">UNVERIFIED</div>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

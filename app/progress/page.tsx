@@ -310,11 +310,11 @@ export default function ProgressPage() {
                         </div>
                       )}
                       
-                      {submission.points && (
+                      {/* {submission.points && (
                         <div className="text-xs sm:text-sm font-medium font-mono bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent mt-2">
                           +{submission.points} POINTS_EARNED
                         </div>
-                      )}
+                      )} */}
                     </div>
                   ))}
                 </div>

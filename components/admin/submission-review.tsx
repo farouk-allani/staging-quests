@@ -166,6 +166,8 @@ interface Quest {
   description: string;
   with_evidence?: boolean; // Indicates if quest requires manual evidence submission
   completions?: Submission[];
+  pendingCompletionsCount?: string | number; // Count of pending submissions from the optimized API
+  totalSubmissions?: number; // Total submissions count
 }
 
 interface ExtendedSubmission extends Submission {
@@ -196,6 +198,11 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   const [reviewFeedback, setReviewFeedback] = useState('');
   const [quests, setQuests] = useState<Quest[]>([]);
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
+  
+  // Rejection modal state
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [selectedRejectionSubmission, setSelectedRejectionSubmission] = useState<Submission | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [questSubmissions, setQuestSubmissions] = useState<ExtendedSubmission[]>([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'overview' | 'quest-detail'>('overview');
@@ -246,42 +253,20 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
     }
   };
 
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [submissionsPerPage] = useState(10);
 
-  // Load submissions and quests on component mount
+  // Load quests with submission counts on component mount (optimized)
   useEffect(() => {
-    const loadData = async () => {
+    const loadQuestsWithCounts = async () => {
       try {
         setLoading(true);
         
-        // Load submissions
-        const submissionsData = await QuestService.getSubmissions(undefined, undefined,session?.user?.token)
+        // Use the new optimized endpoint to get quests with submission counts
+        const response = await QuestService.getQuestsWithSubmissionCounts(session?.user?.token);
         
-        // Transform basic submission data to match expected format
-        const enrichedSubmissions = submissionsData.map((submission: any, index: number) => ({
-          id: submission.id || `sub-${index + 1}`,
-          questId: submission.questId || `quest-${index + 1}`,
-          userId: submission.userId || `user-${index + 1}`,
-          userName: submission.userName || `User ${index + 1}`,
-          userEmail: submission.userEmail || `user${index + 1}@example.com`,
-          questTitle: submission.questTitle || `Quest ${index + 1}`,
-          questDifficulty: submission.questDifficulty || 'beginner',
-          questPoints: submission.questPoints || 100,
-          status: submission.status || 'pending',
-          submittedAt: submission.submittedAt || new Date().toISOString(),
-          reviewedAt: submission.reviewedAt,
-          content: submission.content || { type: 'text', text: 'Sample submission content' },
-          feedback: submission.feedback,
-          points: submission.points,
-          score: submission.score,
-          description: submission.description || 'Sample submission description',
-          submissionUrl: submission.submissionUrl || submission.content?.url
-        }));
-        
-        // Only use real API data, no sample data
-        setSubmissions(enrichedSubmissions);
-        
-        // Load quests
-        const response = await QuestService.getQuestCompletions(session?.user?.token);
         if (response.success) {
           setQuests(response.quests || []);
         } else {
@@ -295,21 +280,15 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
           setStats(statsData);
         } catch (statsError) {
           console.error('Error loading stats:', statsError);
-          // Don't fail the entire load if stats fail, just log it
-          // toast({
-          //   title: "Stats Loading Failed",
-          //   description: "Could not load completion statistics, but other data loaded successfully.",
-          //   variant: "default",
-          // });
         } finally {
           setStatsLoading(false);
         }
 
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Error loading quests:', error);
         toast({
           title: "Loading Failed",
-          description: "Failed to load submissions and quests. Please refresh the page to try again.",
+          description: "Failed to load quests. Please refresh the page to try again.",
           variant: "destructive",
         });
       } finally {
@@ -317,8 +296,66 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
       }
     };
 
-    loadData();
-  }, [toast]);
+    loadQuestsWithCounts();
+  }, [toast, session?.user?.token]);
+
+  // Load submissions for a specific quest with pagination (optimized)
+  const loadQuestSubmissions = async (questId: string, page: number = 1) => {
+    try {
+      setLoading(true);
+      
+      const response = await QuestService.getSubmissionsByQuest(
+        questId,
+        page,
+        submissionsPerPage,
+        session?.user?.token
+      );
+      
+      if (response.success) {
+        // Transform submissions to match expected format
+        const transformedSubmissions = response.submissions.map((submission: any) => ({
+          id: submission.id,
+          questId: submission.questId,
+          userId: submission.userId,
+          questTitle: selectedQuest?.title || response.quest?.title || 'Unknown Quest', // Fix undefined quest title
+          userName: submission.user?.firstName && submission.user?.lastName
+            ? `${submission.user.firstName} ${submission.user.lastName}`
+            : submission.user?.username || 'Unknown User',
+          userEmail: submission.user?.email || '',
+          status: submission.status || 'pending',
+          submittedAt: submission.completedAt || submission.created_at,
+          reviewedAt: submission.validatedAt,
+          rejectedAt: submission.rejectedAt,
+          reviewedBy: submission.validatedBy,
+          rejectionReason: submission.rejectionReason,
+          evidence: submission.evidence,
+          attachment: submission.attachment,
+          score: submission.score,
+          feedback: submission.rejectionReason,
+          content: submission.content,
+          user: submission.user,
+          created_at: submission.created_at,
+          completedAt: submission.completedAt,
+          questPoints: 0, // Add default values for missing fields
+          questDifficulty: 'beginner',
+          description: ''
+        }));
+        
+        setQuestSubmissions(transformedSubmissions);
+        setCurrentPage(response.page || 1);
+        setTotalPages(response.numberOfPages || 1);
+      }
+    } catch (error) {
+      console.error('Error loading quest submissions:', error);
+      toast({
+        title: "Loading Failed",
+        description: "Failed to load quest submissions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = submissions;
@@ -440,10 +477,46 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
   };
 
   // Function to handle quest selection
-  const handleQuestSelect = (quest: Quest) => {
+  const handleQuestSelect = async (quest: Quest) => {
     setSelectedQuest(quest);
-    setQuestSubmissions(quest.completions || []);
     setView('quest-detail');
+    // Load submissions for the selected quest
+    await loadQuestSubmissions(quest.id);
+  };
+
+  // Function to handle page change
+  const handlePageChange = (newPage: number) => {
+    if (selectedQuest) {
+      loadQuestSubmissions(selectedQuest.id, newPage);
+    }
+  };
+
+  // Function to handle rejection modal opening
+  const handleOpenRejectionModal = (submission: any) => {
+    setSelectedRejectionSubmission(submission);
+    setRejectionReason('');
+    setIsRejectionModalOpen(true);
+  };
+
+  // Function to handle rejection with reason
+  const handleRejectionWithReason = async () => {
+    if (selectedRejectionSubmission && rejectionReason.trim()) {
+      await handleReviewSubmission(
+        selectedRejectionSubmission.id,
+        'rejected',
+        rejectionReason,
+        0
+      );
+      setIsRejectionModalOpen(false);
+      setSelectedRejectionSubmission(null);
+      setRejectionReason('');
+    } else {
+      toast({
+        title: "Rejection Reason Required",
+        description: "Please provide a reason for rejecting this submission.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Function to handle status updates from quick action buttons
@@ -679,11 +752,11 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono">
               <div className="bg-gradient-to-r from-primary/10 to-blue-500/10 p-3 rounded border border-dashed border-primary/20">
                 <div className="text-muted-foreground">TOTAL:</div>
-                <div className="text-primary font-bold text-lg">{questSubmissions.length}</div>
+                <div className="text-primary font-bold text-lg">{selectedQuest.totalSubmissions || questSubmissions.length}</div>
               </div>
               <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-3 rounded border border-dashed border-yellow-500/20">
                 <div className="text-muted-foreground">PENDING:</div>
-                <div className="text-yellow-500 font-bold text-lg">{questSubmissions.filter(s => s.status === 'pending').length}</div>
+                <div className="text-yellow-500 font-bold text-lg">{selectedQuest.pendingCompletionsCount || questSubmissions.filter(s => s.status === 'pending').length}</div>
               </div>
               <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-3 rounded border border-dashed border-green-500/20">
                 <div className="text-muted-foreground">APPROVED:</div>
@@ -697,7 +770,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
           </CardContent>
         </Card>
 
-        {/* Quest Submissions Table */}
+        {/* Quest Submissions Table with Pagination */}
         <Card className="border-2 border-dashed border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-blue-500/5">
           <CardHeader className="bg-gradient-to-r from-purple-500/10 to-blue-500/10">
             <CardTitle className="flex items-center gap-2 font-mono">
@@ -829,7 +902,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleStatusUpdate(submission.id, 'rejected', 'Submission rejected')}
+                            onClick={() => handleOpenRejectionModal(submission)}
                             disabled={submission.status === 'rejected' || loading}
                             className="bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-dashed border-red-500/30 text-red-500 hover:bg-red-500/20 disabled:opacity-50 font-mono text-xs"
                           >
@@ -883,6 +956,39 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                 </div>
               )}
             </div>
+            
+            {/* Pagination Controls */}
+            {questSubmissions.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-dashed border-purple-500/20">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  className="font-mono text-xs border-dashed border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <ArrowLeft className="w-3 h-3 mr-1" />
+                  PREV
+                </Button>
+                
+                <div className="flex items-center gap-1 px-4">
+                  <span className="font-mono text-sm text-muted-foreground">
+                    PAGE {currentPage} / {totalPages}
+                  </span>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  className="font-mono text-xs border-dashed border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  NEXT
+                  <ArrowLeft className="w-3 h-3 ml-1 rotate-180" />
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
         </div>
@@ -1016,9 +1122,14 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
               >
                 [NEEDS_REVISION]
               </Button>
-              <Button 
+              <Button
                 variant="outline"
-                onClick={() => selectedSubmission && handleReviewSubmission(selectedSubmission.id, 'rejected', reviewFeedback, reviewScore)}
+                onClick={() => {
+                  if (selectedSubmission) {
+                    setIsReviewDialogOpen(false);
+                    handleOpenRejectionModal(selectedSubmission);
+                  }
+                }}
                 className="font-mono bg-gradient-to-r from-red-500/10 to-rose-500/10 border border-dashed border-red-500/30 text-red-500 hover:bg-red-500/20"
               >
                 [REJECT]
@@ -1344,6 +1455,85 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
         </DialogContent>
       </Dialog>
 
+      {/* Rejection Modal */}
+      <Dialog open={isRejectionModalOpen} onOpenChange={setIsRejectionModalOpen}>
+        <DialogContent className="max-w-lg font-mono border-2 border-dashed border-red-500/30">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">
+              [REJECT_SUBMISSION]
+            </DialogTitle>
+            <DialogDescription>
+              Provide a reason for rejecting this submission. This will be sent to the user.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRejectionSubmission && (
+            <div className="space-y-4">
+              {/* Submission Info */}
+              <div className="p-3 bg-gradient-to-r from-red-500/5 to-rose-500/5 rounded-lg border border-dashed border-red-500/20">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-muted-foreground">[USER]</span>
+                    <span className="font-mono text-sm">
+                      {selectedRejectionSubmission.user?.firstName && selectedRejectionSubmission.user?.lastName
+                        ? `${selectedRejectionSubmission.user.firstName} ${selectedRejectionSubmission.user.lastName}`
+                        : selectedRejectionSubmission.userName || 'Unknown User'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-muted-foreground">[QUEST]</span>
+                    <span className="font-mono text-sm">
+                      {selectedRejectionSubmission.questTitle || selectedQuest?.title || 'Unknown Quest'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rejection Reason Input */}
+              <div>
+                <label className="text-sm font-medium font-mono text-red-600 mb-2 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  [REJECTION_REASON] *
+                </label>
+                <Textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="font-mono border-dashed border-red-500/30 focus:border-red-500 min-h-[120px]"
+                  placeholder="Please provide a detailed reason for rejecting this submission. This message will help the user understand what needs to be improved..."
+                  required
+                />
+                {rejectionReason.length > 0 && (
+                  <div className="mt-1 text-xs font-mono text-muted-foreground">
+                    Characters: {rejectionReason.length}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsRejectionModalOpen(false);
+                setRejectionReason('');
+                setSelectedRejectionSubmission(null);
+              }}
+              className="font-mono border-dashed border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              [CANCEL]
+            </Button>
+            <Button
+              onClick={handleRejectionWithReason}
+              disabled={!rejectionReason.trim()}
+              className="font-mono bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 disabled:opacity-50"
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              [CONFIRM_REJECTION]
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       </>
     );
   }
@@ -1438,8 +1628,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                               <h3 className="font-mono font-medium text-primary">{quest.title}</h3>
                               <p className="text-muted-foreground text-sm font-mono line-clamp-2">{quest.description}</p>
                               <div className="flex justify-between text-sm font-mono">
-                                <span className="text-muted-foreground">Total: <span className="text-primary font-bold">{quest.completions?.length || 0}</span></span>
-                                <span className="text-muted-foreground">Pending: <span className="text-yellow-500 font-bold">{quest.completions?.filter((c: any) => c.status === 'pending').length || 0}</span></span>
+                                <span className="text-muted-foreground">Pending: <span className="text-yellow-500 font-bold">{quest.pendingCompletionsCount || 0}</span></span>
                               </div>
                             </div>
                           </CardContent>
@@ -1456,7 +1645,6 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           <TableRow className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-b border-dashed border-primary/20">
                             <TableHead className="font-mono text-primary font-bold">[QUEST_TITLE]</TableHead>
                             <TableHead className="font-mono text-primary font-bold">[DESCRIPTION]</TableHead>
-                            <TableHead className="font-mono text-primary font-bold text-center">[TOTAL]</TableHead>
                             <TableHead className="font-mono text-primary font-bold text-center">[PENDING]</TableHead>
                             <TableHead className="font-mono text-primary font-bold text-center">[ACTIONS]</TableHead>
                           </TableRow>
@@ -1471,13 +1659,8 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                               <TableCell className="font-mono font-medium text-primary">{quest.title}</TableCell>
                               <TableCell className="font-mono text-muted-foreground text-sm max-w-xs truncate">{quest.description}</TableCell>
                               <TableCell className="font-mono text-center">
-                                <Badge variant="secondary" className="bg-primary/10 text-primary border border-dashed border-primary/20">
-                                  {quest.completions?.length || 0}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-mono text-center">
                                 <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border border-dashed border-yellow-500/20">
-                                  {quest.completions?.filter((c: any) => c.status === 'pending').length || 0}
+                                  {quest.pendingCompletionsCount || 0}
                                 </Badge>
                               </TableCell>
                               <TableCell className="text-center">
@@ -1526,11 +1709,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                           </div>
                           <div className="flex items-center gap-4 ml-4">
                             <div className="text-center">
-                              <div className="font-mono text-sm font-bold text-primary">{quest.completions?.length || 0}</div>
-                              <div className="font-mono text-xs text-muted-foreground">TOTAL</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="font-mono text-sm font-bold text-yellow-500">{quest.completions?.filter((c: any) => c.status === 'pending').length || 0}</div>
+                              <div className="font-mono text-sm font-bold text-yellow-500">{quest.pendingCompletionsCount || 0}</div>
                               <div className="font-mono text-xs text-muted-foreground">PENDING</div>
                             </div>
                             <Button 
@@ -1693,8 +1872,13 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
             >
               [NEEDS_REVISION]
             </Button>
-            <Button 
-              onClick={() => selectedSubmission && handleReviewSubmission(selectedSubmission.id, 'rejected', reviewFeedback, reviewScore)}
+            <Button
+              onClick={() => {
+                if (selectedSubmission) {
+                  setIsReviewDialogOpen(false);
+                  handleOpenRejectionModal(selectedSubmission);
+                }
+              }}
               className="font-mono bg-gradient-to-r from-red-500 to-pink-500"
             >
               [REJECT]

@@ -310,17 +310,39 @@ export class QuestService {
     }
   }
 
+  // New method to get quests with submission counts (optimized)
+  static async getQuestsWithSubmissionCounts(token?: string): Promise<any> {
+    try {
+      const response = await SubmissionsApi.getQuestsWithSubmissionCounts(token);
+      return response;
+    } catch (error) {
+      console.error("Error fetching quests with submission counts:", error);
+      throw error;
+    }
+  }
+
+  // New method to get paginated submissions for a specific quest
+  static async getSubmissionsByQuest(questId: string, page: number = 1, limit: number = 10, token?: string): Promise<any> {
+    try {
+      const response = await SubmissionsApi.getSubmissionsByQuest(questId, page, limit, token);
+      return response;
+    } catch (error) {
+      console.error("Error fetching submissions by quest:", error);
+      throw error;
+    }
+  }
+
   static async reviewSubmission(
     submissionId: string,
     status: "approved" | "rejected" | "needs-revision",
-    feedback?: string,
+    rejectionReason?: string,
     points?: number,
     token?: string
   ): Promise<Submission> {
     try {
       const response = await SubmissionsApi.review(submissionId, {
         status,
-        feedback,
+        rejectionReason,
         points,
       }, token);
       return {

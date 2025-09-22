@@ -68,6 +68,7 @@ import {
   X,
   FileText,
   Image,
+  UserPlus,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -518,11 +519,10 @@ export default function QuestDetailPage() {
  
 
   const difficultyStars: Record<string, number> = {
-    beginner: 1,
-    intermediate: 2,
-    advanced: 3,
+    easy: 1,
+    medium: 2,
+    hard: 3,
     expert: 4,
-    master: 5,
   };
 
   // const now = new Date();
@@ -565,11 +565,11 @@ export default function QuestDetailPage() {
                           {quest.title}
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                          <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          {/* <Badge className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-semibold rounded-full border-0 shadow-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                             {(quest.category || 'general')
                               .replace('-', ' ')
                               .replace(/^./, (c) => c.toUpperCase())}
-                          </Badge>
+                          </Badge> */}
                           <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 px-2 sm:px-4 py-1 sm:py-2 rounded-full shadow-sm">
                             {Array.from({ length: 4 }, (_, i) => (
                               <span
@@ -585,7 +585,7 @@ export default function QuestDetailPage() {
                               </span>
                             ))}
                             <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-semibold text-yellow-700 dark:text-yellow-300 capitalize">
-                              {quest.difficulty || 'unknown'}
+                              {quest?.difficulty}
                             </span>
                           </div>
                           {completedQuests && (
@@ -872,19 +872,23 @@ export default function QuestDetailPage() {
                   <div className="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div className="p-2 sm:p-3 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
-                        {(quest as any).action_type === 'like' ? (
+                        {(quest as any).interaction_type === 'like' ? (
                           <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
-                        ) : (quest as any).action_type === 'comment' ? (
+                        ) : (quest as any).interaction_type === 'comment' ? (
                           <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
-                        ) : (quest as any).action_type === 'share' ? (
+                           ) : (quest as any).interaction_type === 'follow' ? (
+                          <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
+                        ) : (quest as any).interaction_type === 'share' ? (
                           <Share className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
+
                         ) : (
                           <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400" />
+                          
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 dark:text-white capitalize text-sm sm:text-base break-words">
-                          {(quest as any).action_type || 'View Content'}
+                          {(quest as any).interaction_type || 'View Content'}
                         </h3>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Required action</p>
                       </div>
