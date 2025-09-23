@@ -202,7 +202,7 @@ export function Navbar({ className }: NavbarProps) {
                   </div>
                 ) : (
                   <div className="max-h-96 overflow-y-auto">
-                    {notifications.slice(0, 5).map((notification) => (
+                    {notifications.map((notification) => (
                       <DropdownMenuItem 
                         key={notification.id} 
                         className={`flex-col items-start p-3 cursor-pointer transition-all duration-200 ${
@@ -244,12 +244,12 @@ export function Navbar({ className }: NavbarProps) {
                     ))}
                   </div>
                 )}
-                <DropdownMenuSeparator className="border-dashed border-purple-500/30" />
+                {/* <DropdownMenuSeparator className="border-dashed border-purple-500/30" />
                 <DropdownMenuItem className="justify-center">
                   <Button variant="ghost" size="sm" className="w-full border border-dashed border-purple-500/50 hover:border-cyan-500/50 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-cyan-500/20 font-mono" onClick={() => { fetchNotifications(); fetchUnreadCount(); }}>
                      {notifications.length > 5 ? '[VIEW_ALL_NOTIFICATIONS]' : '[REFRESH]'}
                    </Button>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
 

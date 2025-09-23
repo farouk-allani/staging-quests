@@ -407,12 +407,12 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </div>
               )}
             </ScrollArea>
-            <DropdownMenuSeparator className="border-dashed border-purple-500/30" />
+            {/* <DropdownMenuSeparator className="border-dashed border-purple-500/30" />
             <DropdownMenuItem className="justify-center">
               <Button variant="ghost" size="sm" className="w-full border border-dashed border-purple-500/50 hover:border-cyan-500/50 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-cyan-500/20 font-mono">
                 [VIEW_ALL_NOTIFICATIONS]
               </Button>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
 
