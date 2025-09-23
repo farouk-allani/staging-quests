@@ -29,6 +29,7 @@ interface CreateQuestFormData {
   manual_submission?: boolean;
   with_evidence?: boolean;
   requires_attachment?: boolean;
+  featured?: boolean;
 }
 
 // Input sanitization helper
@@ -166,6 +167,7 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         manual_submission: data.manual_submission || false, // Include the manual submission flag
         with_evidence: data.with_evidence || false, // Include the URL submission flag
         requires_attachment: data.requires_attachment || false, // Include the attachment requirement flag
+        featured: data.featured || false, // Include the featured flag
       };
 
       await QuestService.createQuest(questData, session?.user?.token);

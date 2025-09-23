@@ -70,6 +70,8 @@ export function BasicInformationForm({ register, watch, setValue }: BasicInforma
         <div className="text-xs text-muted-foreground ml-6">
           Check this box if the quest requires manual submission and verification
         </div>
+
+       
         
         {/* URL and Attachment options - only visible when manual_submission is checked */}
         {manualSubmission && (
@@ -119,6 +121,24 @@ export function BasicInformationForm({ register, watch, setValue }: BasicInforma
             </div>
           </div>
         )}
+         <div className="flex items-center space-x-3">
+          <Checkbox
+            id="featured"
+            checked={watch?.('featured') || false}
+            onCheckedChange={(checked) => {
+              setValue?.('featured', checked === true);
+            }}
+          />
+          <Label 
+            htmlFor="featured" 
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Featured Quest
+          </Label>
+        </div>
+        <div className="text-xs text-muted-foreground ml-6">
+          Featured quests are highlighted and shown prominently to users
+        </div>
       </div>
     </div>
   );

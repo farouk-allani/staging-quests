@@ -61,6 +61,7 @@ const editQuestSchema = z.object({
   manual_submission: z.boolean().optional(),
   with_evidence: z.boolean().optional(),
   requires_attachment: z.boolean().optional(),
+  featured: z.boolean().optional(),
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
@@ -167,6 +168,7 @@ export function EditQuestForm({
           manual_submission: questData.manual_submission || false,
           with_evidence: questData.with_evidence || false,
           requires_attachment: questData.requires_attachment || false,
+          featured: questData.featured || false,
         });
         
         // Initialize state variables
@@ -382,6 +384,11 @@ export function EditQuestForm({
       // Handle requires_attachment update
       if (data.requires_attachment !== (quest.requires_attachment || false)) {
         updateData.requires_attachment = data.requires_attachment || false;
+      }
+
+      // Handle featured update
+      if (data.featured !== (quest.featured || false)) {
+        updateData.featured = data.featured || false;
       }
 
       // Handle steps update
@@ -634,6 +641,8 @@ export function EditQuestForm({
               Check this box if the quest requires manual submission and verification
             </div>
 
+           
+
             {/* URL and Attachment options - only visible when manual_submission is checked */}
             {watch("manual_submission") && (
               <div className="ml-6 space-y-4 border-l-2 border-gray-200 pl-4">
@@ -682,6 +691,24 @@ export function EditQuestForm({
                 </div>
               </div>
             )}
+             <div className="flex items-center space-x-3">
+              <Checkbox
+                id="featured"
+                checked={watch("featured") || false}
+                onCheckedChange={(checked: boolean) => {
+                  setValue("featured", checked === true);
+                }}
+              />
+              <Label 
+                htmlFor="featured" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Featured Quest
+              </Label>
+            </div>
+            <div className="text-xs text-muted-foreground ml-6">
+              Featured quests are highlighted and shown prominently to users
+            </div>
           </div>
         </div>
 

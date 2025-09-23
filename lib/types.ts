@@ -93,6 +93,7 @@ export interface Quest {
   manual_submission?: boolean;
   with_evidence?: boolean;
   requires_attachment?: boolean;
+  featured?: boolean;
 }
 
 export interface Submission {
