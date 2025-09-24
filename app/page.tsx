@@ -89,7 +89,7 @@ export default function Dashboard() {
         
         const [statsData, featuredQuestsResponse, completionsData] = await Promise.all([
           QuestService.getDashboardStats(token).catch(() => null),
-          UserQuestService.getFeaturedQuests(1, 6, token).catch(() => ({ success: false, quests: [], page: 1, limit: 6, numberOfPages: 0 })),
+          UserQuestService.getFeaturedQuests(1, 12, token).catch(() => ({ success: false, quests: [], page: 1, limit: 6, numberOfPages: 0 })),
           QuestService.getQuestCompletions(token).catch(() => ({ quests: [] })) // Fallback if API fails
         ]);
 
@@ -114,13 +114,13 @@ export default function Dashboard() {
         // Filter featured quests to only show active ones
         const now = new Date();
 
-        const activeFeaturedQuests = enhancedFeaturedQuests.filter(quest =>
-          (quest.status === 'active' || quest.status === 'published') &&
-          quest.user_status === 'unstarted' &&
-          quest.endDate && new Date(quest.endDate) > now
-        );
+        // const activeFeaturedQuests = enhancedFeaturedQuests.filter(quest =>
+        //   (quest.status === 'active' || quest.status === 'published') &&
+        //   quest.user_status === 'unstarted' &&
+        //   quest.endDate && new Date(quest.endDate) > now
+        // );
 
-        setFeaturedQuests(activeFeaturedQuests);
+        setFeaturedQuests(enhancedFeaturedQuests);
 
 
         // Only load user-specific data if user is authenticated
