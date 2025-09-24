@@ -83,7 +83,7 @@ interface Submission {
   userId: string;
   userName: string;
   userEmail: string;
-  status: 'pending' | 'approved' | 'rejected' | 'needs-revision';
+  status: 'pending' | 'approved' | 'rejected' | 'validated' | 'needs-revision';
   submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
@@ -991,7 +991,7 @@ export default function SubmissionReview({ className }: SubmissionReviewProps = 
                             size="sm"
                             variant="outline"
                             onClick={() => handleStatusUpdate(submission.id, 'approved', 'Submission approved')}
-                            disabled={submission.status === 'approved' || loading}
+                            disabled={submission.status === 'validated' || loading}
                             className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-dashed border-green-500/30 text-green-500 hover:bg-green-500/20 disabled:opacity-50 font-mono text-xs"
                           >
                             <CheckCircle className="w-3 h-3 mr-1" />
