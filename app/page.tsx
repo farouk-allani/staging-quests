@@ -4,12 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { QuestService } from '@/lib/services';
+import { UserQuestService } from '@/lib/user-quest-service';
+import { usePaginatedQuests } from '@/hooks/use-paginated-quests';
 import { DashboardStats, Quest, User, Badge as BadgeType, Submission } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {  ArrowRight, BookOpen } from 'lucide-react';
 import { QuestCard } from '@/components/quests/quest-card';
+import { QuestPagination } from '@/components/quests/quest-pagination';
 import { FeaturedQuestsSection } from '@/components/quests/featured-quests-section';
 import { TodoChecklist } from '@/components/onboarding/todo-checklist';
 import { HeroCarousel } from '@/components/landing/hero-carousel';
@@ -25,7 +28,6 @@ export default function Dashboard() {
   const { setUser } = useStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [featuredQuests, setFeaturedQuests] = useState<Quest[]>([]);
-  const [quests, setQuests] = useState<Quest[]>([]);
   const [badges, setBadges] = useState<BadgeType[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +36,14 @@ export default function Dashboard() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('overview');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Use paginated quests hook for unstarted quests
+  const unstartedQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true, // Load immediately to get count for tab
+    initialFilters: { status: 'unstarted' }
+  });
 
   const user = currentUser || (session?.user?.userData as User | undefined);
   const isAuthenticated = !!session && !!user;
@@ -77,11 +87,14 @@ export default function Dashboard() {
           }
         }
         
-        const [statsData, questsData, completionsData] = await Promise.all([
+        const [statsData, featuredQuestsResponse, completionsData] = await Promise.all([
           QuestService.getDashboardStats(token).catch(() => null),
-          QuestService.getQuests(undefined, token).catch(() => []),
+          UserQuestService.getFeaturedQuests(1, 6, token).catch(() => ({ success: false, quests: [], page: 1, limit: 6, numberOfPages: 0 })),
           QuestService.getQuestCompletions(token).catch(() => ({ quests: [] })) // Fallback if API fails
         ]);
+
+        // Extract featured quests from the new paginated response
+        const featuredQuestsData = featuredQuestsResponse.quests || [];
 
         // Create a map of quest completions for quick lookup
         const completionsMap = new Map();
@@ -91,8 +104,8 @@ export default function Dashboard() {
           });
         }
 
-        // Enhance quests with real completion data
-        const enhancedQuests = questsData.map(quest => ({
+        // Enhance featured quests with real completion data
+        const enhancedFeaturedQuests = featuredQuestsData.map(quest => ({
           ...quest,
           completions: completionsMap.get(String(quest.id)) || quest.completions || 0
         }));
@@ -101,14 +114,14 @@ export default function Dashboard() {
         // Filter featured quests to only show active ones
         const now = new Date();
 
-        const activeQuests = enhancedQuests.filter(quest =>
+        const activeFeaturedQuests = enhancedFeaturedQuests.filter(quest =>
           (quest.status === 'active' || quest.status === 'published') &&
           quest.user_status === 'unstarted' &&
           quest.endDate && new Date(quest.endDate) > now
         );
 
-        setFeaturedQuests(activeQuests.slice(0, 6));
-        setQuests(enhancedQuests);
+        setFeaturedQuests(activeFeaturedQuests);
+
 
         // Only load user-specific data if user is authenticated
         if (user) {
@@ -219,21 +232,31 @@ export default function Dashboard() {
     .filter(s => s.status === 'approved')
     .map(s => s.questId);
 
-  const filteredQuests = quests.filter(quest => {
-    const matchesSearch = quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quest.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // No need for manual loading since autoLoad is now true
+
+  // Update search when search term changes
+  useEffect(() => {
+    if (activeTab === 'quests') {
+      const timeoutId = setTimeout(() => {
+        unstartedQuests.updateFilters({ status: 'unstarted', search: searchTerm });
+      }, 300); // Debounce search
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchTerm, activeTab]);
+
+  const filteredQuests = unstartedQuests.quests.filter((quest: Quest) => {
     const matchesCategory = selectedCategory === 'all' || quest.category === selectedCategory;
     const matchesDifficulty = selectedDifficulty === 'all' || quest.difficulty === selectedDifficulty;
-    const isActive = quest.status === 'active' || quest.status === 'published';
     
-    return matchesSearch && matchesCategory && matchesDifficulty && isActive;
+    return matchesCategory && matchesDifficulty;
   });
 
   const recentActivity = submissions
     .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
     .slice(0, 5);
 
-  const categories = Array.from(new Set(quests.map(q => q.category).filter(Boolean))) as string[];
+  const categories = Array.from(new Set(unstartedQuests.quests.map((q: Quest) => q.category).filter(Boolean))) as string[];
   const difficulties = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
 
   return (
@@ -291,7 +314,7 @@ export default function Dashboard() {
             value="quests" 
             className="text-xs sm:text-sm font-mono data-[state=active]:bg-background data-[state=active]:text-primary py-2 px-1 sm:px-3"
           >
-            QUESTS ({filteredQuests.length})
+            QUESTS ({unstartedQuests.totalItems})
           </TabsTrigger>
           <TabsTrigger 
             value="progress" 
@@ -359,12 +382,20 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">SEARCH</label>
-                  <Input
-                    placeholder="Search quests..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="font-mono border-dashed text-sm"
-                  />
+                  <div className="relative">
+                    {/* Show loading indicator while search is being processed */}
+                    {unstartedQuests.isLoading && searchTerm && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      </div>
+                    )}
+                    <Input
+                      placeholder="Search unstarted quests..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="font-mono border-dashed text-sm pr-10"
+                    />
+                  </div>
                 </div>
                 {/* <div className="space-y-2">
                   <label className="text-sm font-mono text-muted-foreground uppercase tracking-wider">CATEGORY</label>
@@ -403,27 +434,50 @@ export default function Dashboard() {
           </Card>
 
           {/* Quest Grid */}
-          {filteredQuests.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filteredQuests.map((quest) => (
-                <QuestCard 
-                  key={quest.id} 
-                  quest={quest} 
-                  isCompleted={completedQuestIds.includes(String(quest.id))}
-                  onSelect={() => handleQuestSelect(String(quest.id))}
-                />
-              ))}
+          {unstartedQuests.isLoading && unstartedQuests.quests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[300px]">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <p className="text-muted-foreground mt-2 text-sm">Loading quests...</p>
             </div>
           ) : (
-            <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5">
-              <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
-                <div className="text-4xl sm:text-6xl mb-4">TARGET</div>
-                <h3 className="text-base sm:text-lg font-semibold mb-2 font-mono text-primary">NO_QUESTS_FOUND</h3>
-                <p className="text-muted-foreground font-mono text-xs sm:text-sm">
-                  {'>'} Try adjusting your filters or check back later for new quests.
-                </p>
-              </CardContent>
-            </Card>
+            <>
+              {filteredQuests.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {filteredQuests.map((quest: Quest) => (
+                    <QuestCard 
+                      key={quest.id} 
+                      quest={quest} 
+                      isCompleted={completedQuestIds.includes(String(quest.id))}
+                      onSelect={() => handleQuestSelect(String(quest.id))}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5">
+                  <CardContent className="p-6 sm:p-8 lg:p-12 text-center">
+                    <div className="text-4xl sm:text-6xl mb-4">TARGET</div>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 font-mono text-primary">NO_QUESTS_FOUND</h3>
+                    <p className="text-muted-foreground font-mono text-xs sm:text-sm">
+                      {'>'} Try adjusting your filters or check back later for new quests.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pagination */}
+              {unstartedQuests.totalPages > 1 && (
+                <div className="mt-8">
+                  <QuestPagination
+                    currentPage={unstartedQuests.currentPage}
+                    totalPages={unstartedQuests.totalPages}
+                    onPageChange={unstartedQuests.goToPage}
+                    hasNextPage={unstartedQuests.hasNextPage}
+                    hasPreviousPage={unstartedQuests.hasPreviousPage}
+                    isLoading={unstartedQuests.isLoading}
+                  />
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 

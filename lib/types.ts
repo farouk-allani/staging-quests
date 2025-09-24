@@ -300,3 +300,25 @@ export interface UpdateQuestResponse {
   };
   message: string;
 }
+
+// Pagination Types
+export interface PaginatedResponse<T> {
+  success: boolean;
+  page: number;
+  limit: number;
+  data: T[];
+  numberOfPages: number;
+  count: number; // Total count across all pages
+}
+
+export interface UserQuestsResponse extends PaginatedResponse<Quest> {
+  quests: Quest[];
+}
+
+export interface QuestFilters {
+  featured?: boolean;
+  search?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}

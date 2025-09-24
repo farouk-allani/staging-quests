@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Quest, FilterOptions, User } from '@/lib/types';
 import { QuestService } from '@/lib/services';
+import { usePaginatedQuests } from '@/hooks/use-paginated-quests';
 import { QuestCard } from '@/components/quests/quest-card';
 import { QuestFilters } from '@/components/quests/quest-filters';
+import { QuestPagination } from '@/components/quests/quest-pagination';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -15,187 +17,122 @@ import { useSession } from 'next-auth/react';
 
 export default function QuestsPage() {
   const router = useRouter();
-  const [quests, setQuests] = useState<Quest[]>([]);
+  const { data: session } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterOptions>({
-    categories: [],
-    difficulties: [],
-    search: '',
-    showCompleted: false
-  });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
-   const { data: session } = useSession();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
 
+  // Use separate pagination hooks for each tab - load all immediately for tab counts
+  const allQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true,
+    initialFilters: {}
+  });
 
+  const availableQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true, // Load immediately to get count
+    initialFilters: {status: 'unstarted'} // No status filter for available - backend determines availability
+  });
 
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const [questsData, userData] = await Promise.all([
-  //         QuestService.getQuests(filters),
-  //         QuestService.getCurrentUser()
-  //       ]);
-  //       setQuests(Array.isArray(questsData) ? questsData : []);
-  //       setUser(userData);
-  //     } catch (error) {
-  //       console.error('Failed to load quests:', error);
-  //       setQuests([]);
-  //       setUser(null);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  const completedQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true, // Load immediately to get count
+    initialFilters: { status: 'validated' }
+  });
 
-  //   loadData();
-  // }, [filters]);
+  const pendingQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true, // Load immediately to get count
+    initialFilters: { status: 'pending' }
+  });
 
-  
-useEffect(() => {
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [questsData, userData] = await Promise.all([
-        QuestService.getQuests({
-          categories: [],
-          difficulties: [],
-          search: '',
-          showCompleted: false
-        },session?.user?.token), // charge TOUTES les quêtes une seule fois
-        QuestService.getCurrentUser(session?.user?.token)
-      ]);
-      setQuests(Array.isArray(questsData) ? questsData : []);
-      setUser(userData);
-    } catch (error) {
-      console.error('Failed to load quests:', error);
-      setQuests([]);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
+  const rejectedQuests = usePaginatedQuests({
+    initialPage: 1,
+    itemsPerPage: 12,
+    autoLoad: true, // Load immediately to get count
+    initialFilters: { status: 'rejected' }
+  });
+
+  // Get current tab data
+  const getCurrentTabData = () => {
+    switch (activeTab) {
+      case 'available':
+        return availableQuests;
+      case 'completed':
+        return completedQuests;
+      case 'pending':
+        return pendingQuests;
+      case 'rejected':
+        return rejectedQuests;
+      default:
+        return allQuests;
     }
   };
 
-  loadData();
-}, []); // ⬅️ uniquement au montage
+  const currentTabData = getCurrentTabData();
 
 
-  const handleFiltersChange = (newFilters: FilterOptions) => {
-    setFilters(newFilters);
+
+  // Load user data separately
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (session?.user?.token) {
+        try {
+          const userData = await QuestService.getCurrentUser(session.user.token);
+          setUser(userData);
+        } catch (error) {
+          console.error('Failed to load user data:', error);
+          setUser(null);
+        }
+      }
+    };
+
+    loadUserData();
+  }, [session?.user?.token]);
+
+  // Handle tab changes - no need to load data since all tabs are auto-loaded
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
   };
+
+  // Handle search term changes - update current active tab
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      currentTabData.updateFilters({ search: searchTerm });
+    }, 300); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, activeTab]); // Update when search term or active tab changes
+
 
   const handleQuestSelect = (quest: Quest) => {
     router.push(`/quests/${quest.id}`);
   };
 
+  // Helper functions for quest status (still needed for UI display)
+  const now = new Date();
 
+  const isExpired = (quest: Quest): boolean => {
+    return !!quest.endDate && new Date(quest.endDate) < now;
+  };
 
-const now = new Date();
+  const isQuestCompleted = (quest: Quest) => quest.user_status === "validated";
+  const isQuestRejected = (quest: Quest) => quest.user_status === "rejected";
+  const isQuestPending = (quest: Quest) => quest.user_status === "pending";
 
-// const activeQuests = enhancedQuests.filter(quest =>
-//   (quest.status === 'active' || quest.status === 'published') &&
-//   quest.user_status === 'unstarted' &&
-//   quest.endDate && new Date(quest.endDate) > now
-// );
-
-const isExpired = (quest: Quest): boolean => {
-  return !!quest.endDate && new Date(quest.endDate) < now;
-};
-
-
-const isQuestCompleted = (quest: Quest) =>
-  quest.user_status === "validated";
-
-// ✅ Vérifie si la quête est rejetée via user_status
-const isQuestRejected = (quest: Quest) =>
-  quest.user_status === "rejected";
-
-// ✅ Vérifie si la quête est en attente via user_status
-const isQuestPending = (quest: Quest) =>
-  quest.user_status === "pending";
-
-// ✅ Filtrage global (hors complété)
-const baseFilteredQuests = quests.filter((quest) => {
-  const isActive = quest.status === "active" || quest.status === "published";
-  if (!isActive) return false;
-
-  if (
-    filters.search &&
-    !(
-      quest.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-      quest.description?.toLowerCase().includes(filters.search.toLowerCase())
-    )
-  ) {
-    return false;
-  }
-
-  if (
-    filters.categories.length > 0 &&
-    (!quest.category || !filters.categories.includes(quest.category))
-  ) {
-    return false;
-  }
-
-  if (
-    filters.difficulties.length > 0 &&
-    !filters.difficulties.includes(quest.difficulty)
-  ) {
-    return false;
-  }
-
-  return true;
-});
-
-
-// ✅ Filtrage global
-const filteredQuests = quests.filter((quest) => {
-  const isActive = quest.status === "active" || quest.status === "published";
-  if (!isActive) return false;
-
-  const isCompleted = isQuestCompleted(quest);
-
-  if (filters.showCompleted) {
-    // si on veut voir uniquement les complétées
-    if (!isCompleted) return false;
-  } else {
-    // si on veut cacher les complétées
-    if (isCompleted) return false;
-  }
-
-  if (
-    filters.search &&
-    !(
-      quest.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-      quest.description?.toLowerCase().includes(filters.search.toLowerCase())
-    )
-  ) {
-    return false;
-  }
-
-  if (
-    filters.categories.length > 0 &&
-    (!quest.category || !filters.categories.includes(quest.category))
-  ) {
-    return false;
-  }
-
-  if (
-    filters.difficulties.length > 0 &&
-    !filters.difficulties.includes(quest.difficulty)
-  ) {
-    return false;
-  }
-
-  return true;
-});
-
-
-
-  if (isLoading) {
+  // Only show full page loading on very first load of all quests
+  if (allQuests.isLoading && allQuests.quests.length === 0 && activeTab === 'all') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="text-muted-foreground mt-2 text-sm">Loading quests...</p>
       </div>
     );
   }
@@ -212,7 +149,7 @@ const filteredQuests = quests.filter((quest) => {
                 Discover Quests
               </h1>
               <p className="text-muted-foreground font-mono text-xs sm:text-sm">
-                {'>'} Explore {quests.length} quests to master the Hedera ecosystem
+                {'>'} Explore {currentTabData.totalItems} quests to master the Hedera ecosystem
               </p>
             </div>
         
@@ -261,12 +198,18 @@ const filteredQuests = quests.filter((quest) => {
       <div className="relative w-full sm:max-w-md lg:max-w-lg">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-lg" />
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-50" />
+          {/* Show loading indicator while search is being processed */}
+          {currentTabData.isLoading && searchTerm && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            </div>
+          )}
          <Input
   placeholder="> Type to search quests..."
-  className="pl-10 border-2 border-dashed hover:border-solid transition-all duration-200 font-mono bg-background/50 backdrop-blur-sm w-full"
-  value={filters.search}
-  onChange={(e) => handleFiltersChange({ ...filters, search: e.target.value })}
+  className="pl-10 pr-10 border-2 border-dashed hover:border-solid transition-all duration-200 font-mono bg-background/50 backdrop-blur-sm w-full"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
   onKeyDown={(e) => {
     if (e.key === "Enter") {
       e.preventDefault(); 
@@ -305,17 +248,16 @@ const filteredQuests = quests.filter((quest) => {
               </Button>
             </div>
             
-            <QuestFilters
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              className="md:sticky md:top-4"
-            />
+            {/* Filters will be added here later */}
+            <div className="p-4 text-center text-muted-foreground font-mono text-sm">
+              Advanced filters coming soon...
+            </div>
           </div>
         )}
 
         {/* Quest Content */}
         <div className="flex-1 min-w-0">
-          <Tabs defaultValue="all" className="space-y-4 md:space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 md:space-y-6">
             <div className="overflow-x-auto">
               <TabsList className="bg-gradient-to-r from-background via-muted/50 to-background border-2 border-dashed border-muted p-1 w-max md:w-auto">
                
@@ -323,105 +265,124 @@ const filteredQuests = quests.filter((quest) => {
                   value="all"
                   className="font-mono data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-[inset_2px_2px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  All Quests ({baseFilteredQuests.length})
+                  All Quests ({allQuests.totalItems})
                 </TabsTrigger>
                 <TabsTrigger 
                   value="available"
                   className="font-mono data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[inset_2px_2px_0px_0px_rgba(0,0,0,0.1)] transition-all duration-200 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  Available ({baseFilteredQuests.filter((q) => !isQuestCompleted(q) && !isQuestRejected(q) && !isExpired(q) && !isQuestPending(q)).length})
+                  Available ({availableQuests.totalItems})
                 </TabsTrigger>
                 <TabsTrigger 
                   value="completed"
                   className="font-mono data-[state=active]:bg-green-500 data-[state=active]:text-green-900 data-[state=active]:shadow-[inset_2px_2px_0px_0px_rgba(0,255,0,0.1)] transition-all duration-200 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  Completed ({baseFilteredQuests.filter((q) => isQuestCompleted(q)).length})
+                  Completed ({completedQuests.totalItems})
                 </TabsTrigger>
                  <TabsTrigger 
                   value="pending"
                   className="font-mono data-[state=active]:bg-yellow-400 data-[state=active]:text-yellow-900 data-[state=active]:shadow-[inset_2px_2px_0px_0px_rgba(255,255,0,0.1)] transition-all duration-200 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  Pending ({baseFilteredQuests.filter((q) => isQuestPending(q)).length})
+                  Pending ({pendingQuests.totalItems})
                 </TabsTrigger>
            
                 <TabsTrigger 
                   value="rejected"
                   className="font-mono data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground data-[state=active]:shadow-[inset_2px_2px_0px_0px_rgba(255,0,0,0.1)] transition-all duration-200 text-xs sm:text-sm whitespace-nowrap"
                 >
-                  Rejected ({baseFilteredQuests.filter((q) => isQuestRejected(q)).length})
+                  Rejected ({rejectedQuests.totalItems})
                 </TabsTrigger>
              
               </TabsList>
             </div>
 
             <TabsContent value="all" className="space-y-4 md:space-y-6">
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6 mt-4 md:mt-6">
-                  {baseFilteredQuests.map((quest) => (
-                   <QuestCard
-      key={quest.id}
-      quest={quest}
-      isCompleted={isQuestCompleted(quest)}
-      isPending={isQuestPending(quest)}
-      isRejected={isQuestRejected(quest)}
-      isExpired={isExpired(quest)}
-      onSelect={() => handleQuestSelect(quest)}
-    />
-                  ))}
+              {/* Loading state for quest content area only */}
+              {allQuests.isLoading && allQuests.quests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <p className="text-muted-foreground mt-2 text-sm">Loading quests...</p>
                 </div>
               ) : (
-                <div className="space-y-3 md:space-y-4">
-                  {baseFilteredQuests.map((quest) => (
-                    <div key={quest.id} className="border rounded-lg p-4 md:p-6 hover:shadow-md transition-shadow cursor-pointer"
-                         onClick={() => handleQuestSelect(quest)}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-base md:text-lg font-semibold truncate">{quest.title}</h3>
-                            {user?.completedQuests?.includes(String(quest.id)) && (
-                              <div className="w-5 h-5 md:w-6 md:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <div className="w-2 h-2 md:w-3 md:h-3 text-white text-xs">✓</div>
+                <>
+                  {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6 mt-4 md:mt-6">
+                      {allQuests.quests.map((quest) => (
+                       <QuestCard
+          key={quest.id}
+          quest={quest}
+          isCompleted={isQuestCompleted(quest)}
+          isPending={isQuestPending(quest)}
+          isRejected={isQuestRejected(quest)}
+          isExpired={isExpired(quest)}
+          onSelect={() => handleQuestSelect(quest)}
+        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-3 md:space-y-4">
+                      {allQuests.quests.map((quest) => (
+                        <div key={quest.id} className="border rounded-lg p-4 md:p-6 hover:shadow-md transition-shadow cursor-pointer"
+                             onClick={() => handleQuestSelect(quest)}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h3 className="text-base md:text-lg font-semibold truncate">{quest.title}</h3>
+                                {isQuestCompleted(quest) && (
+                                  <div className="w-5 h-5 md:w-6 md:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <div className="w-2 h-2 md:w-3 md:h-3 text-white text-xs">✓</div>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          <p className="text-muted-foreground mb-3 text-sm md:text-base overflow-hidden"
-                             style={{
-                               display: '-webkit-box',
-                               WebkitLineClamp: 2,
-                               WebkitBoxOrient: 'vertical' as const
-                             }}>{quest.description}</p>
-                          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
-                            <span className="capitalize">{(quest.category || 'general').replace('-', ' ')}</span>
-                            <span className="capitalize">{quest.difficulty}</span>
-                            <span>{quest.estimatedTime}</span>
-                            <span>{quest.points} points</span>
+                              <p className="text-muted-foreground mb-3 text-sm md:text-base overflow-hidden"
+                                 style={{
+                                   display: '-webkit-box',
+                                   WebkitLineClamp: 2,
+                                   WebkitBoxOrient: 'vertical' as const
+                                 }}>{quest.description}</p>
+                              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
+                                <span className="capitalize">{(quest.category || 'general').replace('-', ' ')}</span>
+                                <span className="capitalize">{quest.difficulty}</span>
+                                <span>{quest.estimatedTime}</span>
+                                <span>{quest.points || quest.reward} points</span>
+                              </div>
+                            </div>
+                            <Button size="sm" className="flex-shrink-0">
+                              {isQuestCompleted(quest) ? 'Review' : 'Start'}
+                            </Button>
                           </div>
                         </div>
-                        <Button size="sm" className="flex-shrink-0">
-                          {user?.completedQuests?.includes(String(quest.id)) ? 'Review' : 'Start'}
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              {filteredQuests.length === 0 && (
-                <div className="text-center py-8 md:py-12 px-4">
-                  <p className="text-muted-foreground mb-4 text-sm md:text-base">No quests found matching your criteria.</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setFilters({
-                      categories: [],
-                      difficulties: [],
-                      search: '',
-                      showCompleted: false
-                    })}
-                    className="text-sm"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
+                  {/* Pagination */}
+                  {allQuests.totalPages > 1 && (
+                    <div className="mt-8">
+                      <QuestPagination
+                        currentPage={allQuests.currentPage}
+                        totalPages={allQuests.totalPages}
+                        onPageChange={allQuests.goToPage}
+                        hasNextPage={allQuests.hasNextPage}
+                        hasPreviousPage={allQuests.hasPreviousPage}
+                        isLoading={allQuests.isLoading}
+                      />
+                    </div>
+                  )}
+
+                  {allQuests.quests.length === 0 && !allQuests.isLoading && (
+                    <div className="text-center py-8 md:py-12 px-4">
+                      <p className="text-muted-foreground mb-4 text-sm md:text-base">No quests found matching your criteria.</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => allQuests.updateFilters({ search: '' })}
+                        className="text-sm"
+                      >
+                        Clear Search
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
 
@@ -429,81 +390,193 @@ const filteredQuests = quests.filter((quest) => {
 
 
             <TabsContent value="available">
-              <div className={cn(
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
-                  : 'space-y-3 md:space-y-4'
-              )}>
-                {baseFilteredQuests
-                 .filter((q) => !isQuestCompleted(q) && !isQuestRejected(q) && !isExpired(q) && !isQuestPending(q))
-    .map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      isCompleted={false}
-                      onSelect={() => handleQuestSelect(quest)}
-                    />
-                  ))}
-              </div>
+              {/* Loading state for quest content area only */}
+              {availableQuests.isLoading && availableQuests.quests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <p className="text-muted-foreground mt-2 text-sm">Loading available quests...</p>
+                </div>
+              ) : (
+                <>
+                  <div className={cn(
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6'
+                      : 'space-y-3 md:space-y-4'
+                  )}>
+                    {availableQuests.quests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          isCompleted={false}
+                          onSelect={() => handleQuestSelect(quest)}
+                        />
+                      ))}
+                  </div>
+                  
+                  {/* Pagination for Available */}
+                  {availableQuests.totalPages > 1 && (
+                    <div className="mt-8">
+                      <QuestPagination
+                        currentPage={availableQuests.currentPage}
+                        totalPages={availableQuests.totalPages}
+                        onPageChange={availableQuests.goToPage}
+                        hasNextPage={availableQuests.hasNextPage}
+                        hasPreviousPage={availableQuests.hasPreviousPage}
+                        isLoading={availableQuests.isLoading}
+                      />
+                    </div>
+                  )}
+                  
+                  {availableQuests.quests.length === 0 && !availableQuests.isLoading && (
+                    <div className="text-center py-8 md:py-12 px-4">
+                      <p className="text-muted-foreground mb-4 text-sm md:text-base">No available quests found.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="completed">
-              <div className={cn(
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
-                  : 'space-y-3 md:space-y-4'
-              )}>
-                {baseFilteredQuests
-    .filter((q) => isQuestCompleted(q))
-    .map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      isCompleted={true}
-                      onSelect={() => handleQuestSelect(quest)}
-                    />
-                  ))}
-              </div>
+              {/* Loading state for quest content area only */}
+              {completedQuests.isLoading && completedQuests.quests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+                  <p className="text-muted-foreground mt-2 text-sm">Loading completed quests...</p>
+                </div>
+              ) : (
+                <>
+                  <div className={cn(
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6'
+                      : 'space-y-3 md:space-y-4'
+                  )}>
+                    {completedQuests.quests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          isCompleted={true}
+                          onSelect={() => handleQuestSelect(quest)}
+                        />
+                      ))}
+                  </div>
+                  
+                  {/* Pagination for Completed */}
+                  {completedQuests.totalPages > 1 && (
+                    <div className="mt-8">
+                      <QuestPagination
+                        currentPage={completedQuests.currentPage}
+                        totalPages={completedQuests.totalPages}
+                        onPageChange={completedQuests.goToPage}
+                        hasNextPage={completedQuests.hasNextPage}
+                        hasPreviousPage={completedQuests.hasPreviousPage}
+                        isLoading={completedQuests.isLoading}
+                      />
+                    </div>
+                  )}
+                  
+                  {completedQuests.quests.length === 0 && !completedQuests.isLoading && (
+                    <div className="text-center py-8 md:py-12 px-4">
+                      <p className="text-muted-foreground mb-4 text-sm md:text-base">No completed quests found.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="pending">
-              <div className={cn(
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
-                  : 'space-y-3 md:space-y-4'
-              )}>
-                {baseFilteredQuests
-                  .filter((q) => isQuestPending(q))
-                  .map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      isCompleted={false}
-                      isPending={true}
-                      onSelect={() => handleQuestSelect(quest)}
-                    />
-                  ))}
-              </div>
+              {/* Loading state for quest content area only */}
+              {pendingQuests.isLoading && pendingQuests.quests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-500"></div>
+                  <p className="text-muted-foreground mt-2 text-sm">Loading pending quests...</p>
+                </div>
+              ) : (
+                <>
+                  <div className={cn(
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
+                      : 'space-y-3 md:space-y-4'
+                  )}>
+                    {pendingQuests.quests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          isCompleted={false}
+                          isPending={true}
+                          onSelect={() => handleQuestSelect(quest)}
+                        />
+                      ))}
+                  </div>
+                  
+                  {/* Pagination for Pending */}
+                  {pendingQuests.totalPages > 1 && (
+                    <div className="mt-8">
+                      <QuestPagination
+                        currentPage={pendingQuests.currentPage}
+                        totalPages={pendingQuests.totalPages}
+                        onPageChange={pendingQuests.goToPage}
+                        hasNextPage={pendingQuests.hasNextPage}
+                        hasPreviousPage={pendingQuests.hasPreviousPage}
+                        isLoading={pendingQuests.isLoading}
+                      />
+                    </div>
+                  )}
+                  
+                  {pendingQuests.quests.length === 0 && !pendingQuests.isLoading && (
+                    <div className="text-center py-8 md:py-12 px-4">
+                      <p className="text-muted-foreground mb-4 text-sm md:text-base">No pending quests found.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="rejected">
-              <div className={cn(
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
-                  : 'space-y-3 md:space-y-4'
-              )}>
-                {baseFilteredQuests
-                  .filter((q) => isQuestRejected(q))
-                  .map((quest) => (
-                    <QuestCard
-                      key={quest.id}
-                      quest={quest}
-                      isCompleted={false}
-                      isRejected={true}
-                      onSelect={() => handleQuestSelect(quest)}
-                    />
-                  ))}
-              </div>
+              {/* Loading state for quest content area only */}
+              {rejectedQuests.isLoading && rejectedQuests.quests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
+                  <p className="text-muted-foreground mt-2 text-sm">Loading rejected quests...</p>
+                </div>
+              ) : (
+                <>
+                  <div className={cn(
+                    viewMode === 'grid' 
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'
+                      : 'space-y-3 md:space-y-4'
+                  )}>
+                    {rejectedQuests.quests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          isCompleted={false}
+                          isRejected={true}
+                          onSelect={() => handleQuestSelect(quest)}
+                        />
+                      ))}
+                  </div>
+                  
+                  {/* Pagination for Rejected */}
+                  {rejectedQuests.totalPages > 1 && (
+                    <div className="mt-8">
+                      <QuestPagination
+                        currentPage={rejectedQuests.currentPage}
+                        totalPages={rejectedQuests.totalPages}
+                        onPageChange={rejectedQuests.goToPage}
+                        hasNextPage={rejectedQuests.hasNextPage}
+                        hasPreviousPage={rejectedQuests.hasPreviousPage}
+                        isLoading={rejectedQuests.isLoading}
+                      />
+                    </div>
+                  )}
+                  
+                  {rejectedQuests.quests.length === 0 && !rejectedQuests.isLoading && (
+                    <div className="text-center py-8 md:py-12 px-4">
+                      <p className="text-muted-foreground mb-4 text-sm md:text-base">No rejected quests found.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </TabsContent>
           </Tabs>
         </div>
