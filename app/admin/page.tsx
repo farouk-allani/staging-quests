@@ -18,7 +18,8 @@ import {
   CheckCircle,
   AlertCircle,
   XCircle,
-  Shield
+  Shield,
+  DollarSign
 } from 'lucide-react';
 import UserManagement from '@/components/admin/user-management';
 import QuestManagement from '@/components/admin/quest-management';
@@ -32,6 +33,7 @@ const RC: any = ResponsiveContainer as any;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [pointsStats, setPointsStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
 
@@ -39,8 +41,12 @@ export default function AdminDashboard() {
     const loadStats = async () => {
       setIsLoading(true);
       try {
-        const data = await QuestService.getDashboardStats(session?.user?.token);
+        const [data, pointsData] = await Promise.all([
+          QuestService.getDashboardStats(session?.user?.token),
+          QuestService.getPointsStats(session?.user?.token)
+        ]);
         setStats(data);
+        setPointsStats(pointsData);
       } catch (error) {
         console.error('Failed to load admin stats:', error);
       } finally {
@@ -56,6 +62,14 @@ export default function AdminDashboard() {
   const userData = dashboardData?.userData || { count: 0, lastWeek: 0 };
   const approvalData = dashboardData?.approvalRate || { count: 0, lastWeek: 0 };
   const questSubmissionData = dashboardData?.questSubmissionData || { count: 0, lastWeek: 0 };
+
+  // Points data and conversion
+  const conversionRate = 0.001;
+  const existingPoints = pointsStats?.existingPoints || 0;
+  const pendingPoints = pointsStats?.pendingPoints || 0;
+  const existingPointsInDollars = (existingPoints * conversionRate).toFixed(2);
+  const pendingPointsInDollars = (pendingPoints * conversionRate).toFixed(2);
+  const totalPointsInDollars = ((existingPoints + pendingPoints) * conversionRate).toFixed(2);
 
   // Create submission data for PieChart
   const submissionData = [
@@ -106,7 +120,7 @@ export default function AdminDashboard() {
 
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 hover:shadow-lg transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/5" />
             <CardHeader className="relative pb-3">
@@ -166,6 +180,27 @@ export default function AdminDashboard() {
                 <h3 className="text-sm font-medium text-purple-600/80 font-mono uppercase tracking-wide">Approval Rate</h3>
                 <div className="text-3xl font-bold text-purple-700 dark:text-purple-300 font-mono">{approvalData.count}%</div>
                 <p className="text-xs text-purple-600/60 font-mono">overall rate</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/50 dark:to-orange-900/30 hover:shadow-lg transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/5" />
+            <CardHeader className="relative pb-3">
+              <div className="flex items-center justify-between">
+                <div className="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                  <DollarSign className="h-5 w-5 text-orange-600" />
+                </div>
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 font-mono text-xs">
+                  ${totalPointsInDollars}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="relative">
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-orange-600/80 font-mono uppercase tracking-wide">Points Value</h3>
+                <div className="text-3xl font-bold text-orange-700 dark:text-orange-300 font-mono">${existingPointsInDollars}</div>
+                <p className="text-xs text-orange-600/60 font-mono">${pendingPointsInDollars} pending</p>
               </div>
             </CardContent>
           </Card>

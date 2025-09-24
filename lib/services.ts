@@ -488,6 +488,23 @@ export class QuestService {
     }
   }
 
+  static async getPointsStats(token?: string): Promise<any> {
+    try {
+      const { createApiClientWithToken } = await import("./api/client");
+      const apiClient = token ? createApiClientWithToken(token) : (await import("./api/client")).api;
+      const response = await apiClient.get("/admin/stats/points");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching points stats:", error);
+      // Return default points stats on error
+      return {
+        success: false,
+        existingPoints: 0,
+        pendingPoints: 0,
+      };
+    }
+  }
+
   // Utility methods
   static validateHederaAccountId(accountId: string): boolean {
     const hederaAccountRegex = /^\d+\.\d+\.\d+$/;
