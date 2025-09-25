@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   const questSubmissionData = dashboardData?.questSubmissionData || { count: 0, lastWeek: 0 };
 
   // Points data and conversion
-  const conversionRate = 0.001;
+  const conversionRate = 0.01;
   const existingPoints = pointsStats?.existingPoints || 0;
   const pendingPoints = pointsStats?.pendingPoints || 0;
   const existingPointsInDollars = (existingPoints * conversionRate).toFixed(2);

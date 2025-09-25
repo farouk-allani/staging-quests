@@ -21,7 +21,7 @@ interface WidgetConfig {
 }
 
 const STORAGE_KEY = 'balance-widget-config';
-const DEFAULT_CONVERSION_RATE = 0.001; // $0.001 per point
+const DEFAULT_CONVERSION_RATE = 0.01; // $0.001 per point
 
 export function BalanceWidget({ 
   className, 

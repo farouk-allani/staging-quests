@@ -12,7 +12,7 @@ export default function RewardsPage() {
   
   // Use total_points as the primary source with fallback for backward compatibility
   const pointsBalance = user?.total_points ?? user?.points ?? 0;
-  const conversionRate = 0.001; // $0.001 per point (same as balance widget)
+  const conversionRate = 0.01; // $0.001 per point (same as balance widget)
   const dollarBalance = (pointsBalance * conversionRate).toFixed(2);
 
   // Refresh user data on component mount and when user changes
