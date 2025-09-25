@@ -426,6 +426,7 @@ export function UserManagement({ className }: UserManagementProps) {
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[ROLE]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATUS]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATS]</TableHead>
+                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[USD_VALUE]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[JOINED]</TableHead>
                   {/* <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead> */}
                 </TableRow>
@@ -472,6 +473,16 @@ export function UserManagement({ className }: UserManagementProps) {
                           <Zap className="w-3.5 h-3.5 text-orange-600" />
                           <span className="font-semibold">{user.streak}d</span>
                         </div> */}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded border border-dashed border-green-300/50 w-fit">
+                        <span className="font-mono text-sm font-semibold text-green-700 dark:text-green-300">
+                          ${(user.total_points * 0.01).toLocaleString('en-US', { 
+                            minimumFractionDigits: 2, 
+                            maximumFractionDigits: 2 
+                          })}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm py-4 text-muted-foreground">{user.created_at}</TableCell>
