@@ -20,6 +20,7 @@ interface CreateQuestFormData {
   platform_type?: string;
   interaction_type?: string;
   quest_link?: string;
+  channel_id?: string;
   event_id?: number;
   quest_type?: string;
   progress_to_add?: number;
@@ -56,6 +57,8 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [platform, setPlatform] = useState<string>("");
+  const [interactionType, setInteractionType] = useState<string>("");
+  const [channelId, setChannelId] = useState<string>("");
   const [questType, setQuestType] = useState<string>("hedera_profile_completion");
   const [progressToAdd, setProgressToAdd] = useState<number>(10);
   const [steps, setSteps] = useState<string[]>([]);
@@ -102,6 +105,18 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     setError(null);
 
     try {
+      // Validate Discord channel ID requirement
+      if (platform === "discord" && interactionType === "join" && !channelId.trim()) {
+        setError("Channel ID is required when platform is Discord and interaction is Join");
+        toast({
+          title: "Missing Channel ID",
+          description: "Please provide a Discord channel ID for users to join.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       if (selectedBadges.length > 10) {
         setError("Cannot assign more than 10 badges to a single quest");
         toast({
@@ -158,6 +173,10 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
         badgeIds: selectedBadges.length > 0 ? selectedBadges : undefined,
         quest_link: data.quest_link
           ? sanitizeInput(data.quest_link.trim())
+          : undefined,
+        // Include channel_id only when platform is discord and interaction is join
+        channel_id: (platform === "discord" && interactionType === "join" && channelId.trim())
+          ? sanitizeInput(channelId.trim())
           : undefined,
         // quest_type: questType,
         progress_to_add: progressToAdd,
@@ -253,6 +272,10 @@ export const useCreateQuestForm = (onSuccess?: () => void) => {
     loadingEvents,
     platform,
     setPlatform,
+    interactionType,
+    setInteractionType,
+    channelId,
+    setChannelId,
     questType,
     setQuestType,
     progressToAdd,

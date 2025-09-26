@@ -12,6 +12,10 @@ interface QuestDetailsFormProps {
   register: UseFormRegister<any>;
   platform: string;
   setPlatform: (platform: string) => void;
+  interactionType: string;
+  setInteractionType: (interactionType: string) => void;
+  channelId: string;
+  setChannelId: (channelId: string) => void;
   platformInteractions: { [key: string]: string[] };
   events: Event[];
   loadingEvents: boolean;
@@ -20,7 +24,7 @@ interface QuestDetailsFormProps {
   setSteps: (steps: string[]) => void;
 }
 
-export function QuestDetailsForm({ register, platform, setPlatform, platformInteractions, events, loadingEvents, setValue, steps, setSteps }: QuestDetailsFormProps) {
+export function QuestDetailsForm({ register, platform, setPlatform, interactionType, setInteractionType, channelId, setChannelId, platformInteractions, events, loadingEvents, setValue, steps, setSteps }: QuestDetailsFormProps) {
   
   const addStep = () => {
     setSteps([...steps, '']);
@@ -59,7 +63,10 @@ export function QuestDetailsForm({ register, platform, setPlatform, platformInte
         </div>
         <div>
           <Label htmlFor="interaction_type">Interaction Type *</Label>
-          <Select onValueChange={(value) => setValue("interaction_type", value)}>
+          <Select onValueChange={(value) => {
+            setInteractionType(value);
+            setValue("interaction_type", value);
+          }}>
             <SelectTrigger className="max-w-md">
               <SelectValue placeholder="Select an interaction type" />
             </SelectTrigger>
@@ -85,6 +92,35 @@ export function QuestDetailsForm({ register, platform, setPlatform, platformInte
             {...register('quest_link')}
           />
         </div>
+        
+        {/* Discord Channel ID field - only show when platform is discord and interaction is join */}
+        {platform === "discord" && interactionType === "join" && (
+          <div>
+            <Label htmlFor="channel_id" className="flex items-center gap-1">
+              Discord Channel ID 
+              <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="channel_id"
+              placeholder="e.g., 123456789012345678"
+              className={`max-w-md ${!channelId.trim() ? 'border-red-300 focus:border-red-500' : ''}`}
+              value={channelId}
+              onChange={(e) => {
+                setChannelId(e.target.value);
+                setValue("channel_id", e.target.value);
+              }}
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter the Discord channel ID that users need to join.
+            </p>
+            {!channelId.trim() && (
+              <p className="text-xs text-red-500 mt-1">
+                Channel ID is required for Discord join quests
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <Label htmlFor="event_id">Related Event (Optional)</Label>
           <Select onValueChange={(value) => setValue("event_id", value ? Number(value) : undefined)}>

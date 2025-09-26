@@ -36,6 +36,10 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
     loadingEvents,
     platform,
     setPlatform,
+    interactionType,
+    setInteractionType,
+    channelId,
+    setChannelId,
     platformInteractions,
     steps,
     setSteps,
@@ -61,6 +65,10 @@ export function CreateQuestForm({ onSuccess, onCancel }: CreateQuestFormProps) {
           register={register}
           platform={platform}
           setPlatform={setPlatform}
+          interactionType={interactionType}
+          setInteractionType={setInteractionType}
+          channelId={channelId}
+          setChannelId={setChannelId}
           platformInteractions={platformInteractions}
           events={events}
           loadingEvents={loadingEvents}

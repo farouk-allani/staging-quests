@@ -52,6 +52,7 @@ const editQuestSchema = z.object({
   platform_type: z.string().optional(),
   interaction_type: z.string().optional(),
   quest_link: z.string().optional(),
+  channel_id: z.string().optional(),
   event_id: z.number().nullable().optional(),
   quest_type: z.string().optional(),
   progress_to_add: z.number().optional(),
@@ -62,6 +63,15 @@ const editQuestSchema = z.object({
   with_evidence: z.boolean().optional(),
   requires_attachment: z.boolean().optional(),
   featured: z.boolean().optional(),
+}).refine((data) => {
+  // If platform is discord and interaction is join, channel_id is required
+  if (data.platform_type === "discord" && data.interaction_type === "join") {
+    return data.channel_id && data.channel_id.trim().length > 0;
+  }
+  return true;
+}, {
+  message: "Channel ID is required when platform is Discord and interaction is Join",
+  path: ["channel_id"],
 });
 
 type EditQuestFormData = z.infer<typeof editQuestSchema>;
@@ -99,6 +109,7 @@ export function EditQuestForm({
   const [progressToAdd, setProgressToAdd] = useState<number>(10);
   const [steps, setSteps] = useState<string[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("none");
+  const [channelId, setChannelId] = useState<string>("");
   const { toast } = useToast();
   const { data: session } = useSession();
 
@@ -199,6 +210,9 @@ export function EditQuestForm({
         // Initialize selected event
         setSelectedEventId(questData.event_id ? String(questData.event_id) : "none");
         
+        // Initialize channel_id
+        setChannelId(questData.channel_id || "");
+        
         // Parse and initialize steps from quest_steps
         if (questData.quest_steps && typeof questData.quest_steps === 'string') {
           const parsedSteps = questData.quest_steps.split('#quest_ending#').filter(step => step.trim() !== '');
@@ -276,6 +290,23 @@ export function EditQuestForm({
 
     setIsLoading(true);
     setError(null);
+
+    try {
+      // Validate Discord channel ID requirement
+      if (data.platform_type === "discord" && data.interaction_type === "join" && !channelId.trim()) {
+        setError("Channel ID is required when platform is Discord and interaction is Join");
+        toast({
+          title: "Missing Channel ID",
+          description: "Please provide a Discord channel ID for users to join.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+    } catch (validationError) {
+      setIsLoading(false);
+      return;
+    }
 
     // Show loading toast
     const loadingToast = toast({
@@ -369,6 +400,11 @@ export function EditQuestForm({
       }
       if (data.quest_link !== quest.quest_link) {
         updateData.quest_link = data.quest_link;
+      }
+
+      // Handle channel_id update
+      if (channelId !== (quest.channel_id || "")) {
+        updateData.channel_id = channelId.trim() || null;
       }
 
       // Handle manual_submission update
@@ -988,6 +1024,40 @@ export function EditQuestForm({
               Link to the content or page users need to interact with
             </p>
           </div>
+
+          {/* Discord Channel ID field - only show when platform is discord and interaction is join */}
+          {watch("platform_type") === "discord" && watch("interaction_type") === "join" && (
+            <div className="space-y-2">
+              <Label htmlFor="channel_id" className="flex items-center gap-1">
+                Discord Channel ID 
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="channel_id"
+                placeholder="e.g., 123456789012345678"
+                className={`max-w-md ${!channelId.trim() ? 'border-red-300 focus:border-red-500' : ''}`}
+                value={channelId}
+                onChange={(e) => {
+                  setChannelId(e.target.value);
+                  setValue("channel_id", e.target.value);
+                }}
+                required
+              />
+              {errors.channel_id && (
+                <p className="text-sm text-destructive">
+                  {errors.channel_id.message}
+                </p>
+              )}
+              {!channelId.trim() && (
+                <p className="text-xs text-red-500 mt-1">
+                  Channel ID is required for Discord join quests
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Enter the Discord channel ID that users need to join. You can get this by right-clicking on the channel and selecting "Copy ID".
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Quest Instructions */}

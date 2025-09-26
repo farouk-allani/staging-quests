@@ -86,6 +86,7 @@ export interface Quest {
   platform_type?: string;
   interaction_type?: string;
   quest_link?: string;
+  channel_id?: string;
   event_id?: number;
   progress_to_add?: number;
   user_status?: string;
