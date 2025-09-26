@@ -66,7 +66,10 @@ import {
   Star,
   Zap,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { createApiClientWithToken } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
@@ -125,6 +128,8 @@ export function UserManagement({ className }: UserManagementProps) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortField, setSortField] = useState<'total_points' | 'created_at'>('total_points');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
   // Removed pageInput in favor of leaderboard-style pagination
 
   // Fetch users from API
@@ -134,7 +139,14 @@ export function UserManagement({ className }: UserManagementProps) {
       setError(null);
       const token = session?.user?.token;
       const apiClient = token ? createApiClientWithToken(token) : require('@/lib/api/client').api;
-      const response = await apiClient.get('/user/admin/all', { params: { page, limit } });
+      const response = await apiClient.get('/user/admin/all', { 
+        params: { 
+          page, 
+          limit,
+          sorted: sortField,
+          sort_type: sortOrder
+        } 
+      });
 
       const data: ApiResponse = response.data;
 
@@ -158,7 +170,7 @@ export function UserManagement({ className }: UserManagementProps) {
   // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
-  }, [page, limit, session?.user?.token]);
+  }, [page, limit, sortField, sortOrder, session?.user?.token]);
 
   // Removed pageInput sync effect (not needed with numbered pagination)
 
@@ -285,6 +297,34 @@ export function UserManagement({ className }: UserManagementProps) {
     return items;
   };
 
+  // Handle sorting
+  const handleSort = (field: 'total_points' | 'created_at') => {
+    if (sortField === field) {
+      // Toggle sort order if same field
+      setSortOrder(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      // Set new field with default DESC order
+      setSortField(field);
+      setSortOrder('DESC');
+    }
+    // Reset to first page when sorting changes
+    setPage(1);
+  };
+
+  // Auto-trigger fetch when sort parameters change
+  useEffect(() => {
+    setPage(1);
+  }, [sortField, sortOrder]);
+
+  const getSortIcon = (field: 'total_points' | 'created_at') => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    return sortOrder === 'ASC' ? 
+      <ArrowUp className="w-4 h-4 text-purple-600" /> : 
+      <ArrowDown className="w-4 h-4 text-purple-600" />;
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -364,7 +404,7 @@ export function UserManagement({ className }: UserManagementProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Filters and Search */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4 mt-5">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -373,6 +413,31 @@ export function UserManagement({ className }: UserManagementProps) {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 font-mono border-dashed border-purple-500/30 focus:border-solid"
               />
+            </div>
+            
+            {/* Sort Controls  */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground font-mono">[SORT]</span>
+                <Select value={sortField} onValueChange={(value: 'total_points' | 'created_at') => setSortField(value as 'total_points' | 'created_at')}>
+                  <SelectTrigger className="w-36 font-mono border-dashed border-purple-500/30 focus:border-solid">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="font-mono">
+                    <SelectItem value="total_points">Points</SelectItem>
+                    <SelectItem value="created_at">Join Date</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSortOrder(prev => prev === 'ASC' ? 'DESC' : 'ASC')}
+                  className="px-3 font-mono border-dashed border-purple-500/30 hover:border-solid"
+                  title={`Sort ${sortOrder === 'ASC' ? 'Descending' : 'Ascending'}`}
+                >
+                  {getSortIcon(sortField)}
+                </Button>
+              </div>
             </div>
             {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-40 font-mono border-dashed border-purple-500/30">
@@ -404,7 +469,7 @@ export function UserManagement({ className }: UserManagementProps) {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-                <span className="ml-2 font-mono text-purple-500">LOADING_USERS...</span>
+                <span className="ml-3 font-mono text-purple-500">LOADING_USERS...</span>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-12 text-red-500">
@@ -425,9 +490,37 @@ export function UserManagement({ className }: UserManagementProps) {
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[USER]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[ROLE]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATUS]</TableHead>
-                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATS]</TableHead>
+                  <TableHead 
+                    className={cn(
+                      "font-mono font-semibold py-4 cursor-pointer hover:bg-purple-500/8 transition-colors select-none",
+                      sortField === 'total_points' 
+                        ? "text-purple-600 dark:text-purple-400" 
+                        : "text-purple-700 dark:text-purple-300"
+                    )}
+                    onClick={() => handleSort('total_points')}
+                    title="Click to sort by points"
+                  >
+                    <div className="flex items-center gap-2">
+                      [STATS]
+                      {sortField === 'total_points' && getSortIcon('total_points')}
+                    </div>
+                  </TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[USD_VALUE]</TableHead>
-                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[JOINED]</TableHead>
+                  <TableHead 
+                    className={cn(
+                      "font-mono font-semibold py-4 cursor-pointer hover:bg-purple-500/8 transition-colors select-none",
+                      sortField === 'created_at' 
+                        ? "text-purple-600 dark:text-purple-400" 
+                        : "text-purple-700 dark:text-purple-300"
+                    )}
+                    onClick={() => handleSort('created_at')}
+                    title="Click to sort by join date"
+                  >
+                    <div className="flex items-center gap-2">
+                      [JOINED]
+                      {sortField === 'created_at' && getSortIcon('created_at')}
+                    </div>
+                  </TableHead>
                   {/* <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead> */}
                 </TableRow>
               </TableHeader>
