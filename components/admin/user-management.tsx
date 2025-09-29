@@ -56,7 +56,7 @@ import {
   UserPlus,
   Edit,
   Trash2,
-
+  Eye,
   Ban,
   CheckCircle,
   XCircle,
@@ -68,13 +68,22 @@ import {
   AlertCircle,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ExternalLink,
+  Twitter,
+  Linkedin,
+  MessageSquare,
+  DollarSign,
+  Calendar,
+  Target,
+  FileText,
+  X
 } from 'lucide-react';
 import { createApiClientWithToken } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 
 interface User {
-  id?: string;
+  id?: string | number;
   name?: string;
   firstName: string;
   lastName: string;
@@ -92,6 +101,62 @@ interface User {
   } | null;
 }
 
+interface UserProfile {
+  user: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    bio: string;
+    email_verified: boolean;
+    total_points: number;
+    facebookProfile?: {
+      id: number;
+      facebook_username: string;
+      facebook_profile_picture?: string;
+    } | null;
+    twitterProfile?: {
+      id: number;
+      twitter_username: string;
+      twitter_profile_picture?: string;
+    } | null;
+    discordProfile?: {
+      id: number;
+      discord_username: string;
+      discord_picture?: string;
+    } | null;
+    hederaProfile?: {
+      id: number;
+      hedera_id: string;
+      hedera_did?: string;
+    } | null;
+    linkedInProfile?: {
+      id: number;
+      linked_in_username: string;
+      linked_in_profile_picture?: string;
+    } | null;
+  };
+  completedQuests: Quest[];
+  rejectedQuests: Quest[];
+  pendingQuests: Quest[];
+  total_completed: number;
+  total_rejected: number;
+  tottal_pending: number;
+}
+
+interface Quest {
+  id: number;
+  title: string;
+  description: string;
+  reward: string;
+  difficulty: string;
+  status: string;
+  platform_type: string;
+  quest_type: string;
+  created_at: string;
+}
+
 interface ApiResponse {
   succes: boolean;
   users: User[];
@@ -107,7 +172,7 @@ interface UserManagementProps {
 // Helper function to transform API user data
 const transformUser = (apiUser: User): User & { id: string; name: string; points: number } => ({
   ...apiUser,
-  id: apiUser.username,
+  id: String(apiUser.id || apiUser.username),
   name: `${apiUser.firstName} ${apiUser.lastName}`,
   points: apiUser.total_points,
   
@@ -125,6 +190,10 @@ export function UserManagement({ className }: UserManagementProps) {
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -133,6 +202,29 @@ export function UserManagement({ className }: UserManagementProps) {
   const [sortField, setSortField] = useState<'total_points' | 'created_at'>('total_points');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
   // Removed pageInput in favor of leaderboard-style pagination
+
+  // Fetch user profile details
+  const fetchUserProfile = async (userId: string | number) => {
+    try {
+      setProfileLoading(true);
+      setProfileError(null);
+      const token = session?.user?.token;
+      const apiClient = token ? createApiClientWithToken(token) : require('@/lib/api/client').api;
+      const response = await apiClient.get(`/user/profile/details/${userId}`);
+
+      if (response.data.success) {
+        setUserProfile(response.data.profile);
+      } else {
+        throw new Error('Failed to fetch user profile');
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'An error occurred while fetching user profile';
+      setProfileError(errorMessage);
+      console.error('Error fetching user profile:', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   // Fetch users from API
   const fetchUsers = async () => {
@@ -322,6 +414,13 @@ export function UserManagement({ className }: UserManagementProps) {
       <ArrowDown className="w-4 h-4 text-purple-600" />;
   };
 
+  // Handle viewing user profile
+  const handleViewProfile = async (user: User) => {
+    setSelectedUser(user);
+    setIsProfileDialogOpen(true);
+    await fetchUserProfile(user.id || user.username);
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -509,7 +608,7 @@ export function UserManagement({ className }: UserManagementProps) {
                       {sortField === 'created_at' && getSortIcon('created_at')}
                     </div>
                   </TableHead>
-                  {/* <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead> */}
+                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4 text-center">[ACTIONS]</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -577,6 +676,19 @@ export function UserManagement({ className }: UserManagementProps) {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm py-4 text-muted-foreground">{user.created_at}</TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewProfile(user)}
+                          className="h-8 px-3 border border-dashed border-blue-500/30 hover:border-solid hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 hover:text-blue-700 transition-all duration-200"
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          View
+                        </Button>
+                      </div>
+                    </TableCell>
                     {/* <TableCell className="py-4">
                       <div className="flex items-center justify-center gap-2">
                         <Button
@@ -711,6 +823,338 @@ export function UserManagement({ className }: UserManagementProps) {
           {/* </div> */}
         </CardContent>
       </Card>
+
+      {/* User Profile Dialog */}
+      <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+        <DialogContent className="font-mono border-2 border-dashed border-blue-500/30 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent flex items-center gap-2">
+              <Eye className="w-5 h-5 text-blue-500" />
+              [USER_PROFILE]
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information about user activities and social connections.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {profileLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <span className="ml-3 font-mono text-blue-500">LOADING_PROFILE...</span>
+            </div>
+          ) : profileError ? (
+            <div className="flex items-center justify-center py-12 text-red-500">
+              <AlertCircle className="w-8 h-8" />
+              <span className="ml-2 font-mono">ERROR: {profileError}</span>
+              <Button 
+                onClick={() => selectedUser && fetchUserProfile(selectedUser.id || selectedUser.username)} 
+                className="ml-4 font-mono bg-red-500/10 border border-red-500/30 hover:bg-red-500/20"
+                size="sm"
+              >
+                RETRY
+              </Button>
+            </div>
+          ) : userProfile ? (
+            <div className="space-y-6">
+              {/* User Info Header */}
+              <Card className="border-dashed border-blue-500/30 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/30 dark:to-cyan-950/30">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16 border-2 border-dashed border-blue-500/50">
+                        <AvatarImage 
+                          src={userProfile.user.twitterProfile?.twitter_profile_picture || userProfile.user.linkedInProfile?.linked_in_profile_picture} 
+                          alt={`${userProfile.user.firstName} ${userProfile.user.lastName}`} 
+                        />
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-mono text-lg font-semibold">
+                          {userProfile.user.firstName[0]}{userProfile.user.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-semibold font-mono text-blue-700 dark:text-blue-300">
+                          {userProfile.user.firstName} {userProfile.user.lastName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground font-mono">@{userProfile.user.username}</p>
+                        <p className="text-sm text-muted-foreground font-mono">{userProfile.user.email}</p>
+                        {userProfile.user.bio && (
+                          <p className="text-sm text-muted-foreground mt-2">{userProfile.user.bio}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className={cn(
+                        "font-mono text-xs",
+                        userProfile.user.email_verified 
+                          ? "bg-green-100 text-green-800 border-green-200" 
+                          : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                      )}>
+                        {userProfile.user.email_verified ? 'VERIFIED' : 'UNVERIFIED'}
+                      </Badge>
+                      <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded border border-dashed border-purple-300/50">
+                        <Star className="w-4 h-4 text-purple-600" />
+                        <span className="font-semibold font-mono">{userProfile.user.total_points.toLocaleString()}</span>
+                        <span className="text-xs text-muted-foreground">pts</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded border border-dashed border-green-300/50">
+                        <DollarSign className="w-4 h-4 text-green-600" />
+                        <span className="font-semibold font-mono text-green-700">
+                          ${(userProfile.user.total_points * 0.01).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              {/* Social Connections */}
+              <Card className="border-dashed border-purple-500/30">
+                <CardHeader>
+                  <CardTitle className="font-mono text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    [SOCIAL_CONNECTIONS]
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {/* Twitter */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded border border-dashed transition-all",
+                      userProfile.user.twitterProfile 
+                        ? "border-blue-400/50 bg-blue-50/50 dark:bg-blue-950/20" 
+                        : "border-gray-300/50 bg-gray-50/50 dark:bg-gray-800/20"
+                    )}>
+                      <Twitter className={cn("w-5 h-5", userProfile.user.twitterProfile ? "text-blue-500" : "text-gray-400")} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-muted-foreground">TWITTER/X</div>
+                        {userProfile.user.twitterProfile ? (
+                          <div className="text-sm font-semibold truncate">@{userProfile.user.twitterProfile.twitter_username}</div>
+                        ) : (
+                          <div className="text-sm text-gray-500">Not connected</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* LinkedIn */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded border border-dashed transition-all",
+                      userProfile.user.linkedInProfile 
+                        ? "border-blue-600/50 bg-blue-50/50 dark:bg-blue-950/20" 
+                        : "border-gray-300/50 bg-gray-50/50 dark:bg-gray-800/20"
+                    )}>
+                      <Linkedin className={cn("w-5 h-5", userProfile.user.linkedInProfile ? "text-blue-600" : "text-gray-400")} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-muted-foreground">LINKEDIN</div>
+                        {userProfile.user.linkedInProfile ? (
+                          <div className="text-sm font-semibold truncate">{userProfile.user.linkedInProfile.linked_in_username}</div>
+                        ) : (
+                          <div className="text-sm text-gray-500">Not connected</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Discord */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded border border-dashed transition-all",
+                      userProfile.user.discordProfile 
+                        ? "border-indigo-500/50 bg-indigo-50/50 dark:bg-indigo-950/20" 
+                        : "border-gray-300/50 bg-gray-50/50 dark:bg-gray-800/20"
+                    )}>
+                      <MessageSquare className={cn("w-5 h-5", userProfile.user.discordProfile ? "text-indigo-500" : "text-gray-400")} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-muted-foreground">DISCORD</div>
+                        {userProfile.user.discordProfile ? (
+                          <div className="text-sm font-semibold truncate">{userProfile.user.discordProfile.discord_username}</div>
+                        ) : (
+                          <div className="text-sm text-gray-500">Not connected</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Facebook */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded border border-dashed transition-all",
+                      userProfile.user.facebookProfile 
+                        ? "border-blue-700/50 bg-blue-50/50 dark:bg-blue-950/20" 
+                        : "border-gray-300/50 bg-gray-50/50 dark:bg-gray-800/20"
+                    )}>
+                      <div className={cn("w-5 h-5 rounded text-white font-bold text-xs flex items-center justify-center", userProfile.user.facebookProfile ? "bg-blue-700" : "bg-gray-400")}>
+                        f
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-muted-foreground">FACEBOOK</div>
+                        {userProfile.user.facebookProfile ? (
+                          <div className="text-sm font-semibold truncate">{userProfile.user.facebookProfile.facebook_username}</div>
+                        ) : (
+                          <div className="text-sm text-gray-500">Not connected</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Hedera */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded border border-dashed transition-all",
+                      userProfile.user.hederaProfile 
+                        ? "border-green-500/50 bg-green-50/50 dark:bg-green-950/20" 
+                        : "border-gray-300/50 bg-gray-50/50 dark:bg-gray-800/20"
+                    )}>
+                      <div className={cn("w-5 h-5 rounded text-white font-bold text-xs flex items-center justify-center", userProfile.user.hederaProfile ? "bg-green-500" : "bg-gray-400")}>
+                        H
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-mono text-muted-foreground">HEDERA</div>
+                        {userProfile.user.hederaProfile ? (
+                          <div className="text-sm font-semibold truncate">{userProfile.user.hederaProfile.hedera_id.slice(0, 20)}...</div>
+                        ) : (
+                          <div className="text-sm text-gray-500">Not connected</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quest Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-dashed border-green-500/30 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/30 dark:to-emerald-950/30">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-500/10 rounded border border-dashed border-green-500/30">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold font-mono text-green-700">{userProfile.total_completed}</div>
+                        <div className="text-sm font-mono text-green-600/80">COMPLETED</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                <Card className="border-dashed border-yellow-500/30 bg-gradient-to-br from-yellow-50/50 to-orange-50/50 dark:from-yellow-950/30 dark:to-orange-950/30">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-yellow-500/10 rounded border border-dashed border-yellow-500/30">
+                        <Clock className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold font-mono text-yellow-700">{userProfile.tottal_pending}</div>
+                        <div className="text-sm font-mono text-yellow-600/80">PENDING</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                <Card className="border-dashed border-red-500/30 bg-gradient-to-br from-red-50/50 to-pink-50/50 dark:from-red-950/30 dark:to-pink-950/30">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-500/10 rounded border border-dashed border-red-500/30">
+                        <XCircle className="w-5 h-5 text-red-600" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold font-mono text-red-700">{userProfile.total_rejected}</div>
+                        <div className="text-sm font-mono text-red-600/80">REJECTED</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* Quest Details Tabs */}
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300/50 rounded-lg bg-gradient-to-r from-gray-50/30 to-gray-100/30 dark:from-gray-800/30 dark:to-gray-700/30">
+                  {/* Completed Quests */}
+                  {userProfile.completedQuests.length > 0 && (
+                    <div className="p-4 border-b border-dashed border-gray-300/50">
+                      <h4 className="font-mono font-semibold text-green-700 mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        COMPLETED_QUESTS ({userProfile.completedQuests.length})
+                      </h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {userProfile.completedQuests.map((quest) => (
+                          <div key={quest.id} className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-900/20 rounded border border-dashed border-green-300/50">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{quest.title}</div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {quest.platform_type} • {quest.difficulty} • {new Date(quest.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <Badge className="bg-green-100 text-green-800 border-green-200 font-mono text-xs">
+                              +{quest.reward} pts
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pending Quests */}
+                  {userProfile.pendingQuests.length > 0 && (
+                    <div className="p-4 border-b border-dashed border-gray-300/50">
+                      <h4 className="font-mono font-semibold text-yellow-700 mb-3 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        PENDING_QUESTS ({userProfile.pendingQuests.length})
+                      </h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {userProfile.pendingQuests.map((quest) => (
+                          <div key={quest.id} className="flex items-center justify-between p-3 bg-yellow-50/50 dark:bg-yellow-900/20 rounded border border-dashed border-yellow-300/50">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{quest.title}</div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {quest.platform_type} • {quest.difficulty} • {new Date(quest.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-mono text-xs">
+                              {quest.reward} pts
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rejected Quests */}
+                  {userProfile.rejectedQuests.length > 0 && (
+                    <div className="p-4">
+                      <h4 className="font-mono font-semibold text-red-700 mb-3 flex items-center gap-2">
+                        <XCircle className="w-4 h-4" />
+                        REJECTED_QUESTS ({userProfile.rejectedQuests.length})
+                      </h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {userProfile.rejectedQuests.map((quest) => (
+                          <div key={quest.id} className="flex items-center justify-between p-3 bg-red-50/50 dark:bg-red-900/20 rounded border border-dashed border-red-300/50">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{quest.title}</div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {quest.platform_type} • {quest.difficulty} • {new Date(quest.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <Badge className="bg-red-100 text-red-800 border-red-200 font-mono text-xs">
+                              {quest.reward} pts
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsProfileDialogOpen(false);
+                setUserProfile(null);
+                setSelectedUser(null);
+              }} 
+              className="font-mono border-dashed"
+            >
+              [CLOSE]
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
