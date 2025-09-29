@@ -40,10 +40,11 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
   onRegistrationSuccess: (email: string, token: string) => void;
+  referralCode?: string | null;
   isMobile?: boolean;
 }
 
-export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, isMobile = false }: RegisterFormProps) {
+export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, referralCode, isMobile = false }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -117,6 +118,7 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, isMobile 
         password: data.password,
         confirmPassword: data.confirmPassword,
         recaptchaToken: recaptchaToken || undefined,
+        referralCode: referralCode || undefined,
       });
       
       // Dismiss loading toast

@@ -3,7 +3,7 @@ import axios from 'axios';
 import type { User } from '@/lib/types';
 
 export type LoginRequest = { email: string; password: string; recaptchaToken?: string };
-export type RegisterRequest = { name: string; email: string; password: string; confirmPassword: string; recaptchaToken?: string };
+export type RegisterRequest = { name: string; email: string; password: string; confirmPassword: string; recaptchaToken?: string; referralCode?: string };
 export type AuthResponse = { user: User; accessToken: string; refreshToken?: string };
 
 export const AuthService = {
@@ -94,7 +94,8 @@ export const AuthService = {
       username,
       email: payload.email,
       password: payload.password,
-      bio: ''
+      bio: '',
+      ...(payload.referralCode && { ref: payload.referralCode })
     };
 
     // Use Next.js API proxy to avoid CORS issues

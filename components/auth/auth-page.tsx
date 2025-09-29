@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoginForm } from './login-form';
 import { RegisterForm } from './register-form';
 import { OtpVerification } from './otp-verification';
@@ -14,25 +15,63 @@ import { User } from '@/lib/types';
 type AuthFlow = 'login' | 'register' | 'otp-verification' | 'forgot-password';
 
 export function AuthPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentFlow, setCurrentFlow] = useState<AuthFlow>('login');
   const [registrationData, setRegistrationData] = useState<{
     email: string;
     token: string;
   } | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  // Initialize from URL parameters
+  useEffect(() => {
+    if (!searchParams) return;
+    
+    const flow = searchParams.get('flow');
+    const ref = searchParams.get('ref');
+    
+    // Set referral code if present
+    if (ref) {
+      setReferralCode(ref);
+    }
+    
+    // Set initial flow based on URL parameter
+    if (flow === 'register' || flow === 'login' || flow === 'forgot-password') {
+      setCurrentFlow(flow as AuthFlow);
+    } else if (ref && !flow) {
+      // If referral code is present but no specific flow, default to register
+      setCurrentFlow('register');
+    }
+  }, [searchParams]);
+
+  const updateUrl = (flow: AuthFlow, preserveRef: boolean = true) => {
+    const params = new URLSearchParams();
+    params.set('flow', flow);
+    
+    if (preserveRef && referralCode) {
+      params.set('ref', referralCode);
+    }
+    
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
   const handleSwitchToLogin = () => {
     setCurrentFlow('login');
     setRegistrationData(null);
+    updateUrl('login');
   };
 
   const handleSwitchToRegister = () => {
     setCurrentFlow('register');
     setRegistrationData(null);
+    updateUrl('register');
   };
 
   const handleSwitchToForgotPassword = () => {
     setCurrentFlow('forgot-password');
     setRegistrationData(null);
+    updateUrl('forgot-password', false); // Don't preserve ref for forgot password
   };
 
   const handleRegistrationSuccess = (email: string, token: string) => {
@@ -57,6 +96,7 @@ export function AuthPage() {
           <RegisterForm 
             onSwitchToLogin={handleSwitchToLogin}
             onRegistrationSuccess={handleRegistrationSuccess}
+            referralCode={referralCode}
             {...formProps}
           />
         );

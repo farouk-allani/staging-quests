@@ -323,3 +323,19 @@ export interface QuestFilters {
   page?: number;
   limit?: number;
 }
+
+// Partner Types
+export interface Partner {
+  id: number;
+  name: string;
+  photo?: string;
+  referral_code: string;
+}
+
+export interface PartnersResponse {
+  success: boolean;
+  partners: Partner[];
+  numberOfPages: number;
+  page: number;
+  limit: number;
+}

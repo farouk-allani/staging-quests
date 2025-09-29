@@ -56,8 +56,7 @@ import {
   UserPlus,
   Edit,
   Trash2,
-  Shield,
-  ShieldCheck,
+
   Ban,
   CheckCircle,
   XCircle,
@@ -83,11 +82,14 @@ interface User {
   email: string;
   email_verified: boolean;
   total_points: number;
-  role?: 'user' | 'moderator' | 'admin';
+
   avatar?: string;
   level?: number;
   streak?: number;
   created_at?: string;
+  referred_partner?: {
+    name: string;
+  } | null;
 }
 
 interface ApiResponse {
@@ -108,7 +110,7 @@ const transformUser = (apiUser: User): User & { id: string; name: string; points
   id: apiUser.username,
   name: `${apiUser.firstName} ${apiUser.lastName}`,
   points: apiUser.total_points,
-  role: apiUser.role || 'user',
+  
   level: apiUser.level || 1,
   streak: apiUser.streak || 0,
   created_at: apiUser.created_at?.toString().split('T')[0] || new Date().toISOString().split('T')[0]
@@ -120,7 +122,7 @@ export function UserManagement({ className }: UserManagementProps) {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [roleFilter, setRoleFilter] = useState('all');
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -196,13 +198,8 @@ export function UserManagement({ className }: UserManagementProps) {
       });
     }
 
-    // Role filter
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
     setFilteredUsers(filtered);
-  }, [users, searchTerm, statusFilter, roleFilter]);
+  }, [users, searchTerm, statusFilter]);
 
   // Pagination helpers (match leaderboard UX)
   const handlePageChange = (newPage: number) => {
@@ -342,16 +339,7 @@ export function UserManagement({ className }: UserManagementProps) {
   //   }
   // };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20 font-mono"><ShieldCheck className="w-3 h-3 mr-1" />ADMIN</Badge>;
-      case 'moderator':
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 font-mono"><Shield className="w-3 h-3 mr-1" />MOD</Badge>;
-      default:
-        return <Badge variant="outline" className="font-mono">USER</Badge>;
-    }
-  };
+
 
   // const handleUserAction = async (userId: string | number, action: string) => {
   //   try {
@@ -488,7 +476,7 @@ export function UserManagement({ className }: UserManagementProps) {
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border-b-2 border-dashed border-purple-500/30">
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[USER]</TableHead>
-                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[ROLE]</TableHead>
+                  <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[REFERRED BY]</TableHead>
                   <TableHead className="font-mono font-semibold text-purple-700 dark:text-purple-300 py-4">[STATUS]</TableHead>
                   <TableHead 
                     className={cn(
@@ -542,7 +530,17 @@ export function UserManagement({ className }: UserManagementProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4">{getRoleBadge(user.role || 'user')}</TableCell>
+                    <TableCell className="py-4">
+                      {user.referred_partner ? (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-mono text-xs">
+                          {user.referred_partner.name}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800 border-gray-200 font-mono text-xs">
+                          DIRECT
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="py-4">
                       <div className="flex items-center gap-2">
                         {user.email_verified ? (
@@ -749,17 +747,12 @@ export function UserManagement({ className }: UserManagementProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium font-mono">[ROLE]</label>
-                  <Select defaultValue={selectedUser.role}>
-                    <SelectTrigger className="font-mono border-dashed">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="font-mono">
-                      <SelectItem value="user">[USER]</SelectItem>
-                      <SelectItem value="moderator">[MODERATOR]</SelectItem>
-                      <SelectItem value="admin">[ADMIN]</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium font-mono">[REFERRED BY]</label>
+                  <Input 
+                    value={selectedUser.referred_partner ? selectedUser.referred_partner.name : 'Direct Registration'} 
+                    className="font-mono border-dashed" 
+                    readOnly 
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium font-mono">[STATUS]</label>

@@ -9,6 +9,8 @@ import {
   FilterOptions,
   SubmissionContent,
   QuestCategory,
+  Partner,
+  PartnersResponse,
 } from "./types";
 import { AuthService as ApiAuth } from "./api/auth";
 import { QuestsApi } from "./api/quests";
@@ -17,6 +19,7 @@ import { BadgesApi } from "./api/badges";
 import { LeaderboardApi } from "./api/leaderboard";
 import { EventsApi } from "./api/events";
 import { UsersApi } from "./api/users";
+import { PartnersApi } from "./api/partners";
 
 export class QuestService {
   // Authentication methods
@@ -536,5 +539,68 @@ export class QuestService {
         ? "https://hashscan.io/mainnet/transaction"
         : "https://hashscan.io/testnet/transaction";
     return `${baseUrl}/${transactionId}`;
+  }
+
+  // Partner methods
+  static async getPartners(page: number = 1, limit: number = 10, token?: string): Promise<PartnersResponse> {
+    try {
+      const response = await PartnersApi.list(page, limit, token);
+      return response;
+    } catch (error) {
+      console.error("Error fetching partners:", error);
+      throw error;
+    }
+  }
+
+  static async getPartner(id: number, token?: string): Promise<Partner> {
+    try {
+      const response = await PartnersApi.findById(id, token);
+      return response;
+    } catch (error) {
+      console.error("Error fetching partner:", error);
+      throw error;
+    }
+  }
+
+  static async createPartner(name: string, photo?: File, token?: string): Promise<Partner> {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      if (photo) {
+        formData.append('photo', photo);
+      }
+      
+      const response = await PartnersApi.create(formData, token);
+      return response;
+    } catch (error) {
+      console.error("Error creating partner:", error);
+      throw error;
+    }
+  }
+
+  static async updatePartner(id: number, name: string, photo?: File, token?: string): Promise<Partner> {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      if (photo) {
+        formData.append('photo', photo);
+      }
+      
+      const response = await PartnersApi.update(id, formData, token);
+      return response;
+    } catch (error) {
+      console.error("Error updating partner:", error);
+      throw error;
+    }
+  }
+
+  static async deletePartner(id: number, token?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await PartnersApi.delete(id, token);
+      return response;
+    } catch (error) {
+      console.error("Error deleting partner:", error);
+      throw error;
+    }
   }
 }
