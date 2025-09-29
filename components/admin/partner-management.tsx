@@ -803,6 +803,7 @@ export function PartnerManagement({ className }: PartnerManagementProps) {
                   <TableHead className="font-mono text-emerald-600">PARTNER</TableHead>
                   <TableHead className="font-mono text-emerald-600">PHOTO</TableHead>
                   <TableHead className="font-mono text-emerald-600">REFERRAL_CODE</TableHead>
+                  <TableHead className="font-mono text-emerald-600">REFERRED_USERS</TableHead>
                   <TableHead className="font-mono text-emerald-600">ACTIONS</TableHead>
                 </TableRow>
               </TableHeader>
@@ -847,6 +848,17 @@ export function PartnerManagement({ className }: PartnerManagementProps) {
                             className="bg-blue-500/10 text-blue-600 border-blue-500/20 font-mono text-xs"
                           >
                             {partner.referral_code}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className="bg-purple-500/10 text-purple-600 border-purple-500/20 font-mono text-xs"
+                          >
+                            {partner.numberOfReferredUsers || 0} USERS
                           </Badge>
                         </div>
                       </TableCell>
@@ -920,7 +932,7 @@ export function PartnerManagement({ className }: PartnerManagementProps) {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-12">
+                    <TableCell colSpan={5} className="text-center py-12">
                       <div className="flex flex-col items-center gap-2">
                         <Users className="h-12 w-12 text-muted-foreground/50" />
                         <div className="text-lg font-medium text-muted-foreground font-mono">

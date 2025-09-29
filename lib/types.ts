@@ -330,6 +330,7 @@ export interface Partner {
   name: string;
   photo?: string;
   referral_code: string;
+  numberOfReferredUsers?: number;
 }
 
 export interface PartnersResponse {
