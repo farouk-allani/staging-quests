@@ -184,9 +184,7 @@ const transformUser = (apiUser: User): User & { id: string; name: string; points
 export function UserManagement({ className }: UserManagementProps) {
   const { data: session } = useSession();
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -233,13 +231,21 @@ export function UserManagement({ className }: UserManagementProps) {
       setError(null);
       const token = session?.user?.token;
       const apiClient = token ? createApiClientWithToken(token) : require('@/lib/api/client').api;
+      
+      const params: any = { 
+        page, 
+        limit,
+        sorted: sortField,
+        sort_type: sortOrder
+      };
+      
+      // Add search parameter if search term exists
+      if (debouncedSearchTerm.trim()) {
+        params.search = debouncedSearchTerm.trim();
+      }
+      
       const response = await apiClient.get('/user/admin/all', { 
-        params: { 
-          page, 
-          limit,
-          sorted: sortField,
-          sort_type: sortOrder
-        } 
+        params 
       });
 
       const data: ApiResponse = response.data;
@@ -261,37 +267,31 @@ export function UserManagement({ className }: UserManagementProps) {
     }
   };
 
-  // Fetch users on component mount
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
+  // Fetch users on component mount and when dependencies change
   useEffect(() => {
     fetchUsers();
-  }, [page, limit, sortField, sortOrder, session?.user?.token]);
+  }, [page, limit, sortField, sortOrder, debouncedSearchTerm, session?.user?.token]);
 
   // Removed pageInput sync effect (not needed with numbered pagination)
 
-  useEffect(() => {
-    let filtered = users;
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(user => {
-        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-        return fullName.includes(searchTerm.toLowerCase()) ||
-               user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               user.username.toLowerCase().includes(searchTerm.toLowerCase());
-      });
-    }
-
-    // Status filter based on email verification
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => {
-        if (statusFilter === 'active') return user.email_verified;
-        if (statusFilter === 'pending') return !user.email_verified;
-        return true;
-      });
-    }
-
-    setFilteredUsers(filtered);
-  }, [users, searchTerm, statusFilter]);
 
   // Pagination helpers (match leaderboard UX)
   const handlePageChange = (newPage: number) => {
@@ -612,7 +612,7 @@ export function UserManagement({ className }: UserManagementProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <TableRow key={user.id} className="border-b border-dashed border-purple-500/10 hover:bg-gradient-to-r hover:from-purple-500/8 hover:to-cyan-500/8 transition-all duration-200 group">
                     <TableCell className="py-4">
                       <div className="flex items-center gap-4">
