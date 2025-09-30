@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthService } from '@/lib/api/auth';
 import type { ApiError } from '@/lib/api/client';
 import type { User } from '@/lib/types';
-import { Eye, EyeOff, Mail, Lock, User as UserIcon, AlertCircle, Shield } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, AlertCircle, Shield, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { HydrationSafe } from '@/components/hydration-safe';
 import ErrorBoundary from '@/components/error-boundary';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +31,10 @@ const registerSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  referralCode: z.string()
+    .optional()
+    .refine((val) => !val || val.trim().length >= 2, 'Referral code must be at least 2 characters if provided')
+    .refine((val) => !val || val.trim().length <= 50, 'Referral code must be less than 50 characters'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -52,9 +57,19 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, referralC
   const { toast } = useToast();
   const { getRecaptchaToken, isAvailable: isRecaptchaAvailable } = useRecaptcha();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema)
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      referralCode: referralCode || ''
+    }
   });
+
+  // Update referralCode field when prop changes (only if not manually modified)
+  useEffect(() => {
+    if (referralCode) {
+      setValue('referralCode', referralCode);
+    }
+  }, [referralCode, setValue]);
 
   const verifyRecaptcha = async (): Promise<string | null> => {
     if (!isRecaptchaAvailable) {
@@ -118,7 +133,7 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, referralC
         password: data.password,
         confirmPassword: data.confirmPassword,
         recaptchaToken: recaptchaToken || undefined,
-        referralCode: referralCode || undefined,
+        referralCode: data.referralCode || referralCode || undefined,
       });
       
       // Dismiss loading toast
@@ -267,6 +282,41 @@ export function RegisterForm({ onSwitchToLogin, onRegistrationSuccess, referralC
             </div>
             {errors.confirmPassword && (
               <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="referralCode" className={`${isMobile ? 'text-white' : ''}`}>
+              Referral Code <span className="text-sm text-muted-foreground">(Optional)</span>
+            </Label>
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="referralCode"
+                type="text"
+                placeholder="Enter referral code (optional)"
+                className={`pl-10 ${referralCode ? 'pr-24' : ''} ${referralCode ? 'border-green-500/50 bg-green-50/50' : ''}`}
+                {...register('referralCode')}
+              />
+              {/* {referralCode && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-300">
+                    Auto-filled
+                  </Badge>
+                </div>
+              )} */}
+            </div>
+            {errors.referralCode && (
+              <p className="text-sm text-destructive">{errors.referralCode.message}</p>
+            )}
+            {referralCode ? (
+              <p className="text-xs text-green-600">
+                ✓ Referral code automatically applied from your invitation link.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Have a referral code? Enter it here.
+              </p>
             )}
           </div>
 
