@@ -120,9 +120,18 @@ export function LoginForm({ onSwitchToRegister, onSwitchToForgotPassword, isMobi
         });
 
         // Small delay to ensure session is established before redirect
-        setTimeout(() => {
-          console.log('LoginForm: Redirecting to home page...');
-          router.push('/');
+        setTimeout(async () => {
+          // Get the fresh session to check user role
+          const { getSession } = await import('next-auth/react');
+          const session = await getSession();
+          
+          if (session?.user?.role === 'admin' || session?.user?.isAdmin) {
+            console.log('LoginForm: Admin user detected, redirecting to admin dashboard...');
+            router.push('/admin');
+          } else {
+            console.log('LoginForm: Redirecting to home page...');
+            router.push('/');
+          }
         }, 500);
       } else {
         console.error('LoginForm: NextAuth signIn result not ok:', result);

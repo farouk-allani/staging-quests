@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [badges, setBadges] = useState<BadgeType[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
@@ -52,20 +53,21 @@ export default function Dashboard() {
     router.push(`/quests/${questId}`);
   };
 
-  // Redirect admin users to admin dashboard immediately when user is available
+  // Redirect admin users to admin dashboard (fallback protection)
   useEffect(() => {
     if (user?.role === 'admin') {
-      router.push('/admin');
+      console.log('Dashboard: Admin user detected, redirecting to /admin');
+      router.replace('/admin');
       return;
     }
-  }, [user, router]);
+  }, [user?.role, router]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         console.log('Dashboard: Loading data, session status:', status, 'user:', user);
 
-        // Skip loading data if user is admin (they'll be redirected)
+        // Skip loading data if user is admin (admin dashboard doesn't need this data)
         if (user?.role === 'admin') {
           return;
         }
@@ -87,8 +89,11 @@ export default function Dashboard() {
           }
         }
         
+        // Only load admin dashboard stats if user is admin
+        const shouldLoadAdminStats = (user as any)?.role === 'admin';
+        
         const [statsData, featuredQuestsResponse, completionsData] = await Promise.all([
-          QuestService.getDashboardStats(token).catch(() => null),
+          shouldLoadAdminStats ? QuestService.getDashboardStats(token).catch(() => null) : Promise.resolve(null),
           UserQuestService.getFeaturedQuests(1, 12, token).catch(() => ({ success: false, quests: [], page: 1, limit: 6, numberOfPages: 0 })),
           QuestService.getQuestCompletions(token).catch(() => ({ quests: [] })) // Fallback if API fails
         ]);
@@ -126,9 +131,16 @@ export default function Dashboard() {
         // Only load user-specific data if user is authenticated
         if (user) {
           try {
+            // Use appropriate API based on user role:
+            // - Admin users: Use getSubmissions (admin endpoint) to see all submissions
+            // - Regular users: Use getUserCompletions (user-specific endpoint) to see only their own completions
+            const isAdmin = (user as any)?.role === 'admin';
+            
             const [badgesData, submissionsData] = await Promise.all([
               QuestService.getUserBadges(String(user.id), token).catch(() => []),
-              QuestService.getSubmissions(undefined, String(user.id), token).catch(() => [])
+              isAdmin 
+                ? QuestService.getSubmissions(undefined, String(user.id), token).catch(() => [])
+                : QuestService.getUserCompletions(token).catch(() => [])
             ]);
             setBadges(badgesData || []);
             setSubmissions(submissionsData || []);
@@ -159,7 +171,7 @@ export default function Dashboard() {
     );
   }
 
-  // Show loading spinner while redirecting admin users
+  // Show loading spinner while redirecting admin users (fallback)
   if (user?.role === 'admin') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -252,12 +264,6 @@ export default function Dashboard() {
     return matchesCategory && matchesDifficulty;
   });
 
-  const recentActivity = submissions
-    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-    .slice(0, 5);
-
-  const categories = Array.from(new Set(unstartedQuests.quests.map((q: Quest) => q.category).filter(Boolean))) as string[];
-  const difficulties = ['beginner', 'intermediate', 'advanced', 'expert', 'master'];
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">

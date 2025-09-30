@@ -68,7 +68,8 @@ export function AppContent({ children }: { children: React.ReactNode }) {
     if (user && user.role === 'admin' && isAuthenticated && !isLoading) {
       // Only redirect if not already on an admin page
       if (!pathname.startsWith('/admin')) {
-        router.push('/admin');
+        console.log('AppContent: Admin user detected, redirecting to /admin');
+        router.replace('/admin'); // Use replace instead of push
         return;
       }
     }
